@@ -340,8 +340,16 @@ class IPhotoDB:
     def AddAlbumNew(self, album):
         try:
             albumid = int(album['AlbumId'])
+	    albumtype = album['Album Type']
         except:
             return
+
+	# weed out Published (MobileMe) and auto-generated albums, with the
+	# exception of the "Last Import" ("Special Roll") album.
+	if albumtype != "Regular" and albumtype != "Smart" and albumtype != "Special Roll":
+	    return
+	#print "Adding album of type %s" % (albumtype)
+
         try:
             self.dbconn.execute("""
             INSERT INTO albums (id, name, master, guid, photocount)
