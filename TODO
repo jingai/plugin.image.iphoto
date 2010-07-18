@@ -1,0 +1,2 @@
+* use pysqlite addon in repo for cross-platform compatibility
+* translate strings to other languages
