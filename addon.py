@@ -127,7 +127,26 @@ def progress_callback(current, max):
 def import_library(filename):
     global db
     db.ResetDB()
-    iparser = IPhotoParser(db.AddAlbumNew, db.AddRollNew, db.AddKeywordNew, db.AddMediaNew, progress_callback)
+
+    album_ign = []
+    album_ign.append("Book")
+    album_ign.append("Selected Event Album")
+
+    album_ign_publ = addon.getSetting('album_ignore_published')
+    if (album_ign_publ == ""):
+	addon.setSetting('album_ignore_published', 'true')
+	album_ign_publ = "true"
+    if (album_ign_publ == "true"):
+	album_ign.append("Published")
+
+    album_ign_flagged = addon.getSetting('album_ignore_flagged')
+    if (album_ign_flagged == ""):
+	addon.setSetting('album_ignore_flagged', 'true')
+	album_ign_flagged = "true"
+    if (album_ign_flagged == "true"):
+	album_ign.append("Shelf")
+
+    iparser = IPhotoParser(db.AddAlbumNew, album_ign, db.AddRollNew, db.AddKeywordNew, db.AddMediaNew, progress_callback)
     try:
 	iparser.Parse(filename)
 	db.UpdateLastImport()

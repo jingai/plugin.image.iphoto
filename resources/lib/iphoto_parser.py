@@ -337,16 +337,15 @@ class IPhotoDB:
         track['genre'] = tuple[11]
         return track
 
-    def AddAlbumNew(self, album):
+    def AddAlbumNew(self, album, album_ign):
         try:
             albumid = int(album['AlbumId'])
 	    albumtype = album['Album Type']
         except:
             return
 
-	# weed out Published (MobileMe) and auto-generated albums, with the
-	# exception of the "Last Import" ("Special Roll") album.
-	if albumtype != "Regular" and albumtype != "Smart" and albumtype != "Special Roll":
+	# weed out ignored albums
+	if albumtype in album_ign:
 	    return
 	#print "Adding album of type %s" % (albumtype)
 
@@ -481,7 +480,7 @@ class IPhotoParserState:
         self.valueType = ""
 
 class IPhotoParser:
-    def __init__(self, album_callback=None, roll_callback=None,
+    def __init__(self, album_callback=None, album_ign=[], roll_callback=None,
                  keyword_callback=None, photo_callback=None, progress_callback=None):
         self.parser = xml.parsers.expat.ParserCreate()
         self.parser.StartElementHandler = self.StartElement
@@ -494,6 +493,7 @@ class IPhotoParser:
         self.currentRoll = {}
         self.currentKeyword = {}
         self.AlbumCallback = album_callback
+	self.albumIgn = album_ign
         self.RollCallback = roll_callback
         self.KeywordCallback = keyword_callback
         self.PhotoCallback = photo_callback
@@ -591,7 +591,7 @@ class IPhotoParser:
             if state.inalbum == 0 and self.currentAlbum.has_key('AlbumId'):
                 # Finished reading album, process it now
                 if self.AlbumCallback:
-                    self.AlbumCallback(self.currentAlbum)
+                    self.AlbumCallback(self.currentAlbum, self.albumIgn)
                 if self.ProgressCallback:
                     try:
                         self.ProgressCallback(-1, -1)
