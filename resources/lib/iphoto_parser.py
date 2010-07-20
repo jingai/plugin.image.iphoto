@@ -5,7 +5,7 @@
 __author__ = "jingai <jingai@floatingpenguins.com>"
 __credits__ = "Anoop Menon, Nuka1195, JMarshal, jingai"
 __url__ = "http://xbmc.org/"
-__version__ = "0.9.9"
+__version__ = "0.9.1"
 __license__ = "GPL"
 __XBMC_Revision__ = "31123"
 
