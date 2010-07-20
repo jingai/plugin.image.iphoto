@@ -8,7 +8,7 @@ __credits__ = "Anoop Menon, Nuka1195, JMarshal, jingai"
 __url__ = "http://xbmc.org/"
 __version__ = "0.9.1"
 __license__ = "GPL"
-__XBMC_Revision__ = "31123"
+__XBMC_Revision__ = "31632"
 
 import sys
 import os

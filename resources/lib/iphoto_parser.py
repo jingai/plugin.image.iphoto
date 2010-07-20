@@ -7,14 +7,11 @@ __credits__ = "Anoop Menon, Nuka1195, JMarshal, jingai"
 __url__ = "http://xbmc.org/"
 __version__ = "0.9.1"
 __license__ = "GPL"
-__XBMC_Revision__ = "31123"
+__XBMC_Revision__ = "31632"
 
 import traceback
 import xml.parsers.expat
-try:
-    from pysqlite2 import dbapi2 as sqlite
-except:
-    from sqlite3 import dbapi2 as sqlite
+from pysqlite2 import dbapi2 as sqlite
 from urllib import unquote
 import sys
 import os
