@@ -29,8 +29,6 @@ Known Issues
   erroneous and can be ignored, but there is no way to distinguish a real
   failure from the expected one at the moment.
 * You need to re-import the library every time you modify it with iPhoto.
-* Currently only works on MacOS X.  Once (if?) pysqlite2 module is in the
-  addons repo I'll try to port this to Windows and Linux too.
 * Currently only has English strings.
 * It is unknown if this plugin will work with Apple's Aperature, because I
   don't own a copy.
