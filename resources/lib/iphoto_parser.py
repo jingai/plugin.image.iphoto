@@ -404,7 +404,7 @@ class IPhotoDB:
             raise e
         #self.Commit()
 
-    def AddMediaNew(self, media):
+    def AddMediaNew(self, media, archivePath, realPath):
         #print "Media => " + str(media)
         try:
             mediaid = media['MediaID']
@@ -412,6 +412,20 @@ class IPhotoDB:
                 return
         except Exception, e:
             return
+
+	# rewrite paths to image files based on configured path.
+	# if the iPhoto library is mounted as a share, the paths in
+	# AlbumData.xml probably won't be right.
+	if archivePath and realPath:
+	    imagepath = media['ImagePath'].replace(archivePath, realPath)
+	    thumbpath = media['ThumbPath'].replace(archivePath, realPath)
+	    originalpath = media['OriginalPath'].replace(archivePath, realPath)
+	else:
+	    imagepath = media['ImagePath']
+	    thumbpath = media['ThumbPath']
+	    originalpath = media['OriginalPath']
+
+	#print "imagepath='%s'" % (imagepath)
         try:
             self.dbconn.execute("""
             INSERT INTO media (id, mediatypeid, rollid, caption, guid,
@@ -426,9 +440,9 @@ class IPhotoDB:
                                  media['Aspect Ratio'],
                                  media['Rating'],
                                  int(float(media['DateAsTimerInterval'])),
-                                 media['ImagePath'],
-                                 media['ThumbPath'],
-                                 media['OriginalPath']))
+				 imagepath,
+				 thumbpath,
+				 originalpath))
         except sqlite.IntegrityError:
             pass
         except Exception, e:
@@ -459,6 +473,8 @@ class IPhotoDB:
 class IPhotoParserState:
     def __init__(self):
         self.level = 0
+	self.archivepath = False
+	self.inarchivepath = 0
         self.albums = False
         self.inalbum = 0
         self.rolls = False
@@ -474,8 +490,10 @@ class IPhotoParserState:
         self.valueType = ""
 
 class IPhotoParser:
-    def __init__(self, album_callback=None, album_ign=[], roll_callback=None,
+    def __init__(self, xmlfile="", album_callback=None, album_ign=[], roll_callback=None,
                  keyword_callback=None, photo_callback=None, progress_callback=None):
+	self.xmlfile = xmlfile
+	self.imagePath = ""
         self.parser = xml.parsers.expat.ParserCreate()
         self.parser.StartElementHandler = self.StartElement
         self.parser.EndElementHandler = self.EndElement
@@ -524,12 +542,12 @@ class IPhotoParser:
         for a in self.currentKeyword.keys():
             del self.currentKeyword[a]
 
-    def Parse(self, filename):
+    def Parse(self):
         try:
-            #totalsize = os.path.getsize(filename)
+            #totalsize = os.path.getsize(self.xmlfile)
             BLOCKSIZE = 8192
             #readsize = BLOCKSIZE
-            f = open(filename, "r")
+            f = open(self.xmlfile, "r")
             buf = f.read(BLOCKSIZE)
             while buf:
                 self.parser.Parse(buf, False)
@@ -544,7 +562,10 @@ class IPhotoParser:
     def StartElement(self, name, attrs):
         state = self.state
         self.lastdata = False
-        if state.albums:
+        if state.archivepath:
+            state.inarchivepath += 1
+            state.key = name
+        elif state.albums:
             state.inalbum += 1
             state.key = name
         elif state.rolls:
@@ -568,14 +589,23 @@ class IPhotoParser:
                 state.valueType = ""
                 #print "Got empty value type "
             state.key = False
+
         state.level += 1
 
     def EndElement(self, name):
         self.lastdata = False
         state = self.state
+
+        if state.archivepath:
+            if not state.key:
+		self.imagePath = state.value
+		print "Rewriting iPhoto archive path '%s'" % (self.imagePath)
+		print "as '%s'" % (os.path.dirname(self.xmlfile))
+		state.archivepath = False
+	    state.inarchivepath -= 1
+
         # Albums
-        if state.albums:
-            # Handle updating a track
+        elif state.albums:
             if state.inalbum == 3 and self.currentAlbum.has_key('AlbumId'):
                 self.currentAlbum['medialist'].append(state.value)
             elif state.inalbum == 2 and not state.key:
@@ -591,12 +621,10 @@ class IPhotoParser:
                         self.ProgressCallback(-1, -1)
                     except:
                         pass
-                #print self.currentTrack
                 self._reset_album()
 
         # Rolls
         elif state.rolls:
-            # Handle updating a track
             if state.inroll == 3 and self.currentRoll.has_key('RollID'):
                 self.currentRoll['medialist'].append(state.value)
             elif state.inroll == 2 and not state.key:
@@ -616,7 +644,6 @@ class IPhotoParser:
 
         # Keywords
         elif state.keywords:
-            # Handle updating a track
             if state.inkeyword == 1 and not state.key:
                 #print "Mapping %s => %s" % ( str(state.keyValue), str(state.value))
                 self.currentKeyword[state.keyValue] = state.value
@@ -634,7 +661,6 @@ class IPhotoParser:
 
         # Master Image List
         elif state.master:
-            # Handle updating a track
             if state.inmaster == 1 and state.key:
                 self.currentPhoto['MediaID'] = state.keyValue
             elif state.inmaster == 2 and not state.key:
@@ -644,7 +670,7 @@ class IPhotoParser:
             if state.inmaster == 0 and self.currentPhoto.has_key('GUID') and self.currentPhoto['GUID']:
                 # Finished reading album, process it now
                 if self.PhotoCallback:
-                    self.PhotoCallback(self.currentPhoto)
+                    self.PhotoCallback(self.currentPhoto, self.imagePath, os.path.dirname(self.xmlfile))
                 if self.ProgressCallback:
                     try:
                         self.ProgressCallback(-1, -1)
@@ -671,27 +697,38 @@ class IPhotoParser:
             state.value = data
 
         # determine which section we are in
-        if state.key and state.level==3:
-            if data=="List of Albums":
-                state.albums = True
-                state.rolls  = False
-                state.keywords = False
-                state.master = False
-            elif data=="List of Rolls":
-                state.albums = False
-                state.rolls  = True
-                state.keywords = False
-                state.master = False
-            elif data=="List of Keywords":
-                state.albums = False
-                state.rolls  = False
-                state.master = False
-                state.keywords = True
-            elif data=="Master Image List":
-                state.albums = False
-                state.rolls  = False
-                state.keywords = False
-                state.master = True
+        if state.key and state.level == 3:
+            if data == "Archive Path":
+		state.archivepath = True
+		state.albums = False
+		state.rolls  = False
+		state.keywords = False
+		state.master = False
+            elif data == "List of Albums":
+		state.archivepath = False
+		state.albums = True
+		state.rolls  = False
+		state.keywords = False
+		state.master = False
+            elif data == "List of Rolls":
+		state.archivepath = False
+		state.albums = False
+		state.rolls  = True
+		state.keywords = False
+		state.master = False
+            elif data == "List of Keywords":
+		state.archivepath = False
+		state.albums = False
+		state.rolls  = False
+		state.keywords = True
+		state.master = False
+            elif data == "Master Image List":
+		state.archivepath = False
+		state.albums = False
+		state.rolls  = False
+		state.keywords = False
+		state.master = True
+
         return
 
 
@@ -715,9 +752,9 @@ def main():
 
     db = IPhotoDB("iphoto.db")
     db.ResetDB()
-    iparser = IPhotoParser(db.AddAlbumNew, db.AddRollNew, db.AddKeywordNew, db.AddMediaNew)
+    iparser = IPhotoParser(xmlfile, db.AddAlbumNew, "", db.AddRollNew, db.AddKeywordNew, db.AddMediaNew)
     try:
-        iparser.Parse(xmlfile)
+        iparser.Parse()
     except:
         print traceback.print_exc()
     db.Commit()
