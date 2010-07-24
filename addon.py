@@ -156,17 +156,12 @@ def progress_callback(progress_dialog, nphotos):
     progress_dialog.update(0, addon.getLocalizedString(30211) % (nphotos))
     return nphotos
 
-def import_library():
+def import_library(xmlfile):
     global db,db_file
 
     db_tmp_file = db_file + ".tmp"
     db_tmp = IPhotoDB(db_tmp_file)
     db_tmp.ResetDB()
-
-    xmlfile = addon.getSetting('albumdata_xml_path')
-    if (xmlfile == ""):
-	xmlfile = os.getenv("HOME") + "/Pictures/iPhoto Library/AlbumData.xml"
-	addon.setSetting('albumdata_xml_path', xmlfile)
 
     album_ign = []
     album_ign.append("Book")
@@ -232,27 +227,44 @@ def get_params(paramstring):
     return params
 
 if (__name__ == "__main__"):
+    xmlfile = addon.getSetting('albumdata_xml_path')
+    if (xmlfile == ""):
+	xmlfile = os.getenv("HOME") + "/Pictures/iPhoto Library/AlbumData.xml"
+	addon.setSetting('albumdata_xml_path', xmlfile)
+
     try:
 	params = get_params(sys.argv[2])
 	action = params['action']
     except:
 	# main menu
-	items = 0
 	item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
 	item.setInfo( type="Picture", infoLabels={ "Title": "Events" })
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events", listitem = item, isFolder = True)
-	items += 1
 	item = gui.ListItem(addon.getLocalizedString(30101), thumbnailImage=ICONS_PATH+"/albums.png")
 	item.setInfo( type="Picture", infoLabels={ "Title": "Albums" })
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums", listitem = item, isFolder = True)
-	items += 1
 	item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
 	item.setInfo( type="Picture", infoLabels={ "Title": "Ratings" })
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings", listitem = item, isFolder = True)
-	items += 1
 	item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=PLUGIN_PATH+"/icon.png")
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=rescan", listitem = item, isFolder = False)
-	items += 1
+	plugin.endOfDirectory(handle = int(sys.argv[1]), succeeded = True)
+
+	# automatically update library if desired
+	auto_update_lib = addon.getSetting('auto_update_lib')
+	if (auto_update_lib == ""):
+	    addon.setSetting('auto_update_lib', 'false')
+	    auto_update_lib = "false"
+	if (auto_update_lib == "true"):
+	    try:
+		xml_mtime = os.path.getmtime(xmlfile)
+		db_mtime = os.path.getmtime(db_file)
+	    except Exception, e:
+		print str(e)
+		pass
+	    else:
+		if (xml_mtime > db_mtime):
+		    import_library(xmlfile)
     else:
 	if (action == "events"):
 	    items = list_events(params)
@@ -261,7 +273,7 @@ if (__name__ == "__main__"):
 	elif (action == "ratings"):
 	    items = list_ratings(params)
 	elif (action == "rescan"):
-	    items = import_library()
+	    items = import_library(xmlfile)
 
-    if (items):
-	plugin.endOfDirectory(handle = int(sys.argv[1]), succeeded = True)
+	if (items):
+	    plugin.endOfDirectory(handle = int(sys.argv[1]), succeeded = True)
