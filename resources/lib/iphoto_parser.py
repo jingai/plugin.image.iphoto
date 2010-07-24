@@ -411,8 +411,15 @@ class IPhotoDB:
 	    raise e
 
 
+class ParseCanceled(Exception):
+    def __init__(self, value):
+	self.value = value
+    def __str__(self):
+	return repr(self.value)
+
 class IPhotoParserState:
     def __init__(self):
+	self.nphotos = 0
 	self.level = 0
 	self.archivepath = False
 	self.inarchivepath = 0
@@ -431,8 +438,9 @@ class IPhotoParserState:
 	self.valueType = ""
 
 class IPhotoParser:
-    def __init__(self, xmlfile="", album_callback=None, album_ign=[], roll_callback=None,
-		 keyword_callback=None, photo_callback=None, progress_callback=None):
+    def __init__(self, xmlfile="", album_callback=None, album_ign=[],
+		 roll_callback=None, keyword_callback=None, photo_callback=None,
+		 progress_callback=None, progress_dialog=None):
 	self.xmlfile = xmlfile
 	self.imagePath = ""
 	self.parser = xml.parsers.expat.ParserCreate()
@@ -451,6 +459,7 @@ class IPhotoParser:
 	self.KeywordCallback = keyword_callback
 	self.PhotoCallback = photo_callback
 	self.ProgressCallback = progress_callback
+	self.ProgressDialog = progress_dialog
 	self.lastdata = False
 	self._reset_photo()
 	self._reset_album()
@@ -493,6 +502,8 @@ class IPhotoParser:
 		buf = f.read(BLOCKSIZE)
 	    self.parser.Parse(buf, True)
 	    f.close()
+	except ParseCanceled:
+	    return
 	except Exception, e:
 	    print str(e)
 	    raise e
@@ -555,10 +566,9 @@ class IPhotoParser:
 		if self.AlbumCallback:
 		    self.AlbumCallback(self.currentAlbum, self.albumIgn)
 		if self.ProgressCallback:
-		    try:
-			self.ProgressCallback(-1, -1)
-		    except:
-			pass
+		    state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos)
+		    if (state.nphotos is None):
+			raise ParseCanceled(0)
 		self._reset_album()
 
 	# Rolls
@@ -574,10 +584,9 @@ class IPhotoParser:
 		if self.RollCallback:
 		    self.RollCallback(self.currentRoll)
 		if self.ProgressCallback:
-		    try:
-			self.ProgressCallback(-1, -1)
-		    except:
-			pass
+		    state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos)
+		    if (state.nphotos is None):
+			raise ParseCanceled(0)
 		self._reset_roll()
 
 	# Keywords
@@ -591,10 +600,9 @@ class IPhotoParser:
 		if self.KeywordCallback:
 		    self.KeywordCallback(self.currentKeyword)
 		if self.ProgressCallback:
-		    try:
-			self.ProgressCallback(-1, -1)
-		    except:
-			pass
+		    state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos)
+		    if (state.nphotos is None):
+			raise ParseCanceled(0)
 		self._reset_keyword()
 
 	# Master Image List
@@ -610,10 +618,9 @@ class IPhotoParser:
 		if self.PhotoCallback:
 		    self.PhotoCallback(self.currentPhoto, self.imagePath, os.path.dirname(self.xmlfile))
 		if self.ProgressCallback:
-		    try:
-			self.ProgressCallback(-1, -1)
-		    except:
-			pass
+		    state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos)
+		    if (state.nphotos is None):
+			raise ParseCanceled(0)
 		self._reset_photo()
 
 	state.level -= 1
