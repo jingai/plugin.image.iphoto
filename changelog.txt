@@ -1,3 +1,6 @@
+0.9.6 - 20100725
+- Update progress bar on import.
+
 0.9.5 - 20100725
 - Add library auto-update option.
 - Use DialogProgress for import progress.
