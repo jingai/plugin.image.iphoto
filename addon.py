@@ -237,18 +237,22 @@ if (__name__ == "__main__"):
 	action = params['action']
     except:
 	# main menu
-	item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
-	item.setInfo( type="Picture", infoLabels={ "Title": "Events" })
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events", listitem = item, isFolder = True)
-	item = gui.ListItem(addon.getLocalizedString(30101), thumbnailImage=ICONS_PATH+"/albums.png")
-	item.setInfo( type="Picture", infoLabels={ "Title": "Albums" })
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums", listitem = item, isFolder = True)
-	item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
-	item.setInfo( type="Picture", infoLabels={ "Title": "Ratings" })
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings", listitem = item, isFolder = True)
-	item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=PLUGIN_PATH+"/icon.png")
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=rescan", listitem = item, isFolder = False)
-	plugin.endOfDirectory(handle = int(sys.argv[1]), succeeded = True)
+	try:
+	    item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
+	    item.setInfo("Picture", { "Title": "Events" })
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=events", item, True)
+	    item = gui.ListItem(addon.getLocalizedString(30101), thumbnailImage=ICONS_PATH+"/albums.png")
+	    item.setInfo("Picture", { "Title": "Albums" })
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
+	    item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
+	    item.setInfo("Picture", { "Title": "Ratings" })
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
+	    item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=PLUGIN_PATH+"/icon.png")
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
+	except:
+	    plugin.endOfDirectory(int(sys.argv[1]), False)
+	else:
+	    plugin.endOfDirectory(int(sys.argv[1]), True)
 
 	# automatically update library if desired
 	auto_update_lib = addon.getSetting('auto_update_lib')
@@ -276,4 +280,4 @@ if (__name__ == "__main__"):
 	    items = import_library(xmlfile)
 
 	if (items):
-	    plugin.endOfDirectory(handle = int(sys.argv[1]), succeeded = True)
+	    plugin.endOfDirectory(int(sys.argv[1]), True)
