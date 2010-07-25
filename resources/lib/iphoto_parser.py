@@ -259,7 +259,7 @@ class IPhotoDB:
 	    row = cur.fetchone()
 
 	    # create named ID if requested
-	    if not row and autoadd and value and len(value)>0:
+	    if not row and autoadd and value and len(value) > 0:
 		nextid = cur.execute("SELECT MAX(id) FROM %s" % table).fetchone()[0]
 		if not nextid:
 		    nextid = 1
@@ -306,7 +306,8 @@ class IPhotoDB:
 	# weed out ignored albums
 	if albumtype in album_ign:
 	    return
-	#print "Adding album of type %s" % (albumtype)
+
+	#print "AddAlbumNew()", album
 
 	try:
 	    self.dbconn.execute("""
@@ -331,6 +332,9 @@ class IPhotoDB:
 	    rollid = int(roll['RollID'])
 	except:
 	    return
+
+	#print "AddRollNew()", roll
+
 	try:
 	    self.dbconn.execute("""
 	    INSERT INTO rolls (id, name, keyphotoid, rolldate, photocount)
@@ -355,6 +359,9 @@ class IPhotoDB:
 	    kword = keyword[kid]
 	except:
 	    return
+
+	#print "AddKeywordNew()", keyword
+
 	try:
 	    self.dbconn.execute("""
 	    INSERT INTO keywords (id, name)
@@ -367,13 +374,14 @@ class IPhotoDB:
 	    raise e
 
     def AddMediaNew(self, media, archivePath, realPath):
-	#print "Media => " + str(media)
 	try:
 	    mediaid = media['MediaID']
 	    if not mediaid:
 		return
 	except Exception, e:
 	    return
+
+	#print "AddMediaNew()", media
 
 	# rewrite paths to image files based on configured path.
 	# if the iPhoto library is mounted as a share, the paths in
@@ -387,7 +395,6 @@ class IPhotoDB:
 	    thumbpath = media['ThumbPath']
 	    originalpath = media['OriginalPath']
 
-	#print "imagepath='%s'" % (imagepath)
 	try:
 	    self.dbconn.execute("""
 	    INSERT INTO media (id, mediatypeid, rollid, caption, guid,
@@ -420,6 +427,7 @@ class ParseCanceled(Exception):
 class IPhotoParserState:
     def __init__(self):
 	self.nphotos = 0
+	self.nphotostotal = 0
 	self.level = 0
 	self.archivepath = False
 	self.inarchivepath = 0
@@ -453,6 +461,10 @@ class IPhotoParser:
 	self.currentAlbum = {}
 	self.currentRoll = {}
 	self.currentKeyword = {}
+	self.photoList = []
+	self.albumList = []
+	self.rollList = []
+	self.keywordList = []
 	self.AlbumCallback = album_callback
 	self.albumIgn = album_ign
 	self.RollCallback = roll_callback
@@ -468,29 +480,75 @@ class IPhotoParser:
 
     def _reset_photo(self):
 	self.currentPhoto = {}
-	for a in ['OriginalPath','Caption','ThumbPath','Rating','ImagePath',
-		  'Roll','MediaType','GUID','DateAsTimerInterval']:
-	    self.currentPhoto[a] = ''
+	for a in ['OriginalPath', 'Caption', 'ThumbPath', 'Rating', 'ImagePath',
+		  'Roll', 'MediaType', 'GUID', 'DateAsTimerInterval']:
+	    self.currentPhoto[a] = ""
 	self.currentPhoto['Aspect Ratio'] = '0'
 	self.currentPhoto['DateAsTimerInterval'] = '0'
 
     def _reset_album(self):
-	try:
-	    del self.currentAlbum['Master']
-	except:
-	    pass
+	self.currentAlbum = {}
+	for a in ['GUID', 'Master']:
+	    self.currentAlbum[a] = ""
 	for a in self.currentAlbum.keys():
 	    self.currentAlbum[a] = ""
 	self.currentAlbum['medialist'] = []
 
     def _reset_roll(self):
+	self.currentRoll = {}
 	for a in self.currentRoll.keys():
 	    self.currentRoll[a] = ""
 	self.currentRoll['medialist'] = []
 
     def _reset_keyword(self):
+	self.currentKeyword = {}
 	for a in self.currentKeyword.keys():
-	    del self.currentKeyword[a]
+	    self.currentKeyword[a] = ""
+
+    def updateProgress(self):
+	if (not self.ProgressCallback):
+	    return
+
+	state = self.state
+	state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos, state.nphotostotal)
+	if (state.nphotos is None):
+	    raise ParseCanceled(0)
+
+    def commitAll(self):
+	state = self.state
+
+	state.nphotostotal = len(self.albumList) + len(self.rollList) + len(self.keywordList) + len(self.photoList)
+
+	try:
+	    realPath = os.path.dirname(self.xmlfile)
+	except:
+	    pass
+
+	try:
+	    if self.AlbumCallback and len(self.albumList) > 0:
+		for a in self.albumList:
+		    self.AlbumCallback(a, self.albumIgn)
+		    self.updateProgress()
+
+	    if self.RollCallback and len(self.rollList) > 0:
+		for a in self.rollList:
+		    self.RollCallback(a)
+		    self.updateProgress()
+
+	    if self.KeywordCallback and len(self.keywordList) > 0:
+		for a in self.keywordList:
+		    self.KeywordCallback(a)
+		    self.updateProgress()
+
+	    if self.PhotoCallback and len(self.photoList) > 0:
+		for a in self.photoList:
+		    self.PhotoCallback(a, self.imagePath, realPath)
+		    self.updateProgress()
+	except ParseCanceled:
+	    raise
+	except Exception, e:
+	    print str(e)
+	    raise e
 
     def Parse(self):
 	try:
@@ -502,6 +560,14 @@ class IPhotoParser:
 		buf = f.read(BLOCKSIZE)
 	    self.parser.Parse(buf, True)
 	    f.close()
+	except ParseCanceled:
+	    return
+	except Exception, e:
+	    print str(e)
+	    raise e
+
+	try:
+	    self.commitAll()
 	except ParseCanceled:
 	    return
 	except Exception, e:
@@ -548,8 +614,8 @@ class IPhotoParser:
 	if state.archivepath:
 	    if not state.key:
 		self.imagePath = state.value
-		#print "Rewriting iPhoto archive path '%s'" % (self.imagePath)
-		#print "as '%s'" % (os.path.dirname(self.xmlfile))
+		print "Rewriting iPhoto archive path '%s'" % (self.imagePath)
+		print "as '%s'" % (os.path.dirname(self.xmlfile))
 		state.archivepath = False
 	    state.inarchivepath -= 1
 
@@ -562,13 +628,8 @@ class IPhotoParser:
 		self.currentAlbum[state.keyValue] = state.value
 	    state.inalbum -= 1
 	    if state.inalbum == 0 and self.currentAlbum.has_key('AlbumId'):
-		# Finished reading album, process it now
-		if self.AlbumCallback:
-		    self.AlbumCallback(self.currentAlbum, self.albumIgn)
-		if self.ProgressCallback:
-		    state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos)
-		    if (state.nphotos is None):
-			raise ParseCanceled(0)
+		# Finished reading album
+		self.albumList.append(self.currentAlbum)
 		self._reset_album()
 
 	# Rolls
@@ -580,13 +641,8 @@ class IPhotoParser:
 		self.currentRoll[state.keyValue] = state.value
 	    state.inroll -= 1
 	    if state.inroll == 0 and self.currentRoll.has_key('RollID'):
-		# Finished reading album, process it now
-		if self.RollCallback:
-		    self.RollCallback(self.currentRoll)
-		if self.ProgressCallback:
-		    state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos)
-		    if (state.nphotos is None):
-			raise ParseCanceled(0)
+		# Finished reading roll
+		self.rollList.append(self.currentRoll)
 		self._reset_roll()
 
 	# Keywords
@@ -596,13 +652,8 @@ class IPhotoParser:
 		self.currentKeyword[state.keyValue] = state.value
 	    state.inkeyword -= 1
 	    if state.inkeyword == 0 and not state.key:
-		# Finished reading album, process it now
-		if self.KeywordCallback:
-		    self.KeywordCallback(self.currentKeyword)
-		if self.ProgressCallback:
-		    state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos)
-		    if (state.nphotos is None):
-			raise ParseCanceled(0)
+		# Finished reading keywords
+		self.keywordList.append(self.currentKeyword)
 		self._reset_keyword()
 
 	# Master Image List
@@ -614,13 +665,8 @@ class IPhotoParser:
 		self.currentPhoto[state.keyValue] = state.value
 	    state.inmaster -= 1
 	    if state.inmaster == 0 and self.currentPhoto.has_key('GUID') and self.currentPhoto['GUID']:
-		# Finished reading album, process it now
-		if self.PhotoCallback:
-		    self.PhotoCallback(self.currentPhoto, self.imagePath, os.path.dirname(self.xmlfile))
-		if self.ProgressCallback:
-		    state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos)
-		    if (state.nphotos is None):
-			raise ParseCanceled(0)
+		# Finished reading master photo list
+		self.photoList.append(self.currentPhoto)
 		self._reset_photo()
 
 	state.level -= 1

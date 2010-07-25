@@ -145,15 +145,15 @@ def list_ratings(params):
 
     return n
 
-def progress_callback(progress_dialog, nphotos):
-    nphotos += 1
-
+def progress_callback(progress_dialog, nphotos, ntotal):
     if (not progress_dialog):
 	return 0
     if (progress_dialog.iscanceled()):
 	return
 
-    progress_dialog.update(0, addon.getLocalizedString(30211) % (nphotos))
+    nphotos += 1
+    percent = int(float(nphotos * 100) / ntotal)
+    progress_dialog.update(percent, addon.getLocalizedString(30211) % (nphotos))
     return nphotos
 
 def import_library(xmlfile):
@@ -197,14 +197,13 @@ def import_library(xmlfile):
 	db_tmp.UpdateLastImport()
     except:
 	print traceback.print_exc()
-
-    if (not progress_dialog.iscanceled()):
-	try:
-	    os.rename(db_tmp_file, db_file)
-	    db = db_tmp
-	    #print "Imported %d photos from iPhoto library" % (nphotos)
-	except:
-	    print traceback.print_exc()
+    else:
+	if (not progress_dialog.iscanceled()):
+	    try:
+		os.rename(db_tmp_file, db_file)
+		db = db_tmp
+	    except:
+		print traceback.print_exc()
 
     try:
 	os.remove(db_tmp_file)

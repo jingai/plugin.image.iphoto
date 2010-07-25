@@ -3,7 +3,7 @@
     <!-- Plugin strings -->
     <string id="30200">%d star</string>
     <string id="30210">Importing iPhoto Library</string>
-    <string id="30211">Imported %d photos</string>
+    <string id="30211">Imported %d items</string>
 
     <!-- Category strings -->
     <string id="30100">Events</string>
