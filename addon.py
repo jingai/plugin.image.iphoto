@@ -41,7 +41,13 @@ def list_photos_in_event(params):
 	    thumbpath = originalpath
 	if (not caption):
 	    caption = originalpath
-	item = gui.ListItem(caption, thumbnailImage=thumbpath)
+
+	# JSL: XBMC doesn't seem to support unicode in thumbnail path
+	if (not isinstance(thumbpath, str)):
+	    item = gui.ListItem(caption)
+	else:
+	    item = gui.ListItem(caption, thumbnailImage=thumbpath)
+
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=mediapath, listitem = item, isFolder = False)
 	n += 1
 
@@ -63,9 +69,15 @@ def list_events(params):
 	return
 
     n = 0
-    for (rollid, name, thumb, rolldate, count) in rolls:
-	item = gui.ListItem(name, thumbnailImage=thumb)
+    for (rollid, name, thumbpath, rolldate, count) in rolls:
+	# JSL: XBMC doesn't seem to support unicode in thumbnail path
+	if (not isinstance(thumbpath, str)):
+	    item = gui.ListItem(name)
+	else:
+	    item = gui.ListItem(name, thumbnailImage=thumbpath)
+
 	item.setInfo(type="pictures", infoLabels={ "count": count })
+
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events&rollid=%s" % (rollid), listitem = item, isFolder = True)
 	n += 1
 
@@ -80,7 +92,13 @@ def render_media(media):
 	    thumbpath = originalpath
 	if (not caption):
 	    caption = originalpath
-	item = gui.ListItem(caption, thumbnailImage=thumbpath)
+
+	# JSL: XBMC doesn't seem to support unicode in thumbnail path
+	if (not isinstance(thumbpath, str)):
+	    item = gui.ListItem(caption)
+	else:
+	    item = gui.ListItem(caption, thumbnailImage=thumbpath)
+
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=mediapath, listitem = item, isFolder = False)
 	n += 1
 
