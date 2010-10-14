@@ -209,7 +209,7 @@ class IPhotoDB:
 	albums = []
 	try:
 	    cur = self.dbconn.cursor()
-	    cur.execute("SELECT id,name FROM albums")
+	    cur.execute("SELECT id,name,photocount FROM albums")
 	    for tuple in cur:
 		albums.append(tuple)
 	except:

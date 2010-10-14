@@ -38,14 +38,15 @@ def render_media(media):
 	if (not caption):
 	    caption = mediapath
 
-	# < r34717 doesn't support unicode thumbnail paths
-	try:
-	    item = gui.ListItem(caption, thumbnailImage=thumbpath)
-	except:
-	    item = gui.ListItem(caption)
+	if caption:
+	    # < r34717 doesn't support unicode thumbnail paths
+	    try:
+		item = gui.ListItem(caption, thumbnailImage=thumbpath)
+	    except:
+		item = gui.ListItem(caption)
 
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=mediapath, listitem = item, isFolder = False)
-	n += 1
+	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=mediapath, listitem = item, isFolder = False)
+	    n += 1
 
     return n
 
@@ -80,7 +81,6 @@ def list_events(params):
 	    item = gui.ListItem(name)
 
 	item.setInfo(type="pictures", infoLabels={ "count": count })
-
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events&rollid=%s" % (rollid), listitem = item, isFolder = True)
 	n += 1
 
@@ -109,10 +109,12 @@ def list_albums(params):
 	return
 
     n = 0
-    for (albumid, name) in albums:
+    for (albumid, name, count) in albums:
 	if name == "Photos":
 	    continue
+
 	item = gui.ListItem(name)
+	item.setInfo(type="pictures", infoLabels={ "count": count })
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True)
 	n += 1
 
