@@ -244,6 +244,9 @@ def get_params(paramstring):
     print to_str(params)
     return params
 
+def add_import_lib_context_item(item):
+    item.addContextMenuItems([(addon.getLocalizedString(30213), "XBMC.RunPlugin(\""+BASE_URL+"?action=rescan\")",)])
+
 if (__name__ == "__main__"):
     xmlfile = addon.getSetting('albumdata_xml_path')
     if (xmlfile == ""):
@@ -258,13 +261,19 @@ if (__name__ == "__main__"):
 	try:
 	    item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
 	    item.setInfo("Picture", { "Title": "Events" })
+	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=events", item, True)
+
 	    item = gui.ListItem(addon.getLocalizedString(30101), thumbnailImage=ICONS_PATH+"/albums.png")
 	    item.setInfo("Picture", { "Title": "Albums" })
+	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
+
 	    item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
 	    item.setInfo("Picture", { "Title": "Ratings" })
+	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
+
 	    item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=PLUGIN_PATH+"/icon.png")
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
 	except:
