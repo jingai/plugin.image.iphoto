@@ -28,11 +28,7 @@ from resources.lib.iphoto_parser import *
 db_file = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.db"))
 db = IPhotoDB(db_file)
 
-def list_photos_in_event(params):
-    global db
-
-    rollid = params['rollid']
-    media = db.GetMediaInRoll(rollid)
+def render_media(media):
     n = 0
     for (caption, mediapath, thumbpath, originalpath, rating) in media:
 	if (not mediapath):
@@ -52,6 +48,13 @@ def list_photos_in_event(params):
 	n += 1
 
     return n
+
+def list_photos_in_event(params):
+    global db
+
+    rollid = params['rollid']
+    media = db.GetMediaInRoll(rollid)
+    return render_media(media)
 
 def list_events(params):
     global db,BASE_URL
@@ -79,27 +82,6 @@ def list_events(params):
 	item.setInfo(type="pictures", infoLabels={ "count": count })
 
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events&rollid=%s" % (rollid), listitem = item, isFolder = True)
-	n += 1
-
-    return n
-
-def render_media(media):
-    n = 0
-    for (caption, mediapath, thumbpath, originalpath, rating) in media:
-	if (not mediapath):
-	    mediapath = originalpath
-	if (not thumbpath):
-	    thumbpath = originalpath
-	if (not caption):
-	    caption = originalpath
-
-	# < r34717 doesn't support unicode thumbnail paths
-	try:
-	    item = gui.ListItem(caption, thumbnailImage=thumbpath)
-	except:
-	    item = gui.ListItem(caption)
-
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=mediapath, listitem = item, isFolder = False)
 	n += 1
 
     return n
