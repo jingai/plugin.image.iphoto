@@ -157,16 +157,18 @@ def progress_callback(progress_dialog, nphotos, ntotal):
     return nphotos
 
 def import_library(xmlfile):
-    global db,db_file
+    global db_file
 
     db_tmp_file = db_file + ".tmp"
     db_tmp = IPhotoDB(db_tmp_file)
     db_tmp.ResetDB()
 
+    # always ignore Books and currently selected album
     album_ign = []
     album_ign.append("Book")
     album_ign.append("Selected Event Album")
 
+    # ignore albums published to MobileMe if configured to do so
     album_ign_publ = addon.getSetting('album_ignore_published')
     if (album_ign_publ == ""):
 	addon.setSetting('album_ignore_published', 'true')
@@ -174,6 +176,7 @@ def import_library(xmlfile):
     if (album_ign_publ == "true"):
 	album_ign.append("Published")
 
+    # ignore flagged albums if configured to do so
     album_ign_flagged = addon.getSetting('album_ignore_flagged')
     if (album_ign_flagged == ""):
 	addon.setSetting('album_ignore_flagged', 'true')
@@ -186,36 +189,48 @@ def import_library(xmlfile):
 	progress_dialog.create(addon.getLocalizedString(30210))
     except:
 	print traceback.print_exc()
-	os.remove(db_file_tmp)
-	return
-
-    iparser = IPhotoParser(xmlfile, db_tmp.AddAlbumNew, album_ign, db_tmp.AddRollNew, db_tmp.AddKeywordNew, db_tmp.AddMediaNew, progress_callback, progress_dialog)
-
-    progress_dialog.update(0, addon.getLocalizedString(30212))
-    try:
-	iparser.Parse()
-	db_tmp.UpdateLastImport()
-    except:
-	print traceback.print_exc()
     else:
-	if (not progress_dialog.iscanceled()):
-	    try:
-		os.rename(db_tmp_file, db_file)
-		db = db_tmp
-	    except:
-		print traceback.print_exc()
+	iparser = IPhotoParser(xmlfile, db_tmp.AddAlbumNew, album_ign, db_tmp.AddRollNew, db_tmp.AddKeywordNew, db_tmp.AddMediaNew, progress_callback, progress_dialog)
 
-    try:
-	os.remove(db_tmp_file)
-    except:
-	pass
+	progress_dialog.update(0, addon.getLocalizedString(30212))
+	try:
+	    iparser.Parse()
+	    db_tmp.UpdateLastImport()
+	except:
+	    print traceback.print_exc()
+	else:
+	    if (not progress_dialog.iscanceled()):
+		try:
+		    os.rename(db_tmp_file, db_file)
+		except:
+		    # windows doesn't allow in-place rename
+		    remove_tries = 3
+		    while remove_tries and os.path.isfile(db_file):
+			try:
+			    os.remove(db_file)
+			except:
+			    remove_tries -= 1
+			    xbmc.sleep(1000)
+
+		    try:
+			os.rename(db_tmp_file, db_file)
+		    except:
+			print traceback.print_exc()
 
     progress_dialog.close()
 
+    del db_tmp
+    remove_tries = 3
+    while remove_tries and os.path.isfile(db_tmp_file):
+	try:
+	    os.remove(db_tmp_file)
+	except:
+	    remove_tries -= 1
+	    xbmc.sleep(1000)
+
 def get_params(paramstring):
     params = {}
-    paramstring = to_unicode(paramstring)
-    paramstring = paramstring.strip()
+    paramstring = str(paramstring).strip()
     paramstring = paramstring.lstrip("?")
     if (not paramstring):
 	return params
@@ -223,7 +238,7 @@ def get_params(paramstring):
     for param in paramlist:
 	(k,v) = param.split("=")
 	params[k] = v
-    print to_str(params)
+    print params
     return params
 
 def add_import_lib_context_item(item):
@@ -291,6 +306,7 @@ if (__name__ == "__main__"):
 	elif (action == "ratings"):
 	    items = list_ratings(params)
 	elif (action == "rescan"):
+	    del db
 	    items = import_library(xmlfile)
 
 	if (items):

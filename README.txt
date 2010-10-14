@@ -38,4 +38,4 @@ If possible, patch against the most recent version at:
 
 Known Issues
 ============
-* As of 2010/07/21, it's untested under Windows.
+* No support for Keywords and Faces (yet).
