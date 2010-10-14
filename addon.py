@@ -34,9 +34,9 @@ def render_media(media):
 	if (not mediapath):
 	    mediapath = originalpath
 	if (not thumbpath):
-	    thumbpath = originalpath
+	    thumbpath = mediapath
 	if (not caption):
-	    caption = originalpath
+	    caption = mediapath
 
 	# < r34717 doesn't support unicode thumbnail paths
 	try:
