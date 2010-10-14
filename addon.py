@@ -274,8 +274,13 @@ if (__name__ == "__main__"):
 	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
 
-	    item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=PLUGIN_PATH+"/icon.png")
-	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
+	    hide_import_lib = addon.getSetting('hide_import_lib')
+	    if (hide_import_lib == ""):
+		addon.setSetting('hide_import_lib', 'false')
+		hide_import_lib = "false"
+	    if (hide_import_lib == "false"):
+		item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=PLUGIN_PATH+"/icon.png")
+		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
 	except:
 	    plugin.endOfDirectory(int(sys.argv[1]), False)
 	else:
