@@ -34,7 +34,7 @@ apple_epoch = 978307200
 def render_media(media):
     sort_date = False
     n = 0
-    for (caption, mediapath, thumbpath, originalpath, rating, mediadate) in media:
+    for (caption, mediapath, thumbpath, originalpath, rating, mediadate, mediasize) in media:
 	if (not mediapath):
 	    mediapath = originalpath
 	if (not thumbpath):
@@ -50,13 +50,10 @@ def render_media(media):
 		item = gui.ListItem(caption)
 
 	    try:
-		item_size = os.path.getsize(mediapath)
 		item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(mediadate)))
-		item.setInfo(type="pictures", infoLabels={ "size": item_size, "date": item_date })
-		item.setLabel2(item_date)
+		item.setInfo(type="pictures", infoLabels={ "size": mediasize, "date": item_date })
 		sort_date = True
 	    except:
-		print mediapath
 		pass
 
 	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=mediapath, listitem = item, isFolder = False)
