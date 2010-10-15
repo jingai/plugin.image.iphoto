@@ -48,6 +48,11 @@ def render_media(media):
 	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=mediapath, listitem = item, isFolder = False)
 	    n += 1
 
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+    # FIXME: not sure how to make these work
+    #plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
+    #plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_SIZE)
     return n
 
 def list_photos_in_event(params):
@@ -84,6 +89,8 @@ def list_events(params):
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events&rollid=%s" % (rollid), listitem = item, isFolder = True)
 	n += 1
 
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     return n
 
 def list_photos_in_album(params):
@@ -118,6 +125,8 @@ def list_albums(params):
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True)
 	n += 1
 
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     return n
 
 def list_photos_with_rating(params):
@@ -145,6 +154,8 @@ def list_ratings(params):
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings&rating=%d" % (a), listitem = item, isFolder = True)
 	n += 1
 
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     return n
 
 def progress_callback(progress_dialog, nphotos, ntotal):
@@ -283,6 +294,7 @@ if (__name__ == "__main__"):
 	except:
 	    plugin.endOfDirectory(int(sys.argv[1]), False)
 	else:
+	    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_NONE)
 	    plugin.endOfDirectory(int(sys.argv[1]), True)
 
 	# automatically update library if desired
