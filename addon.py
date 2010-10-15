@@ -8,6 +8,7 @@ __credits__ = "Anoop Menon, Nuka1195, JMarshal, jingai"
 __url__ = "git://github.com/jingai/plugin.image.iphoto.git"
 
 import sys
+import time
 import os
 import os.path
 
@@ -28,9 +29,12 @@ from resources.lib.iphoto_parser import *
 db_file = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.db"))
 db = IPhotoDB(db_file)
 
+apple_epoch = 978307200
+
 def render_media(media):
+    sort_date = False
     n = 0
-    for (caption, mediapath, thumbpath, originalpath, rating) in media:
+    for (caption, mediapath, thumbpath, originalpath, rating, mediadate) in media:
 	if (not mediapath):
 	    mediapath = originalpath
 	if (not thumbpath):
@@ -45,14 +49,23 @@ def render_media(media):
 	    except:
 		item = gui.ListItem(caption)
 
+	    try:
+		item_size = os.path.getsize(mediapath)
+		item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(mediadate)))
+		item.setInfo(type="pictures", infoLabels={ "size": item_size, "date": item_date })
+		item.setLabel2(item_date)
+		sort_date = True
+	    except:
+		print mediapath
+		pass
+
 	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=mediapath, listitem = item, isFolder = False)
 	    n += 1
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
-    # FIXME: not sure how to make these work
-    #plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
-    #plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_SIZE)
+    if sort_date == True:
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
     return n
 
 def list_photos_in_event(params):
@@ -77,6 +90,7 @@ def list_events(params):
     if (not rolls):
 	return
 
+    sort_date = False
     n = 0
     for (rollid, name, thumbpath, rolldate, count) in rolls:
 	# < r34717 doesn't support unicode thumbnail paths
@@ -85,12 +99,21 @@ def list_events(params):
 	except:
 	    item = gui.ListItem(name)
 
+	try:
+	    item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(rolldate)))
+	    item.setInfo(type="pictures", infoLabels={ "date": item_date })
+	    sort_date = True
+	except:
+	    pass
+
 	item.setInfo(type="pictures", infoLabels={ "count": count })
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events&rollid=%s" % (rollid), listitem = item, isFolder = True)
 	n += 1
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+    if sort_date == True:
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
     return n
 
 def list_photos_in_album(params):

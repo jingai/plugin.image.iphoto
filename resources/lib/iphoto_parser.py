@@ -233,7 +233,7 @@ class IPhotoDB:
 	media = []
 	try:
 	    cur = self.dbconn.cursor()
-	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating
+	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate
 			FROM media M WHERE M.rollid = ?""", (rollid,))
 	    for tuple in cur:
 		media.append(tuple)
@@ -246,7 +246,7 @@ class IPhotoDB:
 	media = []
 	try:
 	    cur = self.dbconn.cursor()
-	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating
+	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate
 			FROM media M WHERE M.rating = ?""", (rating,))
 	    for tuple in cur:
 		media.append(tuple)
@@ -259,7 +259,7 @@ class IPhotoDB:
 	media = []
 	try:
 	    cur = self.dbconn.cursor()
-	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating
+	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate
 			FROM albummedia A LEFT JOIN media M ON A.mediaid=M.id
 			WHERE A.albumid = ?""", (albumid,))
 	    for tuple in cur:
