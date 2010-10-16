@@ -51,12 +51,12 @@ def render_media(media):
 
 	    try:
 		item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(mediadate)))
-		item.setInfo(type="pictures", infoLabels={ "size": mediasize, "date": item_date })
-		sort_date = True
+		#item.setInfo(type="pictures", infoLabels={ "size": mediasize, "date": item_date })
+		#sort_date = True
 	    except:
 		pass
 
-	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=mediapath, listitem = item, isFolder = False)
+	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url = mediapath, listitem = item, isFolder = False)
 	    n += 1
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
