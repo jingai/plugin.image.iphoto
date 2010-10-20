@@ -73,7 +73,7 @@ def list_photos_in_event(params):
     return render_media(media)
 
 def list_events(params):
-    global db,BASE_URL
+    global db, BASE_URL
 
     rollid = 0
     try:
@@ -121,7 +121,7 @@ def list_photos_in_album(params):
     return render_media(media)
 
 def list_albums(params):
-    global db,BASE_URL
+    global db, BASE_URL
 
     albumid = 0
     try:
@@ -157,7 +157,7 @@ def list_photos_with_rating(params):
     return render_media(media)
 
 def list_ratings(params):
-    global db,BASE_URL,ICONS_PATH
+    global db, BASE_URL, ICONS_PATH
 
     albumid = 0
     try:
@@ -190,11 +190,9 @@ def progress_callback(progress_dialog, nphotos, ntotal):
     return nphotos
 
 def import_library(xmlfile):
-    global db_file
+    global db
 
-    db_tmp_file = db_file + ".tmp"
-    db_tmp = IPhotoDB(db_tmp_file)
-    db_tmp.ResetDB()
+    db.ResetDB()
 
     # always ignore Books and currently selected album
     album_ign = []
@@ -223,43 +221,16 @@ def import_library(xmlfile):
     except:
 	print traceback.print_exc()
     else:
-	iparser = IPhotoParser(xmlfile, db_tmp.AddAlbumNew, album_ign, db_tmp.AddRollNew, db_tmp.AddKeywordNew, db_tmp.AddMediaNew, progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlfile, db.AddAlbumNew, album_ign, db.AddRollNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
 
 	progress_dialog.update(0, addon.getLocalizedString(30212))
 	try:
 	    iparser.Parse()
-	    db_tmp.UpdateLastImport()
+	    db.UpdateLastImport()
 	except:
 	    print traceback.print_exc()
-	else:
-	    if (not progress_dialog.iscanceled()):
-		try:
-		    os.rename(db_tmp_file, db_file)
-		except:
-		    # windows doesn't allow in-place rename
-		    remove_tries = 3
-		    while remove_tries and os.path.isfile(db_file):
-			try:
-			    os.remove(db_file)
-			except:
-			    remove_tries -= 1
-			    xbmc.sleep(1000)
-
-		    try:
-			os.rename(db_tmp_file, db_file)
-		    except:
-			print traceback.print_exc()
 
     progress_dialog.close()
-
-    del db_tmp
-    remove_tries = 3
-    while remove_tries and os.path.isfile(db_tmp_file):
-	try:
-	    os.remove(db_tmp_file)
-	except:
-	    remove_tries -= 1
-	    xbmc.sleep(1000)
 
 def get_params(paramstring):
     params = {}
@@ -340,7 +311,6 @@ if (__name__ == "__main__"):
 	elif (action == "ratings"):
 	    items = list_ratings(params)
 	elif (action == "rescan"):
-	    del db
 	    items = import_library(xmlfile)
 
 	if (items):
