@@ -1,3 +1,6 @@
+1.0.1 - 20101019
+- Fix library import on Windows.. again.
+
 1.0.0 - 20101015
 - Enable sort on title.
 - Fix library import on Windows.
