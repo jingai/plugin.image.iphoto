@@ -186,23 +186,23 @@ class IPhotoDB:
     def SetConfig(self, key, value):
 	if self.GetConfig(key)==None:
 	    cur = self.dbconn.cursor()
-	    cur.execute("""INSERT INTO config(key,value)
-			   VALUES(?,?)""",
+	    cur.execute("""INSERT INTO config (key, value)
+			   VALUES (?, ?)""",
 			(key, value))
 	    self.Commit()
 	else:
 	    cur = self.dbconn.cursor()
 	    cur.execute("""UPDATE config
-			   SET value=?
-			   WHERE key=?""",
+			   SET value = ?
+			   WHERE key = ?""",
 			(value, key))
 	    self.Commit()
 
     def UpdateLastImport(self):
 	self.SetConfig('lastimport', 'dummy')
 	self.dbconn.execute("""UPDATE config
-			       SET value=datetime('now')
-			       WHERE key=?""",
+			       SET value = datetime('now')
+			       WHERE key = ?""",
 			    ('lastimport',))
 	self.Commit()
 
@@ -210,7 +210,7 @@ class IPhotoDB:
 	albums = []
 	try:
 	    cur = self.dbconn.cursor()
-	    cur.execute("SELECT id,name,photocount FROM albums")
+	    cur.execute("SELECT id, name, photocount FROM albums")
 	    for tuple in cur:
 		albums.append(tuple)
 	except:
@@ -221,8 +221,8 @@ class IPhotoDB:
 	rolls = []
 	try:
 	    cur = self.dbconn.cursor()
-	    cur.execute("""SELECT R.id,R.name,M.thumbpath,R.rolldate,R.photocount 
-			 FROM rolls R LEFT JOIN media M ON R.keyphotoid=M.id""")
+	    cur.execute("""SELECT R.id, R.name, M.thumbpath, R.rolldate, R.photocount 
+			 FROM rolls R LEFT JOIN media M ON R.keyphotoid = M.id""")
 	    for tuple in cur:
 		rolls.append(tuple)
 	except Exception, e:
@@ -261,7 +261,7 @@ class IPhotoDB:
 	try:
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
-			FROM albummedia A LEFT JOIN media M ON A.mediaid=M.id
+			FROM albummedia A LEFT JOIN media M ON A.mediaid = M.id
 			WHERE A.albumid = ?""", (albumid,))
 	    for tuple in cur:
 		media.append(tuple)
@@ -271,16 +271,16 @@ class IPhotoDB:
 	return media
 
     def GetKeywords(self):
-	genres = []
+	keywords = []
 	try:
 	    cur = self.dbconn.cursor()
-	    cur.execute("SELECT id,name FROM keywords")
+	    cur.execute("SELECT id, name FROM keywords")
 	    for tuple in cur:
-		genres.append(tuple)
+		keywords.append(tuple)
 	except Exception, e:
 	    print to_str(e)
 	    pass
-	return genres
+	return keywords
 
     def GetTableId(self, table, value, column='name', autoadd=False, autoclean=True):
 	try:
@@ -300,7 +300,7 @@ class IPhotoDB:
 		    nextid = 1
 		else:
 		    nextid += 1
-		cur.execute("INSERT INTO %s(id, %s) VALUES (?,?)" % (table, column),
+		cur.execute("INSERT INTO %s (id, %s) VALUES (?, ?)" % (table, column),
 			    (nextid, value))
 		return nextid # return new id
 	    return row[0] # return id
@@ -347,7 +347,7 @@ class IPhotoDB:
 	try:
 	    self.dbconn.execute("""
 	    INSERT INTO albums (id, name, master, guid, photocount)
-	    VALUES (?,?,?,?,?)""",
+	    VALUES (?, ?, ?, ?, ?)""",
 				(albumid,
 				 album['AlbumName'],
 				 album.has_key('Master'),
@@ -355,8 +355,8 @@ class IPhotoDB:
 				 album['PhotoCount']))
 	    for media in album['medialist']:
 		self.dbconn.execute("""
-		INSERT INTO albummedia ( albumid, mediaid )
-		VALUES (?,?)""", (albumid, media))
+		INSERT INTO albummedia (albumid, mediaid)
+		VALUES (?, ?)""", (albumid, media))
 	except sqlite.IntegrityError:
 	    pass
 	except Exception, e:
@@ -381,7 +381,7 @@ class IPhotoDB:
 				 roll['PhotoCount']))
 	    for media in roll['medialist']:
 		self.dbconn.execute("""
-		INSERT INTO rollmedia ( rollid, mediaid )
+		INSERT INTO rollmedia (rollid, mediaid)
 		VALUES (?,?)""", (rollid, media))
 	except sqlite.IntegrityError:
 	    pass
@@ -445,7 +445,7 @@ class IPhotoDB:
 	    INSERT INTO media (id, mediatypeid, rollid, caption, guid,
 			      aspectratio, rating, mediadate, mediasize, mediapath,
 			      thumbpath, originalpath)
-	    VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+	    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
 				(mediaid,
 				 self.GetMediaTypeId(media['MediaType'], True),
 				 media['Roll'],
