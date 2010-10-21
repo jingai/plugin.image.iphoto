@@ -42,7 +42,7 @@ def render_media(media):
 	if (not caption):
 	    caption = mediapath
 
-	if caption:
+	if (caption):
 	    # < r34717 doesn't support unicode thumbnail paths
 	    try:
 		item = gui.ListItem(caption, thumbnailImage=thumbpath)
@@ -63,6 +63,43 @@ def render_media(media):
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     if sort_date == True:
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
+    return n
+
+def list_photos_in_album(params):
+    global db
+
+    albumid = params['albumid']
+    media = db.GetMediaInAlbum(albumid)
+    return render_media(media)
+
+def list_albums(params):
+    global db, BASE_URL
+
+    albumid = 0
+    try:
+	albumid = params['albumid']
+	return list_photos_in_album(params)
+    except Exception, e:
+	print to_str(e)
+	pass
+
+    albums = db.GetAlbums()
+    if (not albums):
+	return
+
+    n = 0
+    for (albumid, name, count) in albums:
+	if (name == "Photos"):
+	    continue
+
+	item = gui.ListItem(name)
+	if (count):
+	    item.setInfo(type="pictures", infoLabels={ "count": count })
+	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True)
+	n += 1
+
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     return n
 
 def list_photos_in_event(params):
@@ -103,46 +140,45 @@ def list_events(params):
 	except:
 	    pass
 
-	item.setInfo(type="pictures", infoLabels={ "count": count })
+	if (count):
+	    item.setInfo(type="pictures", infoLabels={ "count": count })
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events&rollid=%s" % (rollid), listitem = item, isFolder = True)
 	n += 1
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
-    if sort_date == True:
+    if (sort_date == True):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
     return n
 
-def list_photos_in_album(params):
+def list_photos_with_keyword(params):
     global db
 
-    albumid = params['albumid']
-    media = db.GetMediaInAlbum(albumid)
+    keywordid = params['keywordid']
+    media = db.GetMediaWithKeyword(keywordid)
     return render_media(media)
 
-def list_albums(params):
+def list_keywords(params):
     global db, BASE_URL
 
-    albumid = 0
+    keywordid = 0
     try:
-	albumid = params['albumid']
-	return list_photos_in_album(params)
+	keywordid = params['keywordid']
+	return list_photos_with_keyword(params)
     except Exception, e:
 	print to_str(e)
 	pass
 
-    albums = db.GetAlbums()
-    if (not albums):
+    keywords = db.GetKeywords()
+    if (not keywords):
 	return
 
     n = 0
-    for (albumid, name, count) in albums:
-	if name == "Photos":
-	    continue
-
+    for (keywordid, name, count) in keywords:
 	item = gui.ListItem(name)
-	item.setInfo(type="pictures", infoLabels={ "count": count })
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True)
+	if (count):
+	    item.setInfo(type="pictures", infoLabels={ "count": count })
+	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem = item, isFolder = True)
 	n += 1
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
@@ -270,6 +306,11 @@ if (__name__ == "__main__"):
 	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
 
+	    item = gui.ListItem(addon.getLocalizedString(30104), thumbnailImage=ICONS_PATH+"/keywords.png")
+	    item.setInfo("Picture", { "Title": "Keywords" })
+	    add_import_lib_context_item(item)
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=keywords", item, True)
+
 	    item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
 	    item.setInfo("Picture", { "Title": "Ratings" })
 	    add_import_lib_context_item(item)
@@ -308,6 +349,8 @@ if (__name__ == "__main__"):
 	    items = list_events(params)
 	elif (action == "albums"):
 	    items = list_albums(params)
+	elif (action == "keywords"):
+	    items = list_keywords(params)
 	elif (action == "ratings"):
 	    items = list_ratings(params)
 	elif (action == "rescan"):

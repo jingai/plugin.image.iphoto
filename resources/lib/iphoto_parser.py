@@ -16,10 +16,10 @@ import os.path
 import locale
 
 def to_unicode(text):
-    if isinstance(text, unicode):
+    if (isinstance(text, unicode)):
 	return text
 
-    if hasattr(text, '__unicode__'):
+    if (hasattr(text, '__unicode__')):
 	return text.__unicode__()
 
     text = str(text)
@@ -37,13 +37,13 @@ def to_unicode(text):
     return unicode(text, 'latin1')
 
 def to_str(text):
-    if isinstance(text, str):
+    if (isinstance(text, str)):
 	return text
 
-    if hasattr(text, '__unicode__'):
+    if (hasattr(text, '__unicode__')):
 	text = text.__unicode__()
 
-    if hasattr(text, '__str__'):
+    if (hasattr(text, '__str__')):
 	return text.__str__()
 
     return text.encode('utf-8')
@@ -55,7 +55,7 @@ class IPhotoDB:
 	return
 
     def _cleanup_filename(self, filename):
-	if filename.startswith("file://localhost"):
+	if (filename.startswith("file://localhost")):
 	    return unquote(filename[16:])
 	else:
 	    return unquote(filename)
@@ -97,16 +97,6 @@ class IPhotoDB:
 	       mediapath varchar,
 	       thumbpath varchar,
 	       originalpath varchar
-	    )""")
-	except:
-	    pass
-
-	try:
-	    # keywords table
-	    self.dbconn.execute("""
-	    CREATE TABLE keywords (
-	       id integer primary key,
-	       name varchar
 	    )""")
 	except:
 	    pass
@@ -169,6 +159,48 @@ class IPhotoDB:
 	except Exception, e:
 	    pass
 
+	try:
+	    # keywords table
+	    self.dbconn.execute("""
+	    CREATE TABLE keywords (
+	       id integer primary key,
+	       name varchar,
+	       photocount integer
+	    )""")
+	except:
+	    pass
+
+	try:
+	    # keywordmedia table
+	    self.dbconn.execute("""
+	    CREATE TABLE keywordmedia (
+	       keywordid integer,
+	       mediaid integer,
+	       mediaorder integer
+	    )""")
+	except Exception, e:
+	    pass
+
+    def ResetDB(self):
+	for table in ['media', 'mediatypes', 'rolls', 'rollmedia', 'albums', 'albummedia', 'keywords', 'keywordmedia']:
+	    try:
+		self.dbconn.execute("DROP TABLE %s" % table)
+	    except Exception, e:
+		print to_str(e)
+		pass
+	try:
+	    self.InitDB()
+	except Exception, e:
+	    print to_str(e)
+	    raise e
+
+    def Commit(self):
+	try:
+	    self.dbconn.commit()
+	except Exception, e:
+	    print "Commit Error: " + to_str(e)
+	    pass
+
     def GetConfig(self, key):
 	try:
 	    cur = self.dbconn.cursor()
@@ -177,14 +209,14 @@ class IPhotoDB:
 			   WHERE key = ? LIMIT 1""",
 			(key,))
 	    row = cur.fetchone()
-	    if row:
+	    if (row):
 		return row[0]
 	    return None
 	except:
 	    return None
 
     def SetConfig(self, key, value):
-	if self.GetConfig(key)==None:
+	if (self.GetConfig(key) == None):
 	    cur = self.dbconn.cursor()
 	    cur.execute("""INSERT INTO config (key, value)
 			   VALUES (?, ?)""",
@@ -206,6 +238,35 @@ class IPhotoDB:
 			    ('lastimport',))
 	self.Commit()
 
+    def GetTableId(self, table, value, column='name', autoadd=False, autoclean=True):
+	try:
+	    if (autoclean and not value):
+		value = "Unknown"
+	    cur = self.dbconn.cursor()
+
+	    # query db for column with specified name
+	    cur.execute("SELECT id FROM %s WHERE %s = ?" % (table, column),
+			(value,))
+	    row = cur.fetchone()
+
+	    # create named ID if requested
+	    if not row and autoadd and value and len(value) > 0:
+		nextid = cur.execute("SELECT MAX(id) FROM %s" % table).fetchone()[0]
+		if not nextid:
+		    nextid = 1
+		else:
+		    nextid += 1
+		cur.execute("INSERT INTO %s (id, %s) VALUES (?, ?)" % (table, column),
+			    (nextid, value))
+		return nextid # return new id
+	    return row[0] # return id
+	except Exception, e:
+	    print to_str(e)
+	    raise e
+
+    def GetMediaTypeId(self, mediatype, autoadd=False):
+	return self.GetTableId('mediatypes', mediatype, 'name', autoadd)
+
     def GetAlbums(self):
 	albums = []
 	try:
@@ -216,6 +277,20 @@ class IPhotoDB:
 	except:
 	    pass
 	return albums
+
+    def GetMediaInAlbum(self, albumid):
+	media = []
+	try:
+	    cur = self.dbconn.cursor()
+	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
+			FROM albummedia A LEFT JOIN media M ON A.mediaid = M.id
+			WHERE A.albumid = ?""", (albumid,))
+	    for tuple in cur:
+		media.append(tuple)
+	except Exception, e:
+	    print to_str(e)
+	    pass
+	return media
 
     def GetRolls(self):
 	rolls = []
@@ -243,6 +318,32 @@ class IPhotoDB:
 	    pass
 	return media
 
+    def GetKeywords(self):
+	keywords = []
+	try:
+	    cur = self.dbconn.cursor()
+	    cur.execute("SELECT id, name, photocount FROM keywords")
+	    for tuple in cur:
+		keywords.append(tuple)
+	except Exception, e:
+	    print to_str(e)
+	    pass
+	return keywords
+
+    def GetMediaWithKeyword(self, keywordid):
+	media = []
+	try:
+	    cur = self.dbconn.cursor()
+	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
+			FROM keywordmedia A LEFT JOIN media M ON A.mediaid = M.id
+			WHERE A.keywordid = ?""", (keywordid,))
+	    for tuple in cur:
+		media.append(tuple)
+	except Exception, e:
+	    print to_str(e)
+	    pass
+	return media
+
     def GetMediaWithRating(self, rating):
 	media = []
 	try:
@@ -256,82 +357,9 @@ class IPhotoDB:
 	    pass
 	return media
 
-    def GetMediaInAlbum(self, albumid):
-	media = []
-	try:
-	    cur = self.dbconn.cursor()
-	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
-			FROM albummedia A LEFT JOIN media M ON A.mediaid = M.id
-			WHERE A.albumid = ?""", (albumid,))
-	    for tuple in cur:
-		media.append(tuple)
-	except Exception, e:
-	    print to_str(e)
-	    pass
-	return media
-
-    def GetKeywords(self):
-	keywords = []
-	try:
-	    cur = self.dbconn.cursor()
-	    cur.execute("SELECT id, name FROM keywords")
-	    for tuple in cur:
-		keywords.append(tuple)
-	except Exception, e:
-	    print to_str(e)
-	    pass
-	return keywords
-
-    def GetTableId(self, table, value, column='name', autoadd=False, autoclean=True):
-	try:
-	    if autoclean and not value:
-		value = "Unknown"
-	    cur = self.dbconn.cursor()
-
-	    # query db for column with specified name
-	    cur.execute("SELECT id FROM %s WHERE %s = ?" % (table, column),
-			(value,))
-	    row = cur.fetchone()
-
-	    # create named ID if requested
-	    if not row and autoadd and value and len(value) > 0:
-		nextid = cur.execute("SELECT MAX(id) FROM %s" % table).fetchone()[0]
-		if not nextid:
-		    nextid = 1
-		else:
-		    nextid += 1
-		cur.execute("INSERT INTO %s (id, %s) VALUES (?, ?)" % (table, column),
-			    (nextid, value))
-		return nextid # return new id
-	    return row[0] # return id
-	except Exception, e:
-	    print to_str(e)
-	    raise e
-
-    def GetMediaTypeId(self, mediatype, autoadd=False):
-	return self.GetTableId('mediatypes', mediatype, 'name', autoadd)
-
-    def Commit(self):
-	try:
-	    self.dbconn.commit()
-	except Exception, e:
-	    print "Commit Error: " + to_str(e)
-	    pass
-
-    def ResetDB(self):
-	for table in ['keywords','rolls','rollmedia','albums','albummedia','media','mediatypes']:
-	    try:
-		self.dbconn.execute("DROP TABLE %s" % table)
-	    except Exception, e:
-		print to_str(e)
-		pass
-	try:
-	    self.InitDB()
-	except Exception, e:
-	    print to_str(e)
-	    raise e
-
     def AddAlbumNew(self, album, album_ign):
+	#print "AddAlbumNew()", album
+
 	try:
 	    albumid = int(album['AlbumId'])
 	    albumtype = album['Album Type']
@@ -339,10 +367,8 @@ class IPhotoDB:
 	    return
 
 	# weed out ignored albums
-	if albumtype in album_ign:
+	if (albumtype in album_ign):
 	    return
-
-	#print "AddAlbumNew()", to_str(album)
 
 	try:
 	    self.dbconn.execute("""
@@ -363,12 +389,12 @@ class IPhotoDB:
 	    raise e
 
     def AddRollNew(self, roll):
+	#print "AddRollNew()", roll
+
 	try:
 	    rollid = int(roll['RollID'])
 	except:
 	    return
-
-	#print "AddRollNew()", to_str(roll)
 
 	try:
 	    self.dbconn.execute("""
@@ -389,19 +415,19 @@ class IPhotoDB:
 	    raise e
 
     def AddKeywordNew(self, keyword):
+	#print "AddKeywordNew()", keyword
+
 	try:
-	    kid = keyword.keys()[0]
-	    kword = keyword[kid]
+	    keywordid = keyword.keys()[0]
+	    kword = keyword[keywordid]
 	except:
 	    return
-
-	#print "AddKeywordNew()", to_str(keyword)
 
 	try:
 	    self.dbconn.execute("""
 	    INSERT INTO keywords (id, name)
-	    VALUES (?,?)""",
-				(int(kid),
+	    VALUES (?, ?)""",
+				(int(keywordid),
 				 kword))
 	except sqlite.IntegrityError:
 	    pass
@@ -409,19 +435,19 @@ class IPhotoDB:
 	    raise e
 
     def AddMediaNew(self, media, archivePath, realPath):
+	#print "AddMediaNew()", media
+
 	try:
 	    mediaid = media['MediaID']
-	    if not mediaid:
+	    if (not mediaid):
 		return
-	except Exception, e:
+	except:
 	    return
-
-	#print "AddMediaNew()", to_str(media)
 
 	# rewrite paths to image files based on configured path.
 	# if the iPhoto library is mounted as a share, the paths in
 	# AlbumData.xml probably won't be right.
-	if archivePath and realPath:
+	if (archivePath and realPath):
 	    imagepath = media['ImagePath'].replace(archivePath, realPath)
 	    thumbpath = media['ThumbPath'].replace(archivePath, realPath)
 	    originalpath = media['OriginalPath'].replace(archivePath, realPath)
@@ -442,9 +468,7 @@ class IPhotoDB:
 
 	try:
 	    self.dbconn.execute("""
-	    INSERT INTO media (id, mediatypeid, rollid, caption, guid,
-			      aspectratio, rating, mediadate, mediasize, mediapath,
-			      thumbpath, originalpath)
+	    INSERT INTO media (id, mediatypeid, rollid, caption, guid, aspectratio, rating, mediadate, mediasize, mediapath, thumbpath, originalpath)
 	    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
 				(mediaid,
 				 self.GetMediaTypeId(media['MediaType'], True),
@@ -458,6 +482,23 @@ class IPhotoDB:
 				 imagepath,
 				 thumbpath,
 				 originalpath))
+
+	    for keywordid in media['keywordlist']:
+		self.dbconn.execute("""
+		INSERT INTO keywordmedia (keywordid, mediaid)
+		VALUES (?, ?)""", (keywordid, mediaid))
+		cur = self.dbconn.cursor()
+		cur.execute("""SELECT id, photocount
+			    FROM keywords
+			    WHERE id = ?""", (keywordid,))
+		for tuple in cur:
+		    if (tuple[1]):
+			photocount = int(tuple[1]) + 1
+		    else:
+			photocount = 1
+		    self.dbconn.execute("""
+		    UPDATE keywords SET photocount = ?
+		    WHERE id = ?""", (photocount, keywordid))
 	except sqlite.IntegrityError:
 	    pass
 	except Exception, e:
@@ -531,6 +572,7 @@ class IPhotoParser:
 	    self.currentPhoto[a] = ""
 	self.currentPhoto['Aspect Ratio'] = '0'
 	self.currentPhoto['DateAsTimerInterval'] = '0'
+	self.currentPhoto['keywordlist'] = []
 
     def _reset_album(self):
 	self.currentAlbum = {}
@@ -557,7 +599,7 @@ class IPhotoParser:
 
 	state = self.state
 	state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos, state.nphotostotal)
-	if (state.nphotos is None):
+	if (state.nphotos == None):
 	    raise ParseCanceled(0)
 
     def commitAll(self):
@@ -571,22 +613,22 @@ class IPhotoParser:
 	    pass
 
 	try:
-	    if self.AlbumCallback and len(self.albumList) > 0:
+	    if (self.AlbumCallback and len(self.albumList) > 0):
 		for a in self.albumList:
 		    self.AlbumCallback(a, self.albumIgn)
 		    self.updateProgress()
 
-	    if self.RollCallback and len(self.rollList) > 0:
+	    if (self.RollCallback and len(self.rollList) > 0):
 		for a in self.rollList:
 		    self.RollCallback(a)
 		    self.updateProgress()
 
-	    if self.KeywordCallback and len(self.keywordList) > 0:
+	    if (self.KeywordCallback and len(self.keywordList) > 0):
 		for a in self.keywordList:
 		    self.KeywordCallback(a)
 		    self.updateProgress()
 
-	    if self.PhotoCallback and len(self.photoList) > 0:
+	    if (self.PhotoCallback and len(self.photoList) > 0):
 		for a in self.photoList:
 		    self.PhotoCallback(a, self.imagePath, realPath)
 		    self.updateProgress()
@@ -623,27 +665,27 @@ class IPhotoParser:
     def StartElement(self, name, attrs):
 	state = self.state
 	self.lastdata = False
-	if state.archivepath:
+	if (state.archivepath):
 	    state.inarchivepath += 1
 	    state.key = name
-	elif state.albums:
+	elif (state.albums):
 	    state.inalbum += 1
 	    state.key = name
-	elif state.rolls:
+	elif (state.rolls):
 	    state.inroll += 1
 	    state.key = name
-	elif state.keywords:
+	elif (state.keywords):
 	    state.inkeyword += 1
 	    state.key = name
-	elif state.master:
+	elif (state.master):
 	    state.inmaster += 1
 	    state.key = name
 
-	if name == "key":
+	if (name == "key"):
 	    state.key = True
 	    #print "Got key type " + to_str(name)
 	else:
-	    if state.key:
+	    if (state.key):
 		state.valueType = name
 		#print "Got value type " + to_str(name)
 	    else:
@@ -657,8 +699,8 @@ class IPhotoParser:
 	self.lastdata = False
 	state = self.state
 
-	if state.archivepath:
-	    if not state.key:
+	if (state.archivepath):
+	    if (not state.key):
 		self.imagePath = state.value
 		print "Rewriting iPhoto archive path '%s'" % (to_str(self.imagePath))
 		print "as '%s'" % (to_str(os.path.dirname(self.xmlfile)))
@@ -666,51 +708,53 @@ class IPhotoParser:
 	    state.inarchivepath -= 1
 
 	# Albums
-	elif state.albums:
-	    if state.inalbum == 3 and self.currentAlbum.has_key('AlbumId'):
+	elif (state.albums):
+	    if (state.inalbum == 3 and self.currentAlbum.has_key('AlbumId')):
 		self.currentAlbum['medialist'].append(state.value)
-	    elif state.inalbum == 2 and not state.key:
+	    elif (state.inalbum == 2 and not state.key):
 		#print "Mapping %s => %s" % ( to_str(state.keyValue), to_str(state.value))
 		self.currentAlbum[state.keyValue] = state.value
 	    state.inalbum -= 1
-	    if state.inalbum == 0 and self.currentAlbum.has_key('AlbumId'):
+	    if (state.inalbum == 0 and self.currentAlbum.has_key('AlbumId')):
 		# Finished reading album
 		self.albumList.append(self.currentAlbum)
 		self._reset_album()
 
 	# Rolls
-	elif state.rolls:
-	    if state.inroll == 3 and self.currentRoll.has_key('RollID'):
+	elif (state.rolls):
+	    if (state.inroll == 3 and self.currentRoll.has_key('RollID')):
 		self.currentRoll['medialist'].append(state.value)
-	    elif state.inroll == 2 and not state.key:
+	    elif (state.inroll == 2 and not state.key):
 		#print "Mapping %s => %s" % ( to_str(state.keyValue), to_str(state.value))
 		self.currentRoll[state.keyValue] = state.value
 	    state.inroll -= 1
-	    if state.inroll == 0 and self.currentRoll.has_key('RollID'):
+	    if (state.inroll == 0 and self.currentRoll.has_key('RollID')):
 		# Finished reading roll
 		self.rollList.append(self.currentRoll)
 		self._reset_roll()
 
 	# Keywords
-	elif state.keywords:
-	    if state.inkeyword == 1 and not state.key:
+	elif (state.keywords):
+	    if (state.inkeyword == 1 and not state.key):
 		#print "Mapping %s => %s" % ( to_str(state.keyValue), to_str(state.value))
 		self.currentKeyword[state.keyValue] = state.value
 	    state.inkeyword -= 1
-	    if state.inkeyword == 0 and not state.key:
+	    if (state.inkeyword == 0 and not state.key):
 		# Finished reading keywords
 		self.keywordList.append(self.currentKeyword)
 		self._reset_keyword()
 
 	# Master Image List
-	elif state.master:
-	    if state.inmaster == 1 and state.key:
+	elif (state.master):
+	    if (state.inmaster == 1 and state.key):
 		self.currentPhoto['MediaID'] = state.keyValue
-	    elif state.inmaster == 2 and not state.key:
+	    elif (state.inmaster == 3 and not state.key and state.keyValue == "Keywords"):
+		self.currentPhoto['keywordlist'].append(state.value)
+	    elif (state.inmaster == 2 and not state.key):
 		#print "Mapping %s => %s" % ( to_str(state.keyValue), to_str(state.value))
 		self.currentPhoto[state.keyValue] = state.value
 	    state.inmaster -= 1
-	    if state.inmaster == 0 and self.currentPhoto.has_key('GUID') and self.currentPhoto['GUID']:
+	    if (state.inmaster == 0 and self.currentPhoto.has_key('GUID') and self.currentPhoto['GUID']):
 		# Finished reading master photo list
 		self.photoList.append(self.currentPhoto)
 		self._reset_photo()
@@ -719,44 +763,44 @@ class IPhotoParser:
 
     def CharData(self, data):
 	state = self.state
-	if self.lastdata:
+	if (self.lastdata):
 	    data = self.lastdata + data
 	self.lastdata = data
 
 	data = data.strip()
 
-	if state.key and data:
+	if (state.key and data):
 	    state.keyValue = data
 	else:
 	    state.value = data
 
 	# determine which section we are in
-	if state.key and state.level == 3:
-	    if data == "Archive Path":
+	if (state.key and state.level == 3):
+	    if (data == "Archive Path"):
 		state.archivepath = True
 		state.albums = False
 		state.rolls  = False
 		state.keywords = False
 		state.master = False
-	    elif data == "List of Albums":
+	    elif (data == "List of Albums"):
 		state.archivepath = False
 		state.albums = True
 		state.rolls  = False
 		state.keywords = False
 		state.master = False
-	    elif data == "List of Rolls":
+	    elif (data == "List of Rolls"):
 		state.archivepath = False
 		state.albums = False
 		state.rolls  = True
 		state.keywords = False
 		state.master = False
-	    elif data == "List of Keywords":
+	    elif (data == "List of Keywords"):
 		state.archivepath = False
 		state.albums = False
 		state.rolls  = False
 		state.keywords = True
 		state.master = False
-	    elif data == "Master Image List":
+	    elif (data == "Master Image List"):
 		state.archivepath = False
 		state.albums = False
 		state.rolls  = False
