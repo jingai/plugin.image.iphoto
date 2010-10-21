@@ -42,3 +42,4 @@ Known Issues
 ============
 * Sorting by date is broken and therefore disabled for now.
   See http://trac.xbmc.org/ticket/10519
+* Need icons for Faces and Keywords.
