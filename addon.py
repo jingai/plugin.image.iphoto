@@ -179,19 +179,26 @@ def list_keywords(params, ign_empty):
     if (not keywords):
 	return
 
+    hidden_keywords = addon.getSetting('hidden_keywords')
+
     n = 0
     for (keywordid, name, count) in keywords:
+	if (name in hidden_keywords):
+	    continue
+
 	if (not count and ign_empty == "true"):
 	    continue
 
 	item = gui.ListItem(name)
+	item.addContextMenuItems([(addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (name),)])
 	if (count):
 	    item.setInfo(type="pictures", infoLabels={ "count": count })
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem = item, isFolder = True)
 	n += 1
 
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+    if (n > 0):
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     return n
 
 def list_photos_with_rating(params):
@@ -276,6 +283,21 @@ def import_library(xmlfile):
 	    print traceback.print_exc()
 
     progress_dialog.close()
+
+def hide_keyword(params):
+    try:
+	keyword = params['keyword']
+	hidden_keywords = addon.getSetting('hidden_keywords')
+	if (hidden_keywords != ""):
+	    hidden_keywords += " "
+	hidden_keywords += keyword
+	addon.setSetting('hidden_keywords', hidden_keywords)
+	print "JSL: HIDDEN KEYWORDS '%s'" % (hidden_keywords)
+    except Exception, e:
+	print to_str(e)
+	pass
+
+    xbmc.executebuiltin("Container.Refresh")
 
 def get_params(paramstring):
     params = {}
@@ -370,6 +392,8 @@ if (__name__ == "__main__"):
 	    items = list_ratings(params)
 	elif (action == "rescan"):
 	    items = import_library(xmlfile)
+	elif (action == "hidekeyword"):
+	    items = hide_keyword(params)
 
 	if (items):
 	    plugin.endOfDirectory(int(sys.argv[1]), True)
