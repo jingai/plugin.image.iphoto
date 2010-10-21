@@ -1,3 +1,8 @@
+1.2.0 - 20101021
+- Add Faces support.
+- Add context menu item to hide Keywords.
+- Add option to hide empty albums.
+
 1.1.0 - 20101021
 - Add Keywords support.
 

@@ -5,6 +5,7 @@ see categories that correspond with their iPhoto counterparts:
 
 * Events
 * Albums
+* Faces
 * Keywords
 * Ratings
 
@@ -41,4 +42,3 @@ Known Issues
 ============
 * Sorting by date is broken and therefore disabled for now.
   See http://trac.xbmc.org/ticket/10519
-* No support for Faces (yet).
