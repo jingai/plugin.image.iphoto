@@ -1,3 +1,6 @@
+1.1.0 - 20101021
+- Add Keywords support.
+
 1.0.1 - 20101019
 - Fix library import on Windows.. again.
 
