@@ -160,6 +160,30 @@ class IPhotoDB:
 	    pass
 
 	try:
+	    # faces table
+	    self.dbconn.execute("""
+	    CREATE TABLE faces (
+	       id integer primary key,
+	       name varchar,
+	       keyphotoid integer,
+	       photocount integer,
+	       faceorder integer
+	    )""")
+	except:
+	    pass
+
+	try:
+	    # facesmedia table
+	    self.dbconn.execute("""
+	    CREATE TABLE facesmedia (
+	       faceid integer,
+	       mediaid integer,
+	       mediaorder integer
+	    )""")
+	except Exception, e:
+	    pass
+
+	try:
 	    # keywords table
 	    self.dbconn.execute("""
 	    CREATE TABLE keywords (
@@ -182,7 +206,7 @@ class IPhotoDB:
 	    pass
 
     def ResetDB(self):
-	for table in ['media', 'mediatypes', 'rolls', 'rollmedia', 'albums', 'albummedia', 'keywords', 'keywordmedia']:
+	for table in ['media', 'mediatypes', 'rolls', 'rollmedia', 'albums', 'albummedia', 'faces', 'facesmedia', 'keywords', 'keywordmedia']:
 	    try:
 		self.dbconn.execute("DROP TABLE %s" % table)
 	    except Exception, e:
@@ -318,6 +342,34 @@ class IPhotoDB:
 	    pass
 	return media
 
+    def GetFaces(self):
+	faces = []
+	try:
+	    cur = self.dbconn.cursor()
+	    cur.execute("""SELECT F.id, F.name, M.thumbpath, F.photocount
+			 FROM faces F LEFT JOIN media M ON F.keyphotoid = M.id
+			 ORDER BY F.faceorder""")
+	    for tuple in cur:
+		faces.append(tuple)
+	except Exception, e:
+	    print to_str(e)
+	    pass
+	return faces
+
+    def GetMediaWithFace(self, faceid):
+	media = []
+	try:
+	    cur = self.dbconn.cursor()
+	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
+			FROM facesmedia A LEFT JOIN media M ON A.mediaid = M.id
+			WHERE A.faceid = ?""", (faceid,))
+	    for tuple in cur:
+		media.append(tuple)
+	except Exception, e:
+	    print to_str(e)
+	    pass
+	return media
+
     def GetKeywords(self):
 	keywords = []
 	try:
@@ -399,7 +451,7 @@ class IPhotoDB:
 	try:
 	    self.dbconn.execute("""
 	    INSERT INTO rolls (id, name, keyphotoid, rolldate, photocount)
-	    VALUES (?,?,?,?,?)""",
+	    VALUES (?, ?, ?, ?, ?)""",
 				(rollid,
 				 roll['RollName'],
 				 roll['KeyPhotoKey'],
@@ -408,7 +460,29 @@ class IPhotoDB:
 	    for media in roll['medialist']:
 		self.dbconn.execute("""
 		INSERT INTO rollmedia (rollid, mediaid)
-		VALUES (?,?)""", (rollid, media))
+		VALUES (?, ?)""", (rollid, media))
+	except sqlite.IntegrityError:
+	    pass
+	except Exception, e:
+	    raise e
+
+    def AddFaceNew(self, face):
+	#print "AddFaceNew()", face
+
+	try:
+	    faceid = int(face['key'])
+	except:
+	    return
+
+	try:
+	    self.dbconn.execute("""
+	    INSERT INTO faces (id, name, keyphotoid, photocount, faceorder)
+	    VALUES (?, ?, ?, ?, ?)""",
+				(faceid,
+				 face['name'],
+				 face['key image'],
+				 face['PhotoCount'],
+				 face['Order']))
 	except sqlite.IntegrityError:
 	    pass
 	except Exception, e:
@@ -483,6 +557,12 @@ class IPhotoDB:
 				 thumbpath,
 				 originalpath))
 
+	    for faceid in media['facelist']:
+		self.dbconn.execute("""
+		INSERT INTO facesmedia (faceid, mediaid)
+		VALUES (?, ?)""", (faceid, mediaid))
+		cur = self.dbconn.cursor()
+
 	    for keywordid in media['keywordlist']:
 		self.dbconn.execute("""
 		INSERT INTO keywordmedia (keywordid, mediaid)
@@ -522,6 +602,8 @@ class IPhotoParserState:
 	self.inalbum = 0
 	self.rolls = False
 	self.inroll = 0
+	self.faces = False
+	self.inface = 0
 	self.keywords = False
 	self.inkeyword = 0
 	self.master = False
@@ -534,7 +616,7 @@ class IPhotoParserState:
 
 class IPhotoParser:
     def __init__(self, xmlfile="", album_callback=None, album_ign=[],
-		 roll_callback=None, keyword_callback=None, photo_callback=None,
+		 roll_callback=None, face_callback=None, keyword_callback=None, photo_callback=None,
 		 progress_callback=None, progress_dialog=None):
 	self.xmlfile = xmlfile
 	self.imagePath = ""
@@ -547,14 +629,17 @@ class IPhotoParser:
 	self.currentPhoto = {}
 	self.currentAlbum = {}
 	self.currentRoll = {}
+	self.currentFace = {}
 	self.currentKeyword = {}
 	self.photoList = []
 	self.albumList = []
 	self.rollList = []
+	self.faceList = []
 	self.keywordList = []
 	self.AlbumCallback = album_callback
 	self.albumIgn = album_ign
 	self.RollCallback = roll_callback
+	self.FaceCallback = face_callback
 	self.KeywordCallback = keyword_callback
 	self.PhotoCallback = photo_callback
 	self.ProgressCallback = progress_callback
@@ -563,6 +648,7 @@ class IPhotoParser:
 	self._reset_photo()
 	self._reset_album()
 	self._reset_roll()
+	self._reset_face()
 	self._reset_keyword()
 
     def _reset_photo(self):
@@ -572,6 +658,7 @@ class IPhotoParser:
 	    self.currentPhoto[a] = ""
 	self.currentPhoto['Aspect Ratio'] = '0'
 	self.currentPhoto['DateAsTimerInterval'] = '0'
+	self.currentPhoto['facelist'] = []
 	self.currentPhoto['keywordlist'] = []
 
     def _reset_album(self):
@@ -587,6 +674,11 @@ class IPhotoParser:
 	for a in self.currentRoll.keys():
 	    self.currentRoll[a] = ""
 	self.currentRoll['medialist'] = []
+
+    def _reset_face(self):
+	self.currentFace = {}
+	for a in self.currentFace.keys():
+	    self.currentFace[a] = ""
 
     def _reset_keyword(self):
 	self.currentKeyword = {}
@@ -605,7 +697,7 @@ class IPhotoParser:
     def commitAll(self):
 	state = self.state
 
-	state.nphotostotal = len(self.albumList) + len(self.rollList) + len(self.keywordList) + len(self.photoList)
+	state.nphotostotal = len(self.albumList) + len(self.rollList) + len(self.faceList) + len(self.keywordList) + len(self.photoList)
 
 	try:
 	    realPath = os.path.dirname(self.xmlfile)
@@ -621,6 +713,11 @@ class IPhotoParser:
 	    if (self.RollCallback and len(self.rollList) > 0):
 		for a in self.rollList:
 		    self.RollCallback(a)
+		    self.updateProgress()
+
+	    if (self.FaceCallback and len(self.faceList) > 0):
+		for a in self.faceList:
+		    self.FaceCallback(a)
 		    self.updateProgress()
 
 	    if (self.KeywordCallback and len(self.keywordList) > 0):
@@ -673,6 +770,9 @@ class IPhotoParser:
 	    state.key = name
 	elif (state.rolls):
 	    state.inroll += 1
+	    state.key = name
+	elif (state.faces):
+	    state.inface += 1
 	    state.key = name
 	elif (state.keywords):
 	    state.inkeyword += 1
@@ -733,6 +833,17 @@ class IPhotoParser:
 		self.rollList.append(self.currentRoll)
 		self._reset_roll()
 
+	# Faces
+	elif (state.faces):
+	    if (state.inface == 2 and not state.key):
+		#print "Mapping %s => %s" % ( to_str(state.keyValue), to_str(state.value))
+		self.currentFace[state.keyValue] = state.value
+	    state.inface -= 1
+	    if (state.inface == 0 and not state.key):
+		# Finished reading faces
+		self.faceList.append(self.currentFace)
+		self._reset_face()
+
 	# Keywords
 	elif (state.keywords):
 	    if (state.inkeyword == 1 and not state.key):
@@ -750,6 +861,8 @@ class IPhotoParser:
 		self.currentPhoto['MediaID'] = state.keyValue
 	    elif (state.inmaster == 3 and not state.key and state.keyValue == "Keywords"):
 		self.currentPhoto['keywordlist'].append(state.value)
+	    elif (state.inmaster == 4 and not state.key and state.keyValue == "face key"):
+		self.currentPhoto['facelist'].append(state.value)
 	    elif (state.inmaster == 2 and not state.key):
 		#print "Mapping %s => %s" % ( to_str(state.keyValue), to_str(state.value))
 		self.currentPhoto[state.keyValue] = state.value
@@ -779,31 +892,43 @@ class IPhotoParser:
 	    if (data == "Archive Path"):
 		state.archivepath = True
 		state.albums = False
-		state.rolls  = False
+		state.rolls = False
+		state.faces = False
 		state.keywords = False
 		state.master = False
 	    elif (data == "List of Albums"):
 		state.archivepath = False
 		state.albums = True
-		state.rolls  = False
+		state.rolls = False
+		state.faces = False
 		state.keywords = False
 		state.master = False
 	    elif (data == "List of Rolls"):
 		state.archivepath = False
 		state.albums = False
-		state.rolls  = True
+		state.rolls = True
+		state.faces = False
+		state.keywords = False
+		state.master = False
+	    elif (data == "List of Faces"):
+		state.archivepath = False
+		state.albums = False
+		state.rolls = False
+		state.faces = True
 		state.keywords = False
 		state.master = False
 	    elif (data == "List of Keywords"):
 		state.archivepath = False
 		state.albums = False
-		state.rolls  = False
+		state.rolls = False
+		state.faces = False
 		state.keywords = True
 		state.master = False
 	    elif (data == "Master Image List"):
 		state.archivepath = False
 		state.albums = False
-		state.rolls  = False
+		state.rolls = False
+		state.faces = False
 		state.keywords = False
 		state.master = True
 
@@ -829,7 +954,7 @@ def main():
 
     db = IPhotoDB("iphoto.db")
     db.ResetDB()
-    iparser = IPhotoParser(xmlfile, db.AddAlbumNew, "", db.AddRollNew, db.AddKeywordNew, db.AddMediaNew)
+    iparser = IPhotoParser(xmlfile, db.AddAlbumNew, "", db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew)
     try:
 	iparser.Parse()
     except:

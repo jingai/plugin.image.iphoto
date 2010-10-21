@@ -157,6 +157,48 @@ def list_events(params, ign_empty):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
     return n
 
+def list_photos_with_face(params):
+    global db
+
+    faceid = params['faceid']
+    media = db.GetMediaWithFace(faceid)
+    return render_media(media)
+
+def list_faces(params, ign_empty):
+    global db, BASE_URL
+
+    faceid = 0
+    try:
+	faceid = params['faceid']
+	return list_photos_with_face(params)
+    except Exception, e:
+	print to_str(e)
+	pass
+
+    faces = db.GetFaces()
+    if (not faces):
+	return
+
+    n = 0
+    for (faceid, name, thumbpath, count) in faces:
+	if (not count and ign_empty == "true"):
+	    continue
+
+	# < r34717 doesn't support unicode thumbnail paths
+	try:
+	    item = gui.ListItem(name, thumbnailImage=thumbpath)
+	except:
+	    item = gui.ListItem(name)
+
+	if (count):
+	    item.setInfo(type="pictures", infoLabels={ "count": count })
+	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=faces&faceid=%s" % (faceid), listitem = item, isFolder = True)
+	n += 1
+
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+    return n
+
 def list_photos_with_keyword(params):
     global db
 
@@ -273,7 +315,7 @@ def import_library(xmlfile):
     except:
 	print traceback.print_exc()
     else:
-	iparser = IPhotoParser(xmlfile, db.AddAlbumNew, album_ign, db.AddRollNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlfile, db.AddAlbumNew, album_ign, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
 
 	progress_dialog.update(0, addon.getLocalizedString(30212))
 	try:
@@ -337,6 +379,11 @@ if (__name__ == "__main__"):
 	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
 
+	    item = gui.ListItem(addon.getLocalizedString(30105), thumbnailImage=ICONS_PATH+"/faces.png")
+	    item.setInfo("Picture", { "Title": "Faces" })
+	    add_import_lib_context_item(item)
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=faces", item, True)
+
 	    item = gui.ListItem(addon.getLocalizedString(30104), thumbnailImage=ICONS_PATH+"/keywords.png")
 	    item.setInfo("Picture", { "Title": "Keywords" })
 	    add_import_lib_context_item(item)
@@ -386,6 +433,8 @@ if (__name__ == "__main__"):
 	    items = list_events(params, album_ign_empty)
 	elif (action == "albums"):
 	    items = list_albums(params, album_ign_empty)
+	elif (action == "faces"):
+	    items = list_faces(params, album_ign_empty)
 	elif (action == "keywords"):
 	    items = list_keywords(params, album_ign_empty)
 	elif (action == "ratings"):

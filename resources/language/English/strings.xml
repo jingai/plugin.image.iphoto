@@ -14,6 +14,7 @@
     <string id="30102">Ratings</string>
     <string id="30103">&lt;&lt; Import iPhoto Library &gt;&gt;</string>
     <string id="30104">Keywords</string>
+    <string id="30105">Faces</string>
 
     <!-- Plugin settings strings -->
     <string id="30000">Path to AlbumData.xml</string>
