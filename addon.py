@@ -72,7 +72,7 @@ def list_photos_in_album(params):
     media = db.GetMediaInAlbum(albumid)
     return render_media(media)
 
-def list_albums(params):
+def list_albums(params, ign_empty):
     global db, BASE_URL
 
     albumid = 0
@@ -92,6 +92,9 @@ def list_albums(params):
 	if (name == "Photos"):
 	    continue
 
+	if (not count and ign_empty == "true"):
+	    continue
+
 	item = gui.ListItem(name)
 	if (count):
 	    item.setInfo(type="pictures", infoLabels={ "count": count })
@@ -109,7 +112,7 @@ def list_photos_in_event(params):
     media = db.GetMediaInRoll(rollid)
     return render_media(media)
 
-def list_events(params):
+def list_events(params, ign_empty):
     global db, BASE_URL
 
     rollid = 0
@@ -127,6 +130,9 @@ def list_events(params):
     sort_date = False
     n = 0
     for (rollid, name, thumbpath, rolldate, count) in rolls:
+	if (not count and ign_empty == "true"):
+	    continue
+
 	# < r34717 doesn't support unicode thumbnail paths
 	try:
 	    item = gui.ListItem(name, thumbnailImage=thumbpath)
@@ -158,7 +164,7 @@ def list_photos_with_keyword(params):
     media = db.GetMediaWithKeyword(keywordid)
     return render_media(media)
 
-def list_keywords(params):
+def list_keywords(params, ign_empty):
     global db, BASE_URL
 
     keywordid = 0
@@ -175,6 +181,9 @@ def list_keywords(params):
 
     n = 0
     for (keywordid, name, count) in keywords:
+	if (not count and ign_empty == "true"):
+	    continue
+
 	item = gui.ListItem(name)
 	if (count):
 	    item.setInfo(type="pictures", infoLabels={ "count": count })
@@ -345,12 +354,18 @@ if (__name__ == "__main__"):
 		if (xml_mtime > db_mtime):
 		    import_library(xmlfile)
     else:
+	# ignore empty albums if configured to do so
+	album_ign_empty = addon.getSetting('album_ignore_empty')
+	if (album_ign_empty == ""):
+	    addon.setSetting('album_ignore_empty', 'true')
+	    album_ign_empty = "true"
+
 	if (action == "events"):
-	    items = list_events(params)
+	    items = list_events(params, album_ign_empty)
 	elif (action == "albums"):
-	    items = list_albums(params)
+	    items = list_albums(params, album_ign_empty)
 	elif (action == "keywords"):
-	    items = list_keywords(params)
+	    items = list_keywords(params, album_ign_empty)
 	elif (action == "ratings"):
 	    items = list_ratings(params)
 	elif (action == "rescan"):
