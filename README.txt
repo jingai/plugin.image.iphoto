@@ -40,7 +40,6 @@ If possible, patch against the most recent version at:
 
 Known Issues
 ============
-* DOES NOT WORK WITH iPhoto 9.0+ from iLife '11
 * Sorting by date is broken and therefore disabled for now.
   See http://trac.xbmc.org/ticket/10519
 * Need icons for Faces and Keywords.
