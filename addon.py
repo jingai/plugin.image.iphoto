@@ -360,8 +360,11 @@ def add_import_lib_context_item(item):
 if (__name__ == "__main__"):
     xmlfile = addon.getSetting('albumdata_xml_path')
     if (xmlfile == ""):
-	xmlfile = os.getenv("HOME") + "/Pictures/iPhoto Library/AlbumData.xml"
-	addon.setSetting('albumdata_xml_path', xmlfile)
+	try:
+	    xmlfile = os.getenv("HOME") + "/Pictures/iPhoto Library/AlbumData.xml"
+	    addon.setSetting('albumdata_xml_path', xmlfile)
+	except:
+	    pass
 
     try:
 	params = get_params(sys.argv[2])
