@@ -8,8 +8,12 @@ __url__ = "git://github.com/jingai/plugin.image.iphoto.git"
 
 import traceback
 import xml.parsers.expat
-from pysqlite2 import dbapi2 as sqlite
 from urllib import unquote
+try:
+    from sqlite3 import dbapi2 as sqlite
+except:
+    from pysqlite2 import dbapi2 as sqlite
+
 import sys
 import os
 import os.path
