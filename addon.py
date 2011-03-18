@@ -11,11 +11,20 @@ import sys
 import time
 import os
 import os.path
+import shutil
 
 import xbmc
 import xbmcgui as gui
 import xbmcplugin as plugin
 import xbmcaddon
+
+#try:
+#    import xbmcvfs
+#except ImportError:
+#    import shutil
+#    copyfile = shutil.copyfile
+#else:
+#    copyfile = xbmcvfs.copy
 
 addon = xbmcaddon.Addon(id="plugin.image.iphoto")
 BASE_URL = "%s" % (sys.argv[0])
@@ -283,7 +292,7 @@ def progress_callback(progress_dialog, nphotos, ntotal):
     progress_dialog.update(percent, addon.getLocalizedString(30211) % (nphotos))
     return nphotos
 
-def import_library(xmlfile):
+def import_library(xmlpath, xmlfile):
     global db
 
     db.ResetDB()
@@ -315,7 +324,7 @@ def import_library(xmlfile):
     except:
 	print traceback.print_exc()
     else:
-	iparser = IPhotoParser(xmlfile, db.AddAlbumNew, album_ign, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlpath, xmlfile, db.AddAlbumNew, album_ign, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
 
 	progress_dialog.update(0, addon.getLocalizedString(30212))
 	try:
@@ -334,7 +343,6 @@ def hide_keyword(params):
 	    hidden_keywords += " "
 	hidden_keywords += keyword
 	addon.setSetting('hidden_keywords', hidden_keywords)
-	print "JSL: HIDDEN KEYWORDS '%s'" % (hidden_keywords)
     except Exception, e:
 	print to_str(e)
 	pass
@@ -365,6 +373,11 @@ if (__name__ == "__main__"):
 	    addon.setSetting('albumdata_xml_path', xmlfile)
 	except:
 	    pass
+    xmlpath = os.path.dirname(xmlfile)
+    origxml = xmlfile
+    xmlfile = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.xml"))
+    shutil.copyfile(origxml, xmlfile)
+    shutil.copystat(origxml, xmlfile)
 
     try:
 	params = get_params(sys.argv[2])
@@ -424,7 +437,7 @@ if (__name__ == "__main__"):
 		pass
 	    else:
 		if (xml_mtime > db_mtime):
-		    import_library(xmlfile)
+		    import_library(xmlpath, xmlfile)
     else:
 	# ignore empty albums if configured to do so
 	album_ign_empty = addon.getSetting('album_ignore_empty')
@@ -443,7 +456,7 @@ if (__name__ == "__main__"):
 	elif (action == "ratings"):
 	    items = list_ratings(params)
 	elif (action == "rescan"):
-	    items = import_library(xmlfile)
+	    items = import_library(xmlpath, xmlfile)
 	elif (action == "hidekeyword"):
 	    items = hide_keyword(params)
 
