@@ -20,6 +20,7 @@ The iPhoto plugin can also be configured to ignore certain album types.
 It is currently hard-coded to ignore albums of type "Book" and
 "Selected Event Album," but you can choose to ignore also:
 
+* Empty -- albums with no pictures.
 * Published -- these are albums pushed to your MobileMe Gallery.
 * Flagged -- albums flagged in iPhoto's interface.
 
@@ -28,6 +29,12 @@ Both of these album types are ignored by default.
 If you select "Auto update library", the plugin will compare the modification
 time of your AlbumData.xml with its current database and update the database
 automatically on start.  This is disabled by default.
+
+You can also choose the view style for albums if you're using the Confluence
+skin.  You may set this to "Image Wrap," "Pic Thumbs," or "Default".  If you
+choose "Default," it will preserve whatever view mode you have chosen in XBMC
+for each album; otherwise, it will force the view style to the one selected
+here.
 
 Translations
 ============
