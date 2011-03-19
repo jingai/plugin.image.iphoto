@@ -40,7 +40,23 @@ db = IPhotoDB(db_file)
 
 apple_epoch = 978307200
 
+# default view in Confluence
+view_mode = addon.getSetting('view_mode')
+if (view_mode == ""):
+    view_mode = "0"
+    addon.setSetting('view_mode', view_mode)
+view_mode = int(view_mode)
+
+# ignore empty albums if configured to do so
+album_ign_empty = addon.getSetting('album_ignore_empty')
+if (album_ign_empty == ""):
+    album_ign_empty = "true"
+    addon.setSetting('album_ignore_empty', album_ign_empty)
+
+
 def render_media(media):
+    global view_mode
+
     sort_date = False
     n = 0
     for (caption, mediapath, thumbpath, originalpath, rating, mediadate, mediasize) in media:
@@ -72,6 +88,9 @@ def render_media(media):
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     if sort_date == True:
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
+
+    if view_mode > 0:
+	xbmc.executebuiltin("Container.SetViewMode(%d)" % (view_mode + 509))
     return n
 
 def list_photos_in_album(params):
@@ -81,8 +100,8 @@ def list_photos_in_album(params):
     media = db.GetMediaInAlbum(albumid)
     return render_media(media)
 
-def list_albums(params, ign_empty):
-    global db, BASE_URL
+def list_albums(params):
+    global db, BASE_URL, album_ign_empty
 
     albumid = 0
     try:
@@ -101,7 +120,7 @@ def list_albums(params, ign_empty):
 	if (name == "Photos"):
 	    continue
 
-	if (not count and ign_empty == "true"):
+	if (not count and album_ign_empty == "true"):
 	    continue
 
 	item = gui.ListItem(name)
@@ -121,8 +140,8 @@ def list_photos_in_event(params):
     media = db.GetMediaInRoll(rollid)
     return render_media(media)
 
-def list_events(params, ign_empty):
-    global db, BASE_URL
+def list_events(params):
+    global db, BASE_URL, album_ign_empty
 
     rollid = 0
     try:
@@ -139,7 +158,7 @@ def list_events(params, ign_empty):
     sort_date = False
     n = 0
     for (rollid, name, thumbpath, rolldate, count) in rolls:
-	if (not count and ign_empty == "true"):
+	if (not count and album_ign_empty == "true"):
 	    continue
 
 	# < r34717 doesn't support unicode thumbnail paths
@@ -173,8 +192,8 @@ def list_photos_with_face(params):
     media = db.GetMediaWithFace(faceid)
     return render_media(media)
 
-def list_faces(params, ign_empty):
-    global db, BASE_URL
+def list_faces(params):
+    global db, BASE_URL, album_ign_empty
 
     faceid = 0
     try:
@@ -190,7 +209,7 @@ def list_faces(params, ign_empty):
 
     n = 0
     for (faceid, name, thumbpath, count) in faces:
-	if (not count and ign_empty == "true"):
+	if (not count and album_ign_empty == "true"):
 	    continue
 
 	# < r34717 doesn't support unicode thumbnail paths
@@ -215,8 +234,8 @@ def list_photos_with_keyword(params):
     media = db.GetMediaWithKeyword(keywordid)
     return render_media(media)
 
-def list_keywords(params, ign_empty):
-    global db, BASE_URL
+def list_keywords(params):
+    global db, BASE_URL, album_ign_empty
 
     keywordid = 0
     try:
@@ -237,7 +256,7 @@ def list_keywords(params, ign_empty):
 	if (name in hidden_keywords):
 	    continue
 
-	if (not count and ign_empty == "true"):
+	if (not count and album_ign_empty == "true"):
 	    continue
 
 	item = gui.ListItem(name)
@@ -305,16 +324,16 @@ def import_library(xmlpath, xmlfile):
     # ignore albums published to MobileMe if configured to do so
     album_ign_publ = addon.getSetting('album_ignore_published')
     if (album_ign_publ == ""):
-	addon.setSetting('album_ignore_published', 'true')
 	album_ign_publ = "true"
+	addon.setSetting('album_ignore_published', album_ign_publ)
     if (album_ign_publ == "true"):
 	album_ign.append("Published")
 
     # ignore flagged albums if configured to do so
     album_ign_flagged = addon.getSetting('album_ignore_flagged')
     if (album_ign_flagged == ""):
-	addon.setSetting('album_ignore_flagged', 'true')
 	album_ign_flagged = "true"
+	addon.setSetting('album_ignore_flagged', album_ign_flagged)
     if (album_ign_flagged == "true"):
 	album_ign.append("Shelf")
 
@@ -412,8 +431,8 @@ if (__name__ == "__main__"):
 
 	    hide_import_lib = addon.getSetting('hide_import_lib')
 	    if (hide_import_lib == ""):
-		addon.setSetting('hide_import_lib', 'false')
 		hide_import_lib = "false"
+		addon.setSetting('hide_import_lib', hide_import_lib)
 	    if (hide_import_lib == "false"):
 		item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=PLUGIN_PATH+"/icon.png")
 		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
@@ -426,8 +445,8 @@ if (__name__ == "__main__"):
 	# automatically update library if desired
 	auto_update_lib = addon.getSetting('auto_update_lib')
 	if (auto_update_lib == ""):
-	    addon.setSetting('auto_update_lib', 'false')
 	    auto_update_lib = "false"
+	    addon.setSetting('auto_update_lib', auto_update_lib)
 	if (auto_update_lib == "true"):
 	    try:
 		xml_mtime = os.path.getmtime(xmlfile)
@@ -439,20 +458,14 @@ if (__name__ == "__main__"):
 		if (xml_mtime > db_mtime):
 		    import_library(xmlpath, xmlfile)
     else:
-	# ignore empty albums if configured to do so
-	album_ign_empty = addon.getSetting('album_ignore_empty')
-	if (album_ign_empty == ""):
-	    addon.setSetting('album_ignore_empty', 'true')
-	    album_ign_empty = "true"
-
 	if (action == "events"):
-	    items = list_events(params, album_ign_empty)
+	    items = list_events(params)
 	elif (action == "albums"):
-	    items = list_albums(params, album_ign_empty)
+	    items = list_albums(params)
 	elif (action == "faces"):
-	    items = list_faces(params, album_ign_empty)
+	    items = list_faces(params)
 	elif (action == "keywords"):
-	    items = list_keywords(params, album_ign_empty)
+	    items = list_keywords(params)
 	elif (action == "ratings"):
 	    items = list_ratings(params)
 	elif (action == "rescan"):
