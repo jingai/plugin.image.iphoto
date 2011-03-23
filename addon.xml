@@ -13,7 +13,7 @@
 	<summary lang="en">Imports iPhoto library into XBMC.</summary>
 	<summary lang="hu">iPhoto könyvtár importálása az XBMC-be</summary>
 	<summary lang="pt">Importa bibliotecas iPhoto para o XBMC.</summary>
-	<description lang="en">Imports iPhoto library into Events, Albums, Faces, Keywords, and Ratings categories.</description>
+	<description lang="en">Imports iPhoto library into Events, Albums, Faces, Places, Keywords, and Ratings categories.[CR][CR]For more information, see the README at http://github.com/jingai/plugin.image.iphoto</description>
 	<description lang="hu">iPhoto könyvtár importálása az Események, Albumok és Besorolás kategóriákba.</description>
 	<description lang="pt">Importa bibliotecas iPhoto para Eventos, Álbuns e Classificações.</description>
 	<disclaimer lang="en"></disclaimer>
