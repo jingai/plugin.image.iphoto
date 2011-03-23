@@ -94,6 +94,9 @@ def latlon_to_address(lat, lon):
 	sx['po'] = sx_find(js, 'sxpo', offset)
 	# country
 	sx['cn'] = sx_find(js, 'sxcn', offset)
+
+	for a in sx:
+	    sx[a] = sx[a].replace('\\x26', '&')
     except Exception, e:
 	raise e
 
