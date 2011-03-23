@@ -30,10 +30,15 @@
     <string id="30005">Ignore empty albums</string>
     <string id="30006">Ignore keywords</string>
     <string id="30007">View mode in Confluence</string>
-    <string id="30008">Enable Places support</string>
-    <string id="30010">Default</string>
-    <string id="30011">Image Wrap</string>
-    <string id="30012">Pic Thumbs</string>
+    <string id="30008">Default</string>
+    <string id="30009">Image Wrap</string>
+    <string id="30010">Pic Thumbs</string>
+    <string id="30015">Enable Places support</string>
+    <string id="30020">Show Places as</string>
+    <string id="30021">Addresses</string>
+    <string id="30022">Lat/Lon Pairs</string>
+
+    <!-- Plugin settings categories strings -->
     <string id="30050">General</string>
     <string id="30051">View</string>
     <string id="30059">Advanced</string>

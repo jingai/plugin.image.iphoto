@@ -40,13 +40,6 @@ db = IPhotoDB(db_file)
 
 apple_epoch = 978307200
 
-# default view in Confluence
-view_mode = addon.getSetting('view_mode')
-if (view_mode == ""):
-    view_mode = "0"
-    addon.setSetting('view_mode', view_mode)
-view_mode = int(view_mode)
-
 # ignore empty albums if configured to do so
 album_ign_empty = addon.getSetting('album_ignore_empty')
 if (album_ign_empty == ""):
@@ -55,7 +48,12 @@ if (album_ign_empty == ""):
 
 
 def render_media(media):
-    global view_mode
+    # default view in Confluence
+    view_mode = addon.getSetting('view_mode')
+    if (view_mode == ""):
+	view_mode = "0"
+	addon.setSetting('view_mode', view_mode)
+    view_mode = int(view_mode)
 
     sort_date = False
     n = 0
@@ -237,6 +235,15 @@ def list_photos_with_place(params):
 def list_places(params):
     global db, BASE_URL, album_ign_empty
 
+    # how to display Places labels:
+    # 0 = Addresses
+    # 1 = Latitude/Longitude Pairs
+    places_labels = addon.getSetting('places_labels')
+    if (places_labels == ""):
+	places_labels = "0"
+	addon.setSetting('places_labels', places_labels)
+    places_labels = int(places_labels)
+
     placeid = 0
     try:
 	placeid = params['placeid']
@@ -254,7 +261,11 @@ def list_places(params):
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	item = gui.ListItem(address, latlon)
+	latlon = latlon.replace("+", " ")
+	if (places_labels == 1):
+	    item = gui.ListItem(latlon, address)
+	else:
+	    item = gui.ListItem(address, latlon)
 	if (count):
 	    item.setInfo(type="pictures", infoLabels={ "count": count })
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=places&placeid=%s" % (placeid), listitem = item, isFolder = True)
