@@ -5,7 +5,7 @@
     <string id="30210">Importing iPhoto Library</string>
     <string id="30211">Imported %d items</string>
     <string id="30212">Scanning AlbumData.xml...</string>
-    <string id="30213">Import iPhoto Library</string>
+    <string id="30213">Update library</string>
     <string id="30214">Ignore Keyword</string>
     <string id="30220">Enable Support for Places?</string>
     <string id="30221">Places looks up addresses via Google.</string>
@@ -16,7 +16,7 @@
     <string id="30100">Events</string>
     <string id="30101">Albums</string>
     <string id="30102">Ratings</string>
-    <string id="30103">&lt;&lt; Import iPhoto Library &gt;&gt;</string>
+    <string id="30103">&lt;&lt; Update Library &gt;&gt;</string>
     <string id="30104">Keywords</string>
     <string id="30105">Faces</string>
     <string id="30106">Places</string>
@@ -26,7 +26,7 @@
     <string id="30001">Ignore published (MobileMe) albums</string>
     <string id="30002">Ignore 'Flagged' album</string>
     <string id="30003">Auto update library</string>
-    <string id="30004">Hide Import Library item in main menu</string>
+    <string id="30004">Hide Update Library item in main menu</string>
     <string id="30005">Ignore empty albums</string>
     <string id="30006">Ignore keywords</string>
     <string id="30007">View mode in Confluence</string>
