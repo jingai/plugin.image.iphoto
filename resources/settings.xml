@@ -3,6 +3,7 @@
     <!-- General -->
     <category label="30050">
 	<setting id="albumdata_xml_path" type="file" source="video" label="30000" default=""/>
+	<setting id="enable_places" type="bool" label="30008" default="false"/>
 	<setting id="auto_update_lib" type="bool" label="30003" default="false"/>
     </category>
 

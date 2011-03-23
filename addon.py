@@ -227,6 +227,44 @@ def list_faces(params):
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     return n
 
+def list_photos_with_place(params):
+    global db
+
+    placeid = params['placeid']
+    media = db.GetMediaWithPlace(placeid)
+    return render_media(media)
+
+def list_places(params):
+    global db, BASE_URL, album_ign_empty
+
+    placeid = 0
+    try:
+	placeid = params['placeid']
+	return list_photos_with_place(params)
+    except Exception, e:
+	print to_str(e)
+	pass
+
+    places = db.GetPlaces()
+    if (not places):
+	return
+
+    n = 0
+    for (placeid, latlon, address, count) in places:
+	if (not count and album_ign_empty == "true"):
+	    continue
+
+	item = gui.ListItem(address, latlon)
+	if (count):
+	    item.setInfo(type="pictures", infoLabels={ "count": count })
+	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=places&placeid=%s" % (placeid), listitem = item, isFolder = True)
+	n += 1
+
+    if (n > 0):
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+    return n
+
 def list_photos_with_keyword(params):
     global db
 
@@ -311,7 +349,7 @@ def progress_callback(progress_dialog, nphotos, ntotal):
     progress_dialog.update(percent, addon.getLocalizedString(30211) % (nphotos))
     return nphotos
 
-def import_library(xmlpath, xmlfile):
+def import_library(xmlpath, xmlfile, enable_places):
     global db
 
     db.ResetDB()
@@ -343,7 +381,7 @@ def import_library(xmlpath, xmlfile):
     except:
 	print traceback.print_exc()
     else:
-	iparser = IPhotoParser(xmlpath, xmlfile, db.AddAlbumNew, album_ign, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlpath, xmlfile, album_ign, enable_places, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
 
 	progress_dialog.update(0, addon.getLocalizedString(30212))
 	try:
@@ -398,6 +436,13 @@ if (__name__ == "__main__"):
     shutil.copyfile(origxml, xmlfile)
     shutil.copystat(origxml, xmlfile)
 
+    enable_places = False
+    e = addon.getSetting('enable_places')
+    if (e == ""):
+	addon.setSetting('enable_places', "false")
+    elif (e == "true"):
+	enable_places = True
+
     try:
 	params = get_params(sys.argv[2])
 	action = params['action']
@@ -418,6 +463,11 @@ if (__name__ == "__main__"):
 	    item.setInfo("Picture", { "Title": "Faces" })
 	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=faces", item, True)
+
+	    item = gui.ListItem(addon.getLocalizedString(30106), thumbnailImage=ICONS_PATH+"/places.png")
+	    item.setInfo("Picture", { "Title": "Places" })
+	    add_import_lib_context_item(item)
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30104), thumbnailImage=ICONS_PATH+"/keywords.png")
 	    item.setInfo("Picture", { "Title": "Keywords" })
@@ -456,20 +506,30 @@ if (__name__ == "__main__"):
 		pass
 	    else:
 		if (xml_mtime > db_mtime):
-		    import_library(xmlpath, xmlfile)
+		    import_library(xmlpath, xmlfile, enable_places)
     else:
+	items = None
 	if (action == "events"):
 	    items = list_events(params)
 	elif (action == "albums"):
 	    items = list_albums(params)
 	elif (action == "faces"):
 	    items = list_faces(params)
+	elif (action == "places"):
+	    if (enable_places == True):
+		items = list_places(params)
+	    else:
+		dialog = gui.Dialog()
+		ret = dialog.yesno(addon.getLocalizedString(30220), addon.getLocalizedString(30221), addon.getLocalizedString(30222), addon.getLocalizedString(30223))
+		if (ret == True):
+		    enable_places = True
+		    addon.setSetting('enable_places', "true")
 	elif (action == "keywords"):
 	    items = list_keywords(params)
 	elif (action == "ratings"):
 	    items = list_ratings(params)
 	elif (action == "rescan"):
-	    items = import_library(xmlpath, xmlfile)
+	    import_library(xmlpath, xmlfile, enable_places)
 	elif (action == "hidekeyword"):
 	    items = hide_keyword(params)
 

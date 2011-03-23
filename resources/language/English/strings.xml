@@ -7,6 +7,10 @@
     <string id="30212">Scanning AlbumData.xml...</string>
     <string id="30213">Import iPhoto Library</string>
     <string id="30214">Ignore Keyword</string>
+    <string id="30220">Enable Support for Places?</string>
+    <string id="30221">Places looks up addresses via Google.</string>
+    <string id="30222">This can slow down the library import a bit.</string>
+    <string id="30223">You will also need to reimport your library.</string>
 
     <!-- Category strings -->
     <string id="30100">Events</string>
@@ -15,6 +19,7 @@
     <string id="30103">&lt;&lt; Import iPhoto Library &gt;&gt;</string>
     <string id="30104">Keywords</string>
     <string id="30105">Faces</string>
+    <string id="30106">Places</string>
 
     <!-- Plugin settings strings -->
     <string id="30000">Path to AlbumData.xml</string>
@@ -25,6 +30,7 @@
     <string id="30005">Ignore empty albums</string>
     <string id="30006">Ignore keywords</string>
     <string id="30007">View mode in Confluence</string>
+    <string id="30008">Enable Places support</string>
     <string id="30010">Default</string>
     <string id="30011">Image Wrap</string>
     <string id="30012">Pic Thumbs</string>

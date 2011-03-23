@@ -8,7 +8,7 @@ __url__ = "git://github.com/jingai/plugin.image.iphoto.git"
 
 import traceback
 import xml.parsers.expat
-from urllib import unquote
+from urllib import unquote, urlopen
 try:
     from sqlite3 import dbapi2 as sqlite
 except:
@@ -52,8 +52,56 @@ def to_str(text):
 
     return text.encode('utf-8')
 
+class GoogleError(Exception):
+    def __init__(self, value):
+	self.value = value
+    def __str__(self):
+	return repr(self.value)
+
+def sx_find(js, term, offset, ec='"'):
+    term += ":"
+    tl = len(term) + 1
+    return js[js.find(term, offset) + tl:js.find(ec, js.find(term, offset) + tl)]
+
+def latlon_to_address(lat, lon):
+    sx = {}
+
+    try:
+	url = 'http://maps.google.com/maps?q=%s+%s&output=js' % (lat, lon)
+	js = urlopen(url).read()
+	if ('<error>' in js or 'Did you mean:' in js):
+	    raise GoogleError('Google cannot interpret the address: %s %s' % (lat, lon))
+
+	# if more than one address returned, it's likely a business and the
+	# second entry could contain a title.
+	offset = js.find('sxcn:') + 6
+	if (sx_find(js, 'sxcn', offset) == ""):
+	    offset = 0;
+
+	# title
+	sx['ti'] = sx_find(js, 'sxti', offset)
+	if (sx['ti'] == ""):
+	    sx['ti'] = sx_find(js, 'laddr', offset, ',')
+	# street
+	sx['st'] = sx_find(js, 'sxst', offset)
+	# street number
+	sx['sn'] = sx_find(js, 'sxsn', offset)
+	# county
+	sx['ct'] = sx_find(js, 'sxct', offset)
+	# province
+	sx['pr'] = sx_find(js, 'sxpr', offset)
+	# post code
+	sx['po'] = sx_find(js, 'sxpo', offset)
+	# country
+	sx['cn'] = sx_find(js, 'sxcn', offset)
+    except Exception, e:
+	raise e
+
+    return sx
+
 class IPhotoDB:
     def __init__(self, dbfile):
+	self.placeList = {}
 	try:
 	    self.dbconn = sqlite.connect(dbfile)
 	    self.InitDB()
@@ -99,6 +147,8 @@ class IPhotoDB:
 	       caption varchar,
 	       guid varchar,
 	       aspectratio number,
+	       latitude number,
+	       longitude number,
 	       rating integer,
 	       mediadate integer,
 	       mediasize integer,
@@ -192,6 +242,29 @@ class IPhotoDB:
 	    pass
 
 	try:
+	    # places table
+	    self.dbconn.execute("""
+	    CREATE TABLE places (
+	       id integer primary key,
+	       latlon varchar,
+	       address varchar,
+	       photocount integer
+	    )""")
+	except:
+	    pass
+
+	try:
+	    # placesmedia table
+	    self.dbconn.execute("""
+	    CREATE TABLE placesmedia (
+	       placeid integer,
+	       mediaid integer,
+	       mediaorder integer
+	    )""")
+	except Exception, e:
+	    pass
+
+	try:
 	    # keywords table
 	    self.dbconn.execute("""
 	    CREATE TABLE keywords (
@@ -214,7 +287,7 @@ class IPhotoDB:
 	    pass
 
     def ResetDB(self):
-	for table in ['media', 'mediatypes', 'rolls', 'rollmedia', 'albums', 'albummedia', 'faces', 'facesmedia', 'keywords', 'keywordmedia']:
+	for table in ['media', 'mediatypes', 'rolls', 'rollmedia', 'albums', 'albummedia', 'faces', 'facesmedia', 'places', 'placesmedia', 'keywords', 'keywordmedia']:
 	    try:
 		self.dbconn.execute("DROP TABLE %s" % table)
 	    except Exception, e:
@@ -248,19 +321,17 @@ class IPhotoDB:
 	    return None
 
     def SetConfig(self, key, value):
+	cur = self.dbconn.cursor()
 	if (self.GetConfig(key) == None):
-	    cur = self.dbconn.cursor()
 	    cur.execute("""INSERT INTO config (key, value)
 			   VALUES (?, ?)""",
 			(key, value))
-	    self.Commit()
 	else:
-	    cur = self.dbconn.cursor()
 	    cur.execute("""UPDATE config
 			   SET value = ?
 			   WHERE key = ?""",
 			(value, key))
-	    self.Commit()
+	self.Commit()
 
     def UpdateLastImport(self):
 	self.SetConfig('lastimport', 'dummy')
@@ -274,6 +345,7 @@ class IPhotoDB:
 	try:
 	    if (autoclean and not value):
 		value = "Unknown"
+
 	    cur = self.dbconn.cursor()
 
 	    # query db for column with specified name
@@ -371,6 +443,32 @@ class IPhotoDB:
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM facesmedia A LEFT JOIN media M ON A.mediaid = M.id
 			WHERE A.faceid = ?""", (faceid,))
+	    for tuple in cur:
+		media.append(tuple)
+	except Exception, e:
+	    print to_str(e)
+	    pass
+	return media
+
+    def GetPlaces(self):
+	places = []
+	try:
+	    cur = self.dbconn.cursor()
+	    cur.execute("SELECT id, latlon, address, photocount FROM places")
+	    for tuple in cur:
+		places.append(tuple)
+	except Exception, e:
+	    print to_str(e)
+	    pass
+	return places
+
+    def GetMediaWithPlace(self, placeid):
+	media = []
+	try:
+	    cur = self.dbconn.cursor()
+	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
+			FROM placesmedia A LEFT JOIN media M ON A.mediaid = M.id
+			WHERE A.placeid = ?""", (placeid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -516,7 +614,7 @@ class IPhotoDB:
 	except Exception, e:
 	    raise e
 
-    def AddMediaNew(self, media, archivePath, libraryPath):
+    def AddMediaNew(self, media, archivePath, libraryPath, enablePlaces):
 	#print "AddMediaNew()", media
 
 	try:
@@ -550,14 +648,16 @@ class IPhotoDB:
 
 	try:
 	    self.dbconn.execute("""
-	    INSERT INTO media (id, mediatypeid, rollid, caption, guid, aspectratio, rating, mediadate, mediasize, mediapath, thumbpath, originalpath)
-	    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+	    INSERT INTO media (id, mediatypeid, rollid, caption, guid, aspectratio, latitude, longitude, rating, mediadate, mediasize, mediapath, thumbpath, originalpath)
+	    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
 				(mediaid,
 				 self.GetMediaTypeId(media['MediaType'], True),
 				 media['Roll'],
 				 media['Caption'],
 				 media['GUID'],
 				 media['Aspect Ratio'],
+				 media['latitude'],
+				 media['longitude'],
 				 media['Rating'],
 				 int(float(media['DateAsTimerInterval'])),
 				 mediasize,
@@ -569,7 +669,76 @@ class IPhotoDB:
 		self.dbconn.execute("""
 		INSERT INTO facesmedia (faceid, mediaid)
 		VALUES (?, ?)""", (faceid, mediaid))
-		cur = self.dbconn.cursor()
+
+	    if enablePlaces == True:
+		try:
+		    lat = float(media['latitude'])
+		    lon = float(media['longitude'])
+		    if (lat == 0.0 and lon == 0.0):
+			del lat, lon
+		    lat = to_str(lat)
+		    lon = to_str(lon)
+		    latlon = lat + "+" + lon
+		    try:
+			addr = None
+			placeid = None
+			for i in self.placeList:
+			    if (latlon in self.placeList[i]):
+				addr = self.placeList[i][0]
+				placeid = i
+				break
+			if addr is None:
+			    sx = latlon_to_address(lat, lon)
+			    if (sx['ti'] != ""):
+				addr = sx['ti']
+				if (sx['po'] != ""):
+				    addr += ", " + sx['po']
+				if (sx['cn'] != ""):
+				    addr += ", " + sx['cn']
+
+				for i in self.placeList:
+				    if (self.placeList[i][0] == addr):
+					placeid = i
+					break
+				if placeid is None:
+				    placeid = len(self.placeList)
+				    self.placeList[placeid] = []
+				    #print "new placeid %d for addr '%s'" % (placeid, addr)
+		    except Exception, e:
+			print to_str(e)
+			raise e
+		except:
+		    #print "No location information for photo id %d" % (mediaid)
+		    pass
+		else:
+		    if (addr not in self.placeList[placeid]):
+			# add new Place
+			self.placeList[placeid].append(addr)
+			self.dbconn.execute("""
+			INSERT INTO places (id, latlon, address)
+			VALUES (?, ?, ?)""", (placeid, latlon, addr))
+
+		    if (latlon not in self.placeList[placeid]):
+			# existing Place, but add latlon to list for this address.
+			# do this to prevent the script from hitting google more
+			# than necessary.
+			self.placeList[placeid].append(latlon)
+
+		    self.dbconn.execute("""
+		    INSERT INTO placesmedia (placeid, mediaid)
+		    VALUES (?, ?)""", (placeid, mediaid))
+		    cur = self.dbconn.cursor()
+		    cur.execute("""SELECT id, photocount
+				FROM places
+				WHERE id = ?""", (placeid,))
+		    for tuple in cur:
+			if (tuple[1]):
+			    photocount = int(tuple[1]) + 1
+			else:
+			    photocount = 1
+			self.dbconn.execute("""
+			UPDATE places SET photocount = ?
+			WHERE id = ?""", (photocount, placeid))
 
 	    for keywordid in media['keywordlist']:
 		self.dbconn.execute("""
@@ -623,8 +792,8 @@ class IPhotoParserState:
 	self.valueType = ""
 
 class IPhotoParser:
-    def __init__(self, library_path="", xmlfile="", album_callback=None, album_ign=[],
-		 roll_callback=None, face_callback=None, keyword_callback=None, photo_callback=None,
+    def __init__(self, library_path="", xmlfile="", album_ign=[], enable_places=False,
+		 album_callback=None, roll_callback=None, face_callback=None, keyword_callback=None, photo_callback=None,
 		 progress_callback=None, progress_dialog=None):
 	self.libraryPath = library_path
 	self.xmlfile = xmlfile
@@ -645,8 +814,9 @@ class IPhotoParser:
 	self.rollList = []
 	self.faceList = []
 	self.keywordList = []
-	self.AlbumCallback = album_callback
 	self.albumIgn = album_ign
+	self.enablePlaces = enable_places
+	self.AlbumCallback = album_callback
 	self.RollCallback = roll_callback
 	self.FaceCallback = face_callback
 	self.KeywordCallback = keyword_callback
@@ -667,6 +837,8 @@ class IPhotoParser:
 	    self.currentPhoto[a] = ""
 	self.currentPhoto['Aspect Ratio'] = '0'
 	self.currentPhoto['DateAsTimerInterval'] = '0'
+	self.currentPhoto['latitude'] = '0'
+	self.currentPhoto['longitude'] = '0'
 	self.currentPhoto['facelist'] = []
 	self.currentPhoto['keywordlist'] = []
 
@@ -731,7 +903,7 @@ class IPhotoParser:
 
 	    if (self.PhotoCallback and len(self.photoList) > 0):
 		for a in self.photoList:
-		    self.PhotoCallback(a, self.imagePath, self.libraryPath)
+		    self.PhotoCallback(a, self.imagePath, self.libraryPath, self.enablePlaces)
 		    self.updateProgress()
 	except ParseCanceled:
 	    raise
@@ -958,7 +1130,7 @@ def main():
 
     db = IPhotoDB("iphoto.db")
     db.ResetDB()
-    iparser = IPhotoParser("", xmlfile, db.AddAlbumNew, "", db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew)
+    iparser = IPhotoParser("", xmlfile, "", True, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew)
     try:
 	iparser.Parse()
     except:
