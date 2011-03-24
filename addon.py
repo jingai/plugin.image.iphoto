@@ -74,7 +74,9 @@ def render_media(media):
 
 	    try:
 		item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(mediadate)))
-		#item.setInfo(type="pictures", infoLabels={ "size": mediasize, "date": item_date })
+		#JSL: setting the date here to enable sorting prevents XBMC
+		#JSL: from scanning the EXIF/IPTC info
+		#item.setInfo(type="pictures", infoLabels={ "date": item_date })
 		#sort_date = True
 	    except:
 		pass
@@ -461,32 +463,32 @@ if (__name__ == "__main__"):
 	# main menu
 	try:
 	    item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
-	    item.setInfo("Picture", { "Title": "Events" })
+	    item.setInfo(type="pictures", infoLabels={ "Title": "Events" })
 	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=events", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30101), thumbnailImage=ICONS_PATH+"/albums.png")
-	    item.setInfo("Picture", { "Title": "Albums" })
+	    item.setInfo(type="pictures", infoLabels={ "Title": "Albums" })
 	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30105), thumbnailImage=ICONS_PATH+"/faces.png")
-	    item.setInfo("Picture", { "Title": "Faces" })
+	    item.setInfo(type="pictures", infoLabels={ "Title": "Faces" })
 	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=faces", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30106), thumbnailImage=ICONS_PATH+"/places.png")
-	    item.setInfo("Picture", { "Title": "Places" })
+	    item.setInfo(type="pictures", infoLabels={ "Title": "Places" })
 	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30104), thumbnailImage=ICONS_PATH+"/keywords.png")
-	    item.setInfo("Picture", { "Title": "Keywords" })
+	    item.setInfo(type="pictures", infoLabels={ "Title": "Keywords" })
 	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=keywords", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
-	    item.setInfo("Picture", { "Title": "Ratings" })
+	    item.setInfo(type="pictures", infoLabels={ "Title": "Ratings" })
 	    add_import_lib_context_item(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
 
