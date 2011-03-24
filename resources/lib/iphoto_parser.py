@@ -190,8 +190,7 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    CREATE TABLE rollmedia (
 	       rollid integer,
-	       mediaid integer,
-	       mediaorder integer
+	       mediaid integer
 	    )""")
 	except Exception, e:
 	    pass
@@ -214,8 +213,7 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    CREATE TABLE albummedia (
 	       albumid integer,
-	       mediaid integer,
-	       mediaorder integer
+	       mediaid integer
 	    )""")
 	except Exception, e:
 	    pass
@@ -238,8 +236,7 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    CREATE TABLE facesmedia (
 	       faceid integer,
-	       mediaid integer,
-	       mediaorder integer
+	       mediaid integer
 	    )""")
 	except Exception, e:
 	    pass
@@ -261,8 +258,7 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    CREATE TABLE placesmedia (
 	       placeid integer,
-	       mediaid integer,
-	       mediaorder integer
+	       mediaid integer
 	    )""")
 	except Exception, e:
 	    pass
@@ -283,8 +279,7 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    CREATE TABLE keywordmedia (
 	       keywordid integer,
-	       mediaid integer,
-	       mediaorder integer
+	       mediaid integer
 	    )""")
 	except Exception, e:
 	    pass
@@ -483,7 +478,7 @@ class IPhotoDB:
 	keywords = []
 	try:
 	    cur = self.dbconn.cursor()
-	    cur.execute("SELECT id, name, photocount FROM keywords")
+	    cur.execute("SELECT id, name, photocount FROM keywords ORDER BY name")
 	    for tuple in cur:
 		keywords.append(tuple)
 	except Exception, e:
