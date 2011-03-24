@@ -386,7 +386,7 @@ class IPhotoDB:
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM albummedia A LEFT JOIN media M ON A.mediaid = M.id
-			WHERE A.albumid = ?""", (albumid,))
+			WHERE A.albumid = ? ORDER BY M.mediadate ASC""", (albumid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -412,7 +412,7 @@ class IPhotoDB:
 	try:
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
-			FROM media M WHERE M.rollid = ?""", (rollid,))
+			FROM media M WHERE M.rollid = ? ORDER BY M.mediadate ASC""", (rollid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -440,7 +440,7 @@ class IPhotoDB:
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM facesmedia A LEFT JOIN media M ON A.mediaid = M.id
-			WHERE A.faceid = ?""", (faceid,))
+			WHERE A.faceid = ? ORDER BY M.mediadate ASC""", (faceid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -466,7 +466,7 @@ class IPhotoDB:
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM placesmedia A LEFT JOIN media M ON A.mediaid = M.id
-			WHERE A.placeid = ?""", (placeid,))
+			WHERE A.placeid = ? ORDER BY M.mediadate ASC""", (placeid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -492,7 +492,7 @@ class IPhotoDB:
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM keywordmedia A LEFT JOIN media M ON A.mediaid = M.id
-			WHERE A.keywordid = ?""", (keywordid,))
+			WHERE A.keywordid = ? ORDER BY M.mediadate ASC""", (keywordid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -505,7 +505,7 @@ class IPhotoDB:
 	try:
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
-			FROM media M WHERE M.rating = ?""", (rating,))
+			FROM media M WHERE M.rating = ? ORDER BY M.mediadate ASC""", (rating,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
