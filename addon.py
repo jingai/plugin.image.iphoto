@@ -81,11 +81,7 @@ def render_media(media):
 	    caption = mediapath
 
 	if (caption):
-	    # < r34717 doesn't support unicode thumbnail paths
-	    try:
-		item = gui.ListItem(caption, thumbnailImage=thumbpath)
-	    except:
-		item = gui.ListItem(caption)
+	    item = gui.ListItem(caption, thumbnailImage=thumbpath)
 
 	    try:
 		item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(mediadate)))
@@ -176,11 +172,7 @@ def list_events(params):
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	# < r34717 doesn't support unicode thumbnail paths
-	try:
-	    item = gui.ListItem(name, thumbnailImage=thumbpath)
-	except:
-	    item = gui.ListItem(name)
+	item = gui.ListItem(name, thumbnailImage=thumbpath)
 
 	try:
 	    item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(rolldate)))
@@ -227,11 +219,7 @@ def list_faces(params):
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	# < r34717 doesn't support unicode thumbnail paths
-	try:
-	    item = gui.ListItem(name, thumbnailImage=thumbpath)
-	except:
-	    item = gui.ListItem(name)
+	item = gui.ListItem(name, thumbnailImage=thumbpath)
 
 	if (count):
 	    item.setInfo(type="pictures", infoLabels={ "count": count })
