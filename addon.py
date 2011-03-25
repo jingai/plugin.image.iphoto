@@ -283,7 +283,7 @@ def list_places(params):
 
 	if (thumbpath):
 	    item.setThumbnailImage(thumbpath)
-	if (show_fanart and fanartpath):
+	if (show_fanart == True and fanartpath):
 	    item.setProperty("Fanart_Image", fanartpath)
 
 	if (count):
@@ -418,7 +418,7 @@ def import_library(xmlpath, xmlfile, enable_places):
     try:
 	progress_dialog.create(addon.getLocalizedString(30210))
 	map_aspect = 0.0
-	if (enable_maps):
+	if (enable_maps == True):
 	    res_x = float(xbmc.getInfoLabel("System.ScreenWidth"))
 	    res_y = float(xbmc.getInfoLabel("System.ScreenHeight"))
 	    map_aspect = res_x / res_y
