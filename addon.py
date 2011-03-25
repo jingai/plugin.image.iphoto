@@ -46,6 +46,21 @@ if (album_ign_empty == ""):
     album_ign_empty = "true"
     addon.setSetting('album_ignore_empty', album_ign_empty)
 
+# force configured sort method when set to "DEFAULT".
+# XBMC sorts by file date when user selects "DATE" as the sort method,
+# so we have no way to sort by the date stored in the XML or the EXIF
+# data without providing an override to "DEFAULT".
+# this works out well because I don't believe iPhoto stores the photos
+# in the XML in any meaningful order anyway.
+media_sort_col = addon.getSetting('default_sort_photo')
+if (media_sort_col == ""):
+    media_sort_col = "NULL"
+    addon.setSetting('default_sort_photo', '0')
+elif (media_sort_col == "1"):
+    media_sort_col = "mediadate"
+else:
+    media_sort_col = "NULL"
+
 
 def render_media(media):
     # default view in Confluence
@@ -94,10 +109,10 @@ def render_media(media):
     return n
 
 def list_photos_in_album(params):
-    global db
+    global db, media_sort_col
 
     albumid = params['albumid']
-    media = db.GetMediaInAlbum(albumid)
+    media = db.GetMediaInAlbum(albumid, media_sort_col)
     return render_media(media)
 
 def list_albums(params):
@@ -134,10 +149,10 @@ def list_albums(params):
     return n
 
 def list_photos_in_event(params):
-    global db
+    global db, media_sort_col
 
     rollid = params['rollid']
-    media = db.GetMediaInRoll(rollid)
+    media = db.GetMediaInRoll(rollid, media_sort_col)
     return render_media(media)
 
 def list_events(params):
@@ -186,10 +201,10 @@ def list_events(params):
     return n
 
 def list_photos_with_face(params):
-    global db
+    global db, media_sort_col
 
     faceid = params['faceid']
-    media = db.GetMediaWithFace(faceid)
+    media = db.GetMediaWithFace(faceid, media_sort_col)
     return render_media(media)
 
 def list_faces(params):
@@ -228,10 +243,10 @@ def list_faces(params):
     return n
 
 def list_photos_with_place(params):
-    global db
+    global db, media_sort_col
 
     placeid = params['placeid']
-    media = db.GetMediaWithPlace(placeid)
+    media = db.GetMediaWithPlace(placeid, media_sort_col)
     return render_media(media)
 
 def list_places(params):
@@ -279,10 +294,10 @@ def list_places(params):
     return n
 
 def list_photos_with_keyword(params):
-    global db
+    global db, media_sort_col
 
     keywordid = params['keywordid']
-    media = db.GetMediaWithKeyword(keywordid)
+    media = db.GetMediaWithKeyword(keywordid, media_sort_col)
     return render_media(media)
 
 def list_keywords(params):
@@ -323,10 +338,10 @@ def list_keywords(params):
     return n
 
 def list_photos_with_rating(params):
-    global db
+    global db, media_sort_col
 
     rating = params['rating']
-    media = db.GetMediaWithRating(rating)
+    media = db.GetMediaWithRating(rating, media_sort_col)
     return render_media(media)
 
 def list_ratings(params):

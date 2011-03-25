@@ -34,9 +34,12 @@
     <string id="30009">Image Wrap</string>
     <string id="30010">Pic Thumbs</string>
     <string id="30015">Enable Places support</string>
-    <string id="30020">Show Places as</string>
-    <string id="30021">Addresses</string>
-    <string id="30022">Lat/Lon Pairs</string>
+    <string id="30016">Show Places as</string>
+    <string id="30017">Addresses</string>
+    <string id="30018">Lat/Lon Pairs</string>
+    <string id="30020">Default photo sort method</string>
+    <string id="30021">None</string>
+    <string id="30022">XML Date</string>
 
     <!-- Plugin settings categories strings -->
     <string id="30050">General</string>

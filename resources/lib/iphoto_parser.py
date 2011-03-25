@@ -380,13 +380,15 @@ class IPhotoDB:
 	    pass
 	return albums
 
-    def GetMediaInAlbum(self, albumid):
+    def GetMediaInAlbum(self, albumid, sort_col="NULL"):
 	media = []
 	try:
+	    if (sort_col != "NULL"):
+		sort_col = "M." + sort_col
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM albummedia A LEFT JOIN media M ON A.mediaid = M.id
-			WHERE A.albumid = ? ORDER BY M.mediadate ASC""", (albumid,))
+			WHERE A.albumid = ? ORDER BY %s ASC""" % (sort_col), (albumid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -407,12 +409,14 @@ class IPhotoDB:
 	    pass
 	return rolls
 
-    def GetMediaInRoll(self, rollid):
+    def GetMediaInRoll(self, rollid, sort_col="NULL"):
 	media = []
 	try:
+	    if (sort_col != "NULL"):
+		sort_col = "M." + sort_col
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
-			FROM media M WHERE M.rollid = ? ORDER BY M.mediadate ASC""", (rollid,))
+			FROM media M WHERE M.rollid = ? ORDER BY %s ASC""" % (sort_col), (rollid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -434,13 +438,15 @@ class IPhotoDB:
 	    pass
 	return faces
 
-    def GetMediaWithFace(self, faceid):
+    def GetMediaWithFace(self, faceid, sort_col="NULL"):
 	media = []
 	try:
+	    if (sort_col != "NULL"):
+		sort_col = "M." + sort_col
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM facesmedia A LEFT JOIN media M ON A.mediaid = M.id
-			WHERE A.faceid = ? ORDER BY M.mediadate ASC""", (faceid,))
+			WHERE A.faceid = ? ORDER BY %s ASC""" % (sort_col), (faceid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -460,13 +466,15 @@ class IPhotoDB:
 	    pass
 	return places
 
-    def GetMediaWithPlace(self, placeid):
+    def GetMediaWithPlace(self, placeid, sort_col="NULL"):
 	media = []
 	try:
+	    if (sort_col != "NULL"):
+		sort_col = "M." + sort_col
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM placesmedia A LEFT JOIN media M ON A.mediaid = M.id
-			WHERE A.placeid = ? ORDER BY M.mediadate ASC""", (placeid,))
+			WHERE A.placeid = ? ORDER BY %s ASC""" % (sort_col), (placeid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -486,13 +494,15 @@ class IPhotoDB:
 	    pass
 	return keywords
 
-    def GetMediaWithKeyword(self, keywordid):
+    def GetMediaWithKeyword(self, keywordid, sort_col="NULL"):
 	media = []
 	try:
+	    if (sort_col != "NULL"):
+		sort_col = "M." + sort_col
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM keywordmedia A LEFT JOIN media M ON A.mediaid = M.id
-			WHERE A.keywordid = ? ORDER BY M.mediadate ASC""", (keywordid,))
+			WHERE A.keywordid = ? ORDER BY %s ASC""" % (sort_col), (keywordid,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:
@@ -500,12 +510,14 @@ class IPhotoDB:
 	    pass
 	return media
 
-    def GetMediaWithRating(self, rating):
+    def GetMediaWithRating(self, rating, sort_col="NULL"):
 	media = []
 	try:
+	    if (sort_col != "NULL"):
+		sort_col = "M." + sort_col
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
-			FROM media M WHERE M.rating = ? ORDER BY M.mediadate ASC""", (rating,))
+			FROM media M WHERE M.rating = ? ORDER BY %s ASC""" % (sort_col), (rating,))
 	    for tuple in cur:
 		media.append(tuple)
 	except Exception, e:

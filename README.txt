@@ -81,6 +81,6 @@ If possible, patch against the most recent version at:
 
 Known Issues
 ============
-* Sorting by date is broken and therefore disabled for now.
+* Sorting by Date sorts on the file date, not the EXIF date.
   See http://trac.xbmc.org/ticket/10519
 * Need icons for Faces, Places, and Keywords.
