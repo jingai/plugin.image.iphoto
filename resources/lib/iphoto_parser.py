@@ -686,11 +686,12 @@ class IPhotoDB:
 			    try:
 				map_size_x = MAP_IMAGE_X_MAX
 				map_size_y = int(float(map_size_x) / mapAspect)
-				map = staticmap(self.dbPath, latlon, xsize=map_size_x, ysize=map_size_y)
+				map = staticmap(self.dbPath, latlon, False, xsize=map_size_x, ysize=map_size_y)
 				fanartpath = map.fetch("map_", "_fanart")
 				map.set_xsize(256)
 				map.set_ysize(256)
 				map.set_type("roadmap")
+				map.toggle_marker()
 				map.zoom("", 14)
 				thumbpath = map.fetch("map_", "_thumb")
 			    except Exception, e:

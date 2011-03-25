@@ -148,9 +148,12 @@ class staticmap:
 		"size":"%dx%d" % (self.xsize, self.ysize),
 		"format":"%s" % (self.imagefmt),
 		"maptype":"%s" % (self.maptype),
-		"markers":"%s" % (self.marker),
 		"sensor":"false"
 	    }
+	    if (self.showmarker == True):
+		req_par['markers'] = self.marker
+	    else:
+		req_par['center'] = self.loc
 	    if (self.xsize <= 256 or self.ysize <= 256):
 		req_par['style'] = "feature:road.local|element:geometry|visibility:simplified"
 	    req_dat = urlencode(req_par)
