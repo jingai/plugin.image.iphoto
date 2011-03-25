@@ -249,6 +249,14 @@ def list_places(params):
 	addon.setSetting('places_labels', places_labels)
     places_labels = int(places_labels)
 
+    # show big map of Place as fanart for each item?
+    show_fanart = True
+    e = addon.getSetting('places_show_fanart')
+    if (e == ""):
+	addon.setSetting('places_show_fanart', "true")
+    elif (e == "false"):
+	show_fanart = False
+
     placeid = 0
     try:
 	placeid = params['placeid']
@@ -262,15 +270,22 @@ def list_places(params):
 	return
 
     n = 0
-    for (placeid, latlon, address, count) in places:
+    for (placeid, latlon, address, thumbpath, fanartpath, count) in places:
 	if (not count and album_ign_empty == "true"):
 	    continue
 
 	latlon = latlon.replace("+", " ")
+
 	if (places_labels == 1):
 	    item = gui.ListItem(latlon, address)
 	else:
 	    item = gui.ListItem(address, latlon)
+
+	if (thumbpath):
+	    item.setThumbnailImage(thumbpath)
+	if (show_fanart and fanartpath):
+	    item.setProperty("Fanart_Image", fanartpath)
+
 	if (count):
 	    item.setInfo(type="pictures", infoLabels={ "count": count })
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=places&placeid=%s" % (placeid), listitem = item, isFolder = True)
@@ -391,13 +406,26 @@ def import_library(xmlpath, xmlfile, enable_places):
     if (album_ign_flagged == "true"):
 	album_ign.append("Shelf")
 
+    # download maps from Google?
+    enable_maps = False
+    e = addon.getSetting('places_enable_maps')
+    if (e == ""):
+	addon.setSetting('places_enable_maps', "false")
+    elif (e == "true"):
+	enable_maps = True
+
     progress_dialog = gui.DialogProgress()
     try:
 	progress_dialog.create(addon.getLocalizedString(30210))
+	map_aspect = 0.0
+	if (enable_maps):
+	    res_x = float(xbmc.getInfoLabel("System.ScreenWidth"))
+	    res_y = float(xbmc.getInfoLabel("System.ScreenHeight"))
+	    map_aspect = res_x / res_y
     except:
 	print traceback.print_exc()
     else:
-	iparser = IPhotoParser(xmlpath, xmlfile, album_ign, enable_places, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlpath, xmlfile, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
 
 	progress_dialog.update(0, addon.getLocalizedString(30212))
 	try:
@@ -453,9 +481,9 @@ if (__name__ == "__main__"):
     shutil.copystat(origxml, xmlfile)
 
     enable_places = False
-    e = addon.getSetting('enable_places')
+    e = addon.getSetting('places_enable')
     if (e == ""):
-	addon.setSetting('enable_places', "false")
+	addon.setSetting('places_enable', "false")
     elif (e == "true"):
 	enable_places = True
 
@@ -539,7 +567,7 @@ if (__name__ == "__main__"):
 		ret = dialog.yesno(addon.getLocalizedString(30220), addon.getLocalizedString(30221), addon.getLocalizedString(30222), addon.getLocalizedString(30223))
 		if (ret == True):
 		    enable_places = True
-		    addon.setSetting('enable_places', "true")
+		    addon.setSetting('places_enable', "true")
 	elif (action == "keywords"):
 	    items = list_keywords(params)
 	elif (action == "ratings"):

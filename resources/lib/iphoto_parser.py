@@ -8,7 +8,7 @@ __url__ = "git://github.com/jingai/plugin.image.iphoto.git"
 
 import traceback
 import xml.parsers.expat
-from urllib import unquote, urlopen
+
 try:
     from sqlite3 import dbapi2 as sqlite
 except:
@@ -18,6 +18,9 @@ import sys
 import os
 import os.path
 import locale
+
+from resources.lib.geo import *
+
 
 def to_unicode(text):
     if (isinstance(text, unicode)):
@@ -52,60 +55,11 @@ def to_str(text):
 
     return text.encode('utf-8')
 
-class GoogleError(Exception):
-    def __init__(self, value):
-	self.value = value
-    def __str__(self):
-	return repr(self.value)
-
-def sx_find(js, term, offset, ec='"'):
-    term += ":"
-    tl = len(term) + 1
-    return js[js.find(term, offset) + tl:js.find(ec, js.find(term, offset) + tl)]
-
-def latlon_to_address(lat, lon):
-    sx = {}
-
-    try:
-	url = 'http://maps.google.com/maps?q=%s+%s&output=js' % (lat, lon)
-	js = urlopen(url).read()
-	if ('<error>' in js or 'Did you mean:' in js):
-	    raise GoogleError('Google cannot interpret the address: %s %s' % (lat, lon))
-
-	# if more than one address returned, it's likely a business and the
-	# second entry could contain a title.
-	offset = js.find('sxcn:') + 6
-	if (sx_find(js, 'sxcn', offset) == ""):
-	    offset = 0;
-
-	# title
-	sx['ti'] = sx_find(js, 'sxti', offset)
-	if (sx['ti'] == ""):
-	    sx['ti'] = sx_find(js, 'laddr', offset, ',')
-	# street
-	sx['st'] = sx_find(js, 'sxst', offset)
-	# street number
-	sx['sn'] = sx_find(js, 'sxsn', offset)
-	# county
-	sx['ct'] = sx_find(js, 'sxct', offset)
-	# province
-	sx['pr'] = sx_find(js, 'sxpr', offset)
-	# post code
-	sx['po'] = sx_find(js, 'sxpo', offset)
-	# country
-	sx['cn'] = sx_find(js, 'sxcn', offset)
-
-	for a in sx:
-	    sx[a] = sx[a].replace('\\x26', '&')
-    except Exception, e:
-	raise e
-
-    return sx
-
 class IPhotoDB:
     def __init__(self, dbfile):
 	self.placeList = {}
 	try:
+	    self.dbPath = os.path.dirname(dbfile)
 	    self.dbconn = sqlite.connect(dbfile)
 	    self.InitDB()
 	except Exception, e:
@@ -248,6 +202,8 @@ class IPhotoDB:
 	       id integer primary key,
 	       latlon varchar,
 	       address varchar,
+	       thumbpath varchar,
+	       fanartpath varchar,
 	       photocount integer
 	    )""")
 	except:
@@ -458,7 +414,7 @@ class IPhotoDB:
 	places = []
 	try:
 	    cur = self.dbconn.cursor()
-	    cur.execute("SELECT id, latlon, address, photocount FROM places")
+	    cur.execute("SELECT id, latlon, address, thumbpath, fanartpath, photocount FROM places")
 	    for tuple in cur:
 		places.append(tuple)
 	except Exception, e:
@@ -624,7 +580,7 @@ class IPhotoDB:
 	except Exception, e:
 	    raise e
 
-    def AddMediaNew(self, media, archivePath, libraryPath, enablePlaces):
+    def AddMediaNew(self, media, archivePath, libraryPath, enablePlaces, mapAspect):
 	#print "AddMediaNew()", media
 
 	try:
@@ -681,6 +637,7 @@ class IPhotoDB:
 		VALUES (?, ?)""", (faceid, mediaid))
 
 	    if enablePlaces == True:
+		# convert lat/lon pair to an address
 		try:
 		    lat = float(media['latitude'])
 		    lon = float(media['longitude'])
@@ -698,7 +655,7 @@ class IPhotoDB:
 				placeid = i
 				break
 			if addr is None:
-			    sx = latlon_to_address(lat, lon)
+			    sx = reverse_geocode(lat, lon)
 			    if (sx['ti'] != ""):
 				addr = sx['ti']
 				if (sx['po'] != ""):
@@ -722,11 +679,29 @@ class IPhotoDB:
 		    pass
 		else:
 		    if (addr not in self.placeList[placeid]):
+			# download thumbnail and fanart maps for Place
+			fanartpath = ""
+			thumbpath = ""
+			if (mapAspect != 0.0):
+			    try:
+				map_size_x = MAP_IMAGE_X_MAX
+				map_size_y = int(float(map_size_x) / mapAspect)
+				map = staticmap(self.dbPath, latlon, xsize=map_size_x, ysize=map_size_y)
+				fanartpath = map.fetch("map_", "_fanart")
+				map.set_xsize(256)
+				map.set_ysize(256)
+				map.set_type("roadmap")
+				map.zoom("", 14)
+				thumbpath = map.fetch("map_", "_thumb")
+			    except Exception, e:
+				print to_str(e)
+				pass
+
 			# add new Place
 			self.placeList[placeid].append(addr)
 			self.dbconn.execute("""
-			INSERT INTO places (id, latlon, address)
-			VALUES (?, ?, ?)""", (placeid, latlon, addr))
+			INSERT INTO places (id, latlon, address, thumbpath, fanartpath)
+			VALUES (?, ?, ?, ?, ?)""", (placeid, latlon, addr, thumbpath, fanartpath))
 
 		    if (latlon not in self.placeList[placeid]):
 			# existing Place, but add latlon to list for this address.
@@ -802,7 +777,7 @@ class IPhotoParserState:
 	self.valueType = ""
 
 class IPhotoParser:
-    def __init__(self, library_path="", xmlfile="", album_ign=[], enable_places=False,
+    def __init__(self, library_path="", xmlfile="", album_ign=[], enable_places=False, map_aspect=0.0,
 		 album_callback=None, roll_callback=None, face_callback=None, keyword_callback=None, photo_callback=None,
 		 progress_callback=None, progress_dialog=None):
 	self.libraryPath = library_path
@@ -826,6 +801,7 @@ class IPhotoParser:
 	self.keywordList = []
 	self.albumIgn = album_ign
 	self.enablePlaces = enable_places
+	self.mapAspect = map_aspect
 	self.AlbumCallback = album_callback
 	self.RollCallback = roll_callback
 	self.FaceCallback = face_callback
@@ -913,7 +889,7 @@ class IPhotoParser:
 
 	    if (self.PhotoCallback and len(self.photoList) > 0):
 		for a in self.photoList:
-		    self.PhotoCallback(a, self.imagePath, self.libraryPath, self.enablePlaces)
+		    self.PhotoCallback(a, self.imagePath, self.libraryPath, self.enablePlaces, self.mapAspect)
 		    self.updateProgress()
 	except ParseCanceled:
 	    raise
@@ -1140,7 +1116,7 @@ def main():
 
     db = IPhotoDB("iphoto.db")
     db.ResetDB()
-    iparser = IPhotoParser("", xmlfile, "", True, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew)
+    iparser = IPhotoParser("", xmlfile, "", True, 0.0, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew)
     try:
 	iparser.Parse()
     except:

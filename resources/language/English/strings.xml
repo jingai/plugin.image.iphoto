@@ -40,6 +40,8 @@
     <string id="30020">Default photo sort method</string>
     <string id="30021">None</string>
     <string id="30022">XML Date</string>
+    <string id="30025">Download maps from Google</string>
+    <string id="30026">Show map as fanart</string>
 
     <!-- Plugin settings categories strings -->
     <string id="30050">General</string>
