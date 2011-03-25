@@ -151,6 +151,8 @@ class staticmap:
 		"markers":"%s" % (self.marker),
 		"sensor":"false"
 	    }
+	    if (self.xsize <= 256 or self.ysize <= 256):
+		req_par['style'] = "feature:road.local|element:geometry|visibility:simplified"
 	    req_dat = urlencode(req_par)
 	except Exception, e:
 	    raise e
