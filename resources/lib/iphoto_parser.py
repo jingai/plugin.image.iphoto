@@ -16,7 +16,6 @@ except:
 
 import sys
 import os
-import os.path
 import locale
 
 try:

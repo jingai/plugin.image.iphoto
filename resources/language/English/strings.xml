@@ -7,6 +7,7 @@
     <string id="30212">Scanning AlbumData.xml...</string>
     <string id="30213">Update library</string>
     <string id="30214">Ignore Keyword</string>
+    <string id="30215">Remove cached maps</string>
     <string id="30220">Enable Support for Places?</string>
     <string id="30221">Places looks up addresses via Google.</string>
     <string id="30222">This can slow down the library import a bit.</string>

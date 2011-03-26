@@ -10,7 +10,7 @@ __url__ = "git://github.com/jingai/plugin.image.iphoto.git"
 import sys
 import time
 import os
-import os.path
+import glob
 import shutil
 
 import xbmc
@@ -281,6 +281,8 @@ def list_places(params):
 	else:
 	    item = gui.ListItem(address, latlon)
 
+	item.addContextMenuItems([(addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",)])
+
 	if (thumbpath):
 	    item.setThumbnailImage(thumbpath)
 	if (show_fanart == True and fanartpath):
@@ -510,6 +512,7 @@ if (__name__ == "__main__"):
 	    item = gui.ListItem(addon.getLocalizedString(30106), thumbnailImage=ICONS_PATH+"/places.png")
 	    item.setInfo(type="pictures", infoLabels={ "Title": "Places" })
 	    add_import_lib_context_item(item)
+	    item.addContextMenuItems([(addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",)])
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30104), thumbnailImage=ICONS_PATH+"/keywords.png")
@@ -575,6 +578,10 @@ if (__name__ == "__main__"):
 	    import_library(xmlpath, xmlfile, enable_places)
 	elif (action == "hidekeyword"):
 	    items = hide_keyword(params)
+	elif (action == "rm_caches"):
+	    r = glob.glob(os.path.join(os.path.dirname(db_file), "map_*"))
+	    for f in r:
+		os.remove(f)
 
 	if (items):
 	    plugin.endOfDirectory(int(sys.argv[1]), True)
