@@ -19,7 +19,10 @@ import os
 import os.path
 import locale
 
-from resources.lib.geo import *
+try:
+    from resources.lib.geo import *
+except:
+    from geo import *
 
 
 def to_unicode(text):
@@ -1098,26 +1101,29 @@ class IPhotoParser:
 	return
 
 
+def test_progress_callback(progress_dialog, nphotos, ntotal):
+    nphotos += 1
+    percent = int(float(nphotos * 100) / ntotal)
+    print "%d/%d (%d%%)" % (nphotos, ntotal, percent)
+    return nphotos
+
 def profile_main():
-    import hotshot, hotshot.stats
-    prof = hotshot.Profile("iphoto.prof")
-    prof.runcall(main)
-    prof.close()
-    stats = hotshot.stats.load("iphoto.prof")
-    stats.strip_dirs()
-    stats.sort_stats('time', 'calls')
-    stats.print_stats(20)
+    import cProfile,pstats
+    cProfile.run('main()', 'iphoto.prof')
+    p = pstats.Stats('iphoto.prof')
+    p.strip_dirs().sort_stats('time', 'cum').print_stats()
 
 def main():
     try:
 	xmlfile = sys.argv[1]
+	dbfile = sys.argv[2]
     except:
-	print "Usage iphoto_parser.py <xmlfile>"
+	print "Usage iphoto_parser.py <xmlfile> <db>"
 	sys.exit(1)
 
-    db = IPhotoDB("iphoto.db")
+    db = IPhotoDB(dbfile)
     db.ResetDB()
-    iparser = IPhotoParser("", xmlfile, "", True, 0.0, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew)
+    iparser = IPhotoParser("", xmlfile, "", False, 0.0, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, test_progress_callback)
     try:
 	iparser.Parse()
     except:
@@ -1125,5 +1131,5 @@ def main():
     db.Commit()
 
 if __name__=="__main__":
-    main()
-    #profile_main()
+    #main()
+    profile_main()
