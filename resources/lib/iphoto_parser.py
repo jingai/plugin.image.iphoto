@@ -693,7 +693,7 @@ class IPhotoDB:
 				map_size_x = MAP_IMAGE_X_MAX
 				map_size_y = int(float(map_size_x) / mapAspect)
 				map = staticmap(self.dbPath, latlon, False, xsize=map_size_x, ysize=map_size_y)
-				fanartpath = map.fetch("map_", "_fanart")
+				fanartpath = map.fetch("map_", "_%dx%d" % (map_size_x, map_size_y))
 				map.set_xsize(256)
 				map.set_ysize(256)
 				map.set_type("roadmap")

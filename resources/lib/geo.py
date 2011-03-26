@@ -141,6 +141,8 @@ class staticmap:
 	# http://gmaps-samples.googlecode.com/svn/trunk/geocoder/singlegeocode.html
 	try:
 	    imagefile = os.path.join(self.imagepath, file_prefix + self.loc + file_suffix + "." + self.imagefmt)
+	    if (os.path.isfile(imagefile)):
+		return imagefile
 
 	    req_url = "http://maps.google.com/maps/api/staticmap"
 	    req_par = {
