@@ -583,7 +583,7 @@ class IPhotoDB:
 	except Exception, e:
 	    raise e
 
-    def AddMediaNew(self, media, archivePath, libraryPath, enablePlaces, mapAspect):
+    def AddMediaNew(self, media, archivePath, libraryPath, enablePlaces, mapAspect, updateProgress):
 	#print "AddMediaNew()", media
 
 	try:
@@ -658,7 +658,9 @@ class IPhotoDB:
 				placeid = i
 				break
 			if addr is None:
+			    updateProgress("Geocoding %s %s" % (lat, lon))
 			    sx = reverse_geocode(lat, lon)
+			    updateProgress()
 			    if (sx['ti'] != ""):
 				addr = sx['ti']
 				if (sx['po'] != ""):
@@ -686,6 +688,7 @@ class IPhotoDB:
 			fanartpath = ""
 			thumbpath = ""
 			if (mapAspect != 0.0):
+			    updateProgress("Fetching map...")
 			    try:
 				map_size_x = MAP_IMAGE_X_MAX
 				map_size_y = int(float(map_size_x) / mapAspect)
@@ -700,6 +703,7 @@ class IPhotoDB:
 			    except Exception, e:
 				print to_str(e)
 				pass
+			updateProgress()
 
 			# add new Place
 			self.placeList[placeid].append(addr)
@@ -856,13 +860,13 @@ class IPhotoParser:
 	for a in self.currentKeyword.keys():
 	    self.currentKeyword[a] = ""
 
-    def updateProgress(self):
+    def updateProgress(self, altinfo=""):
 	if (not self.ProgressCallback):
 	    return
 
 	state = self.state
-	state.nphotos = self.ProgressCallback(self.ProgressDialog, state.nphotos, state.nphotostotal)
-	if (state.nphotos == None):
+	ret = self.ProgressCallback(self.ProgressDialog, altinfo, state.nphotos, state.nphotostotal)
+	if (ret == None):
 	    raise ParseCanceled(0)
 
     def commitAll(self):
@@ -874,26 +878,31 @@ class IPhotoParser:
 	    if (self.AlbumCallback and len(self.albumList) > 0):
 		for a in self.albumList:
 		    self.AlbumCallback(a, self.albumIgn)
+		    state.nphotos += 1
 		    self.updateProgress()
 
 	    if (self.RollCallback and len(self.rollList) > 0):
 		for a in self.rollList:
 		    self.RollCallback(a)
+		    state.nphotos += 1
 		    self.updateProgress()
 
 	    if (self.FaceCallback and len(self.faceList) > 0):
 		for a in self.faceList:
 		    self.FaceCallback(a)
+		    state.nphotos += 1
 		    self.updateProgress()
 
 	    if (self.KeywordCallback and len(self.keywordList) > 0):
 		for a in self.keywordList:
 		    self.KeywordCallback(a)
+		    state.nphotos += 1
 		    self.updateProgress()
 
 	    if (self.PhotoCallback and len(self.photoList) > 0):
 		for a in self.photoList:
-		    self.PhotoCallback(a, self.imagePath, self.libraryPath, self.enablePlaces, self.mapAspect)
+		    self.PhotoCallback(a, self.imagePath, self.libraryPath, self.enablePlaces, self.mapAspect, self.updateProgress)
+		    state.nphotos += 1
 		    self.updateProgress()
 	except ParseCanceled:
 	    raise
@@ -1101,10 +1110,11 @@ class IPhotoParser:
 	return
 
 
-def test_progress_callback(progress_dialog, nphotos, ntotal):
-    nphotos += 1
+def test_progress_callback(progress_dialog, altinfo, nphotos, ntotal):
     percent = int(float(nphotos * 100) / ntotal)
     print "%d/%d (%d%%)" % (nphotos, ntotal, percent)
+    if (altinfo != ""):
+	print altinfo
     return nphotos
 
 def profile_main():

@@ -369,15 +369,14 @@ def list_ratings(params):
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     return n
 
-def progress_callback(progress_dialog, nphotos, ntotal):
+def progress_callback(progress_dialog, altinfo, nphotos, ntotal):
     if (not progress_dialog):
 	return 0
     if (progress_dialog.iscanceled()):
 	return
 
-    nphotos += 1
     percent = int(float(nphotos * 100) / ntotal)
-    progress_dialog.update(percent, addon.getLocalizedString(30211) % (nphotos))
+    progress_dialog.update(percent, addon.getLocalizedString(30211) % (nphotos), altinfo)
     return nphotos
 
 def import_library(xmlpath, xmlfile, enable_places):
