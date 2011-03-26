@@ -22,14 +22,15 @@ It is currently hard-coded to ignore albums of type "Book" and
 "Selected Event Album," but you can choose to ignore also:
 
 * Empty -- albums with no pictures.
-* Published -- these are albums pushed to your MobileMe Gallery.
+* Published -- MobileMe Gallery albums.
 * Flagged -- albums flagged in iPhoto's interface.
 
-Both of these album types are ignored by default.
+All of these album types are ignored by default.
 
 If you select "Auto update library", the plugin will compare the modification
 time of your AlbumData.xml with its current database and update the database
-automatically on start.  This is disabled by default.
+automatically on start.  This is disabled by default, but is probably what
+you want after testing the plugin.
 
 You can also choose the view style for albums if you're using the Confluence
 skin.  You may set this to "Image Wrap," "Pic Thumbs," or "Default".  If you
@@ -57,7 +58,7 @@ Addresses without a nearby business will look something like this:
 If there are several businesses near the latitude/longitude pair found in
 iPhoto, it's possible that it may choose a location that is not what you were
 expecting.  If this happens, try changing the location of the photo(s) in
-iPhoto to a pair that is closer to the business you really wanted.
+iPhoto to a pair that is closer to the business or address you really wanted.
 
 To verify that the latitude/longitude pair you are using will give the correct
 results within the plugin, you can check the pair by using this URL:
@@ -69,16 +70,15 @@ Substitute the actual latitude and longitude, of course.  For example:
     http://maps.google.com/maps?q=28.41889954+-81.58080292
 
 The business name that will be used is the first entry listed under Places.
+If no business name is listed, the street address will be used.
 
 The Places feature also downloads map images to display while you're browsing
 the Places category.  Normally, you won't need to do anything to get this
 feature, besides enabling it in the plugin configuration.  But, if you import
 your library many times within one day, Google may block you from retrieving
-map images.
-
-If you receive a map image with a red X over it, the plugin won't re-download
-the map until you clear the map image caches.  You can do so by selecting
-"Remove cached maps" from the context menu of the Places category.
+map images.  If you receive a map image with a red X over it, the plugin won't
+re-download the map until you clear the map image caches.  You can do so by
+selecting "Remove cached maps" from the context menu of the Places category.
 
 Translations
 ============
