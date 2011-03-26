@@ -1,3 +1,7 @@
+1.4.1 - 20110324
+- Option to set default sort method for photos.
+- Download map fanart and thumbnails for Places from Google Maps.
+
 1.4.0 - 20110323
 - Add Places support.
 
