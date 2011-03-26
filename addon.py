@@ -281,7 +281,7 @@ def list_places(params):
 	else:
 	    item = gui.ListItem(address, latlon)
 
-	item.addContextMenuItems([(addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",)])
+	item.addContextMenuItems([(addon.getLocalizedString(30215), "XBMC.PlayMedia(\""+BASE_URL+"?action=rm_caches\")",)])
 
 	if (thumbpath):
 	    item.setThumbnailImage(thumbpath)
@@ -331,7 +331,7 @@ def list_keywords(params):
 	    continue
 
 	item = gui.ListItem(name)
-	item.addContextMenuItems([(addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (name),)])
+	item.addContextMenuItems([(addon.getLocalizedString(30214), "XBMC.PlayMedia(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (name),)])
 	if (count):
 	    item.setInfo(type="pictures", infoLabels={ "count": count })
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem = item, isFolder = True)
@@ -465,7 +465,7 @@ def get_params(paramstring):
     return params
 
 def add_import_lib_context_item(item):
-    item.addContextMenuItems([(addon.getLocalizedString(30213), "XBMC.RunPlugin(\""+BASE_URL+"?action=rescan\")",)])
+    item.addContextMenuItems([(addon.getLocalizedString(30213), "XBMC.PlayMedia(\""+BASE_URL+"?action=rescan\")",)])
 
 if (__name__ == "__main__"):
     xmlfile = addon.getSetting('albumdata_xml_path')
@@ -512,7 +512,7 @@ if (__name__ == "__main__"):
 	    item = gui.ListItem(addon.getLocalizedString(30106), thumbnailImage=ICONS_PATH+"/places.png")
 	    item.setInfo(type="pictures", infoLabels={ "Title": "Places" })
 	    add_import_lib_context_item(item)
-	    item.addContextMenuItems([(addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",)])
+	    item.addContextMenuItems([(addon.getLocalizedString(30215), "XBMC.PlayMedia(\""+BASE_URL+"?action=rm_caches\")",)])
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30104), thumbnailImage=ICONS_PATH+"/keywords.png")
