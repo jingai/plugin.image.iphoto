@@ -70,6 +70,16 @@ Substitute the actual latitude and longitude, of course.  For example:
 
 The business name that will be used is the first entry listed under Places.
 
+The Places feature also downloads map images to display while you're browsing
+the Places category.  Normally, you won't need to do anything to get this
+feature, besides enabling it in the plugin configuration.  But, if you import
+your library many times within one day, Google may block you from retrieving
+map images.
+
+If you receive a map image with a red X over it, the plugin won't re-download
+the map until you clear the map image caches.  You can do so by selecting
+"Remove cached maps" from the context menu of the Places category.
+
 Translations
 ============
 If you'd like to help translate this plugin to another language, please send
