@@ -408,12 +408,12 @@ def import_library(xmlpath, xmlfile, enable_places):
 	album_ign.append("Shelf")
 
     # download maps from Google?
-    enable_maps = False
+    enable_maps = True
     e = addon.getSetting('places_enable_maps')
     if (e == ""):
-	addon.setSetting('places_enable_maps', "false")
-    elif (e == "true"):
-	enable_maps = True
+	addon.setSetting('places_enable_maps', "true")
+    elif (e == "false"):
+	enable_maps = False
 
     progress_dialog = gui.DialogProgress()
     try:
@@ -481,12 +481,12 @@ if (__name__ == "__main__"):
     shutil.copyfile(origxml, xmlfile)
     shutil.copystat(origxml, xmlfile)
 
-    enable_places = False
+    enable_places = True
     e = addon.getSetting('places_enable')
     if (e == ""):
-	addon.setSetting('places_enable', "false")
-    elif (e == "true"):
-	enable_places = True
+	addon.setSetting('places_enable', "True")
+    elif (e == "false"):
+	enable_places = False
 
     try:
 	params = get_params(sys.argv[2])
