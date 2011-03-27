@@ -1,3 +1,14 @@
+"""
+    Geocoding and map fetching utilities using Google Maps.
+
+    Portions taken and modified from Brian Beck's geo.py toolbox:
+    http://code.google.com/p/geopy/source/browse/trunk/LICENSE
+"""
+
+__author__ = "jingai <jingai@floatingpenguins.com>"
+__credits__ = "jingai, Brian Beck"
+__url__ = "git://github.com/jingai/plugin.image.iphoto.git"
+
 import os
 import sys
 try:
@@ -6,7 +17,13 @@ except:
     pass
 from urllib2 import Request,urlopen,unquote,HTTPError
 from urllib import urlencode,urlretrieve,urlcleanup
+import simplejson as json
+import xml.dom.minidom
+from xml.parsers.expat import ExpatError
 from traceback import print_exc
+
+GOOGLE_API_KEY = None
+GOOGLE_DOMAIN = "maps.google.com"
 
 MAP_ZOOM_MIN = 1
 MAP_ZOOM_MAX = 21
@@ -20,64 +37,95 @@ MAP_MARKER_LABEL = "P"
 HTTP_USER_AGENT = 'Mozilla/5.0 (X11; U; Linux x86_64; en-US) AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.151 Safari/534.16'
 
 
-class GoogleError(Exception):
-    def __init__(self, value):
-	self.value = value
-    def __str__(self):
-	return repr(self.value)
+def get_encoding(page, contents=None):
+    plist = page.headers.getplist()
+    if plist:
+	key, value = plist[-1].split('=')
+	if key.lower() == 'charset':
+	    return value
 
-def sx_find(js, term, offset, ec='"'):
-    term += ":"
-    tl = len(term) + 1
-    return js[js.find(term, offset) + tl:js.find(ec, js.find(term, offset) + tl)]
+    if contents:
+	try:
+	    return xml.dom.minidom.parseString(contents).encoding
+	except ExpatError:
+	    pass
 
-def reverse_geocode(lat, lon):
-    sx = {}
+def decode_page(page):
+    contents = page.read()
+    # HTTP 1.1 defines iso-8859-1 as the 'implied' encoding if none is given
+    encoding = get_encoding(page, contents) or 'iso-8859-1'
+    return unicode(contents, encoding=encoding).encode('utf-8')
 
-    try:
-	req_url = 'http://maps.google.com/maps'
-	req_hdr = { 'User-Agent': HTTP_USER_AGENT }
-	req_par = { "q":"%s+%s" % (lat, lon), "output":"js" }
-	req_dat = urlencode(req_par)
-	req = Request(unquote(req_url + "?" + req_dat), None, req_hdr)
-	resp = urlopen(req)
-	js = resp.read()
-	if ('<error>' in js or 'Did you mean:' in js or 'CAPTCHA' in js):
-	    raise GoogleError('Google cannot interpret the address: %s %s' % (lat, lon))
+class GeocoderError(Exception):
+    pass
 
-	# if more than one address returned, it's likely a business and the
-	# second entry could contain a title.
-	offset = js.find('sxcn:') + 6
-	if (sx_find(js, 'sxcn', offset) == ""):
-	    offset = 0;
+class GeocoderResultError(GeocoderError):
+    pass
 
-	# title
-	sx['ti'] = sx_find(js, 'sxti', offset)
-	if (sx['ti'] == ""):
-	    sx['ti'] = sx_find(js, 'laddr', offset, ',')
-	# street
-	sx['st'] = sx_find(js, 'sxst', offset)
-	# street number
-	sx['sn'] = sx_find(js, 'sxsn', offset)
-	# county
-	sx['ct'] = sx_find(js, 'sxct', offset)
-	# province
-	sx['pr'] = sx_find(js, 'sxpr', offset)
-	# post code
-	sx['po'] = sx_find(js, 'sxpo', offset)
-	# country
-	sx['cn'] = sx_find(js, 'sxcn', offset)
+class GBadKeyError(GeocoderError):
+    pass
 
-	for a in sx:
-	    sx[a] = sx[a].replace('\\x26', '&')
-    except HTTPError, e:
-	print to_str(e.geturl())
-	raise e
-    except Exception, e:
-	raise e
+class GQueryError(GeocoderResultError):
+    pass
 
-    return sx
+class GTooManyQueriesError(GeocoderResultError):
+    pass
 
+# forward geocode an address or reverse geocode a latitude/longitude pair.
+# input loc should not be pre-urlencoded (that is, use spaces, not plusses).
+#
+# returns all addresses found with their corresponding lat/lon pairs, unless
+# exactly_one is True, which returns just the first (probably best) match.
+def geocode(loc, exactly_one=True):
+    req_url = "http://%s/maps/geo" % (GOOGLE_DOMAIN.strip('/'))
+    req_hdr = { 'User-Agent':HTTP_USER_AGENT }
+    req_par = { 'q':loc, 'output':'json' }
+    if GOOGLE_API_KEY:
+	req_par['key'] = GOOGLE_API_KEY
+    req_dat = urlencode(req_par)
+
+    req = Request(unquote(req_url + "?" + req_dat), None, req_hdr)
+    resp = urlopen(req)
+    if not isinstance(resp, basestring):
+	resp = decode_page(resp)
+
+    doc = json.loads(resp)
+    places = doc.get('Placemark', [])
+
+    if len(places) == 0:
+	# Got empty result. Parse out the status code and raise an error if necessary.
+	status = doc.get("Status", [])
+	status_code = status["code"]
+	if status_code == 400:
+	    raise GeocoderResultError("Bad request (Server returned status 400)")
+	elif status_code == 500:
+	    raise GeocoderResultError("Unkown error (Server returned status 500)")
+	elif status_code == 601:
+	    raise GQueryError("An empty lookup was performed")
+	elif status_code == 602:
+	    raise GQueryError("No corresponding geographic location could be found for the specified location, possibly because the address is relatively new, or because it may be incorrect.")
+	elif status_code == 603:
+	    raise GQueryError("The geocode for the given location could be returned due to legal or contractual reasons")
+	elif status_code == 610:
+	    raise GBadKeyError("The api_key is either invalid or does not match the domain for which it was given.")
+	elif status_code == 620:
+	    raise GTooManyQueriesError("The given key has gone over the requests limit in the 24 hour period or has submitted too many requests in too short a period of time.")
+	return None
+
+    if exactly_one and len(places) != 1:
+	raise ValueError("Didn't find exactly one placemark! (Found %d.)" % len(places))
+
+    def parse_place(place):
+	location = place.get('address')
+	longitude, latitude = place['Point']['coordinates'][:2]
+	return (location, (latitude, longitude))
+
+    if exactly_one:
+	return parse_place(places[0])
+    else:
+	return [parse_place(place) for place in places]
+
+# class to fetch map image files using the Google Staticmaps API.
 class staticmap:
     def __init__(self, imagepath="", loc="", marker=True, imagefmt="", zoomlevel=18, xsize=640, ysize=640, maptype=""):
 	if (imagepath == ""):
@@ -138,13 +186,14 @@ class staticmap:
     def fetch(self, file_prefix="", file_suffix=""):
 	imagefile = ""
 
-	# http://gmaps-samples.googlecode.com/svn/trunk/geocoder/singlegeocode.html
 	try:
 	    imagefile = os.path.join(self.imagepath, file_prefix + self.loc + file_suffix + "." + self.imagefmt)
 	    if (os.path.isfile(imagefile)):
 		return imagefile
 
-	    req_url = "http://maps.google.com/maps/api/staticmap"
+	    req_url = "http://%s/maps/api/staticmap" % (GOOGLE_DOMAIN.strip('/'))
+	    # descriptions of permissible paramaters can be found here:
+	    # http://gmaps-samples.googlecode.com/svn/trunk/geocoder/singlegeocode.html
 	    req_par = {
 		"zoom":self.zoomlevel,
 		"size":"%dx%d" % (self.xsize, self.ysize),
@@ -152,6 +201,8 @@ class staticmap:
 		"maptype":"%s" % (self.maptype),
 		"sensor":"false"
 	    }
+	    if (GOOGLE_API_KEY):
+		req_par['key'] = GOOGLE_API_KEY
 	    if (self.showmarker == True):
 		req_par['markers'] = self.marker
 	    else:
@@ -195,12 +246,9 @@ if (__name__ == "__main__"):
 	sys.exit(1)
 
     try:
-	sx = reverse_geocode(lat, lon)
-	print "Fetching maps for address:"
-	print sx['ti']
-	print "%s %s" % (sx['sn'], sx['st'])
-	print "%s, %s  %s" % (sx['ct'], sx['pr'], sx['po'])
-	print "%s\n" % (sx['cn'])
+	places = geocode("%s %s" % (lat, lon), False)
+	for p in places:
+	    print places
 
 	loc = "%s+%s" % (lat, lon)
 	map = staticmap("./", loc)

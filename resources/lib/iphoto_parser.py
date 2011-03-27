@@ -658,23 +658,17 @@ class IPhotoDB:
 				break
 			if addr is None:
 			    updateProgress("Geocoding %s %s" % (lat, lon))
-			    sx = reverse_geocode(lat, lon)
+			    addr = geocode("%s %s" % (lat, lon))[0]
 			    updateProgress()
-			    if (sx['ti'] != ""):
-				addr = sx['ti']
-				if (sx['po'] != ""):
-				    addr += ", " + sx['po']
-				if (sx['cn'] != ""):
-				    addr += ", " + sx['cn']
 
-				for i in self.placeList:
-				    if (self.placeList[i][0] == addr):
-					placeid = i
-					break
-				if placeid is None:
-				    placeid = len(self.placeList)
-				    self.placeList[placeid] = []
-				    #print "new placeid %d for addr '%s'" % (placeid, addr)
+			    for i in self.placeList:
+				if (self.placeList[i][0] == addr):
+				    placeid = i
+				    break
+			    if placeid is None:
+				placeid = len(self.placeList)
+				self.placeList[placeid] = []
+				#print "new placeid %d for addr '%s'" % (placeid, addr)
 		    except Exception, e:
 			print to_str(e)
 			raise e

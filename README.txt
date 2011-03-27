@@ -49,29 +49,6 @@ will use the name of the nearest business for the address to show in the
 Places category.  Otherwise, the street address will be used.  In both cases,
 the post code and country identifier are appended to the result.
 
-For example, coordinates near Walt Disney World in Florida, USA will return:
-    Walt Disney World, 32830, US
-
-Addresses without a nearby business will look something like this:
-    1234 Somewhere Ave, 90210, US
-
-If there are several businesses near the latitude/longitude pair found in
-iPhoto, it's possible that it may choose a location that is not what you were
-expecting.  If this happens, try changing the location of the photo(s) in
-iPhoto to a pair that is closer to the business or address you really wanted.
-
-To verify that the latitude/longitude pair you are using will give the correct
-results within the plugin, you can check the pair by using this URL:
-
-    http://maps.google.com/maps?q=latitude+longitude
-
-Substitute the actual latitude and longitude, of course.  For example:
-
-    http://maps.google.com/maps?q=28.41889954+-81.58080292
-
-The business name that will be used is the first entry listed under Places.
-If no business name is listed, the street address will be used.
-
 The Places feature also downloads map images to display while you're browsing
 the Places category.  Normally, you won't need to do anything to get this
 feature, besides enabling it in the plugin configuration.  But, if you import
