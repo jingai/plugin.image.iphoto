@@ -27,6 +27,7 @@ import xbmcaddon
 #    copyfile = xbmcvfs.copy
 
 addon = xbmcaddon.Addon(id="plugin.image.iphoto")
+ALBUM_DATA_XML = "AlbumData.xml"
 BASE_URL = "%s" % (sys.argv[0])
 PLUGIN_PATH = addon.getAddonInfo("path")
 RESOURCE_PATH = os.path.join(PLUGIN_PATH, "resources")
@@ -468,15 +469,21 @@ def add_import_lib_context_item(item):
     item.addContextMenuItems([(addon.getLocalizedString(30213), "XBMC.PlayMedia(\""+BASE_URL+"?action=rescan\")",)])
 
 if (__name__ == "__main__"):
-    xmlfile = addon.getSetting('albumdata_xml_path')
-    if (xmlfile == ""):
+    xmlpath = addon.getSetting('albumdata_xml_path')
+    if (xmlpath == ""):
 	try:
-	    xmlfile = os.getenv("HOME") + "/Pictures/iPhoto Library/AlbumData.xml"
-	    addon.setSetting('albumdata_xml_path', xmlfile)
+	    xmlpath = os.getenv("HOME") + "/Pictures/iPhoto Library/"
+	    addon.setSetting('albumdata_xml_path', xmlpath)
 	except:
 	    pass
-    xmlpath = os.path.dirname(xmlfile)
-    origxml = xmlfile
+
+    # we used to store the file path to the XML instead of the iPhoto Library
+    # directory.
+    if (os.path.basename(xmlpath) == ALBUM_DATA_XML):
+	xmlpath = os.path.dirname(xmlpath)
+	addon.setSetting('albumdata_xml_path', xmlpath)
+
+    origxml = os.path.join(xmlpath, ALBUM_DATA_XML)
     xmlfile = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.xml"))
     shutil.copyfile(origxml, xmlfile)
     shutil.copystat(origxml, xmlfile)
