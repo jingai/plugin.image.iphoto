@@ -180,7 +180,9 @@ class IPhotoDB:
 	    CREATE TABLE faces (
 	       id integer primary key,
 	       name varchar,
+	       thumbpath varchar,
 	       keyphotoid integer,
+	       keyphotoidx integer,
 	       photocount integer,
 	       faceorder integer
 	    )""")
@@ -386,7 +388,7 @@ class IPhotoDB:
 	faces = []
 	try:
 	    cur = self.dbconn.cursor()
-	    cur.execute("""SELECT F.id, F.name, M.thumbpath, F.photocount
+	    cur.execute("""SELECT F.id, F.name, F.thumbpath, F.photocount
 			 FROM faces F LEFT JOIN media M ON F.keyphotoid = M.id
 			 ORDER BY F.faceorder""")
 	    for tuple in cur:
@@ -550,11 +552,12 @@ class IPhotoDB:
 
 	try:
 	    self.dbconn.execute("""
-	    INSERT INTO faces (id, name, keyphotoid, photocount, faceorder)
-	    VALUES (?, ?, ?, ?, ?)""",
+	    INSERT INTO faces (id, name, keyphotoid, keyphotoidx, photocount, faceorder)
+	    VALUES (?, ?, ?, ?, ?, ?)""",
 				(faceid,
 				 face['name'],
 				 face['key image'],
+				 face['key image face index'],
 				 face['PhotoCount'],
 				 face['Order']))
 	except sqlite.IntegrityError:
@@ -615,6 +618,24 @@ class IPhotoDB:
 	    pass
 
 	try:
+	    faces = []
+	    cur = self.dbconn.cursor()
+	    cur.execute("""SELECT id, keyphotoid, keyphotoidx FROM faces""")
+	    for tuple in cur:
+		faces.append(tuple)
+
+	    for faceid in media['facelist']:
+		self.dbconn.execute("""
+		INSERT INTO facesmedia (faceid, mediaid)
+		VALUES (?, ?)""", (faceid, mediaid))
+
+		for fid, fkey, fkeyidx in faces:
+		    if to_str(fkey) == to_str(mediaid):
+			fthumb = os.path.splitext(thumbpath)[0] + "_face%s.jpg" % (fkeyidx)
+			self.dbconn.execute("""
+			UPDATE faces SET thumbpath = ?
+			WHERE id = ?""", (fthumb, fid))
+
 	    self.dbconn.execute("""
 	    INSERT INTO media (id, mediatypeid, rollid, caption, guid, aspectratio, latitude, longitude, rating, mediadate, mediasize, mediapath, thumbpath, originalpath)
 	    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -632,11 +653,6 @@ class IPhotoDB:
 				 imagepath,
 				 thumbpath,
 				 originalpath))
-
-	    for faceid in media['facelist']:
-		self.dbconn.execute("""
-		INSERT INTO facesmedia (faceid, mediaid)
-		VALUES (?, ?)""", (faceid, mediaid))
 
 	    if enablePlaces == True:
 		# convert lat/lon pair to an address
