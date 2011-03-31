@@ -41,6 +41,8 @@ db = IPhotoDB(db_file)
 
 apple_epoch = 978307200
 
+view_mode = 0
+
 # ignore empty albums if configured to do so
 album_ign_empty = addon.getSetting('album_ignore_empty')
 if (album_ign_empty == ""):
@@ -64,6 +66,8 @@ else:
 
 
 def render_media(media):
+    global view_mode
+
     # default view in Confluence
     view_mode = addon.getSetting('view_mode')
     if (view_mode == ""):
@@ -101,8 +105,6 @@ def render_media(media):
     if sort_date == True:
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
 
-    if view_mode > 0 and n > 0:
-	xbmc.executebuiltin("Container.SetViewMode(%d)" % (view_mode + 509))
     return n
 
 def list_photos_in_album(params):
@@ -592,3 +594,5 @@ if (__name__ == "__main__"):
 
 	if (items):
 	    plugin.endOfDirectory(int(sys.argv[1]), True)
+	    if view_mode > 0:
+		xbmc.executebuiltin("Container.SetViewMode(%d)" % (view_mode + 509))
