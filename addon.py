@@ -101,7 +101,7 @@ def render_media(media):
     if sort_date == True:
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
 
-    if view_mode > 0:
+    if view_mode > 0 and n > 0:
 	xbmc.executebuiltin("Container.SetViewMode(%d)" % (view_mode + 509))
     return n
 
