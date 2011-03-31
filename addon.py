@@ -595,4 +595,5 @@ if (__name__ == "__main__"):
 	if (items):
 	    plugin.endOfDirectory(int(sys.argv[1]), True)
 	    if view_mode > 0:
+		xbmc.sleep(300)
 		xbmc.executebuiltin("Container.SetViewMode(%d)" % (view_mode + 509))
