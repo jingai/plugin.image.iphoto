@@ -597,3 +597,5 @@ if (__name__ == "__main__"):
 	    if view_mode > 0:
 		xbmc.sleep(300)
 		xbmc.executebuiltin("Container.SetViewMode(%d)" % (view_mode + 509))
+
+# vim: tabstop=8 softtabstop=4 shiftwidth=4 noexpandtab:
