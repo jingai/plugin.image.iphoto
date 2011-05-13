@@ -81,6 +81,7 @@ def md5sum(filename):
 	if not chunk:
 	    break
 	m.update(chunk)
+    f.close()
 
     return m.hexdigest()
 
