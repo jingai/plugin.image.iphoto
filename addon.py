@@ -157,7 +157,7 @@ def list_albums(params):
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	item = gui.ListItem(name)
+	item = gui.ListItem(name, thumbnailImage="DefaultFolder.png")
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
 
@@ -345,7 +345,7 @@ def list_keywords(params):
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	item = gui.ListItem(name)
+	item = gui.ListItem(name, thumbnailImage="DefaultFolder.png")
 	item.addContextMenuItems([(addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (name),)])
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
