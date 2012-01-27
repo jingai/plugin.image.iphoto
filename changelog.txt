@@ -1,3 +1,6 @@
+1.6.0 - 20120127
+- Support for referenced masters.
+
 1.5.2 - 20110705
 - Don't show empty events.
 
