@@ -590,7 +590,7 @@ class IPhotoDB:
 	except Exception, e:
 	    raise e
 
-    def AddMediaNew(self, media, archivePath, libraryPath, enablePlaces, mapAspect, updateProgress):
+    def AddMediaNew(self, media, archivePath, libraryPath, mastersPath, mastersRealPath, enablePlaces, mapAspect, updateProgress):
 	#print "AddMediaNew()", media
 
 	try:
@@ -604,9 +604,13 @@ class IPhotoDB:
 	# if the iPhoto library is mounted as a share, the paths in
 	# AlbumData.xml probably won't be right.
 	if (archivePath and libraryPath):
-	    imagepath = media['ImagePath'].replace(archivePath, libraryPath)
 	    thumbpath = media['ThumbPath'].replace(archivePath, libraryPath)
-	    originalpath = media['OriginalPath'].replace(archivePath, libraryPath)
+	    if (mastersPath and mastersRealPath):
+		imagepath = media['ImagePath'].replace(mastersPath, mastersRealPath)
+		originalpath = media['OriginalPath'].replace(mastersPath, mastersRealPath)
+	    else:
+		imagepath = media['ImagePath'].replace(archivePath, libraryPath)
+		originalpath = media['OriginalPath'].replace(archivePath, libraryPath)
 	else:
 	    imagepath = media['ImagePath']
 	    thumbpath = media['ThumbPath']
@@ -800,11 +804,17 @@ class IPhotoParserState:
 	self.valueType = ""
 
 class IPhotoParser:
-    def __init__(self, library_path="", xmlfile="", album_ign=[], enable_places=False, map_aspect=0.0,
+    def __init__(self, library_path="", xmlfile="", masters_path="", masters_real_path="",
+		 album_ign=[], enable_places=False, map_aspect=0.0,
 		 album_callback=None, roll_callback=None, face_callback=None, keyword_callback=None, photo_callback=None,
 		 progress_callback=None, progress_dialog=None):
 	self.libraryPath = library_path
 	self.xmlfile = xmlfile
+	self.mastersPath = masters_path
+	self.mastersRealPath = masters_real_path
+	if (self.mastersPath and self.mastersRealPath):
+	    print "Rewriting referenced masters path '%s'" % (to_str(self.mastersPath))
+	    print "as '%s'" % (to_str(self.mastersRealPath))
 	self.imagePath = ""
 	self.parser = xml.parsers.expat.ParserCreate()
 	self.parser.StartElementHandler = self.StartElement
@@ -916,7 +926,7 @@ class IPhotoParser:
 
 	    if (self.PhotoCallback and len(self.photoList) > 0):
 		for a in self.photoList:
-		    self.PhotoCallback(a, self.imagePath, self.libraryPath, self.enablePlaces, self.mapAspect, self.updateProgress)
+		    self.PhotoCallback(a, self.imagePath, self.libraryPath, self.mastersPath, self.mastersRealPath, self.enablePlaces, self.mapAspect, self.updateProgress)
 		    state.nphotos += 1
 		    self.updateProgress()
 	except ParseCanceled:
@@ -1148,7 +1158,7 @@ def main():
 
     db = IPhotoDB(dbfile)
     db.ResetDB()
-    iparser = IPhotoParser("", xmlfile, "", False, 0.0, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, test_progress_callback)
+    iparser = IPhotoParser("", xmlfile, "", "", "", False, 0.0, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, test_progress_callback)
     try:
 	iparser.Parse()
     except:
