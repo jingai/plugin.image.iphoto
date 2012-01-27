@@ -388,7 +388,7 @@ def progress_callback(progress_dialog, altinfo, nphotos, ntotal):
     progress_dialog.update(percent, addon.getLocalizedString(30211) % (nphotos), altinfo)
     return nphotos
 
-def import_library(xmlpath, xmlfile, enable_places):
+def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places):
     global db
 
     db.ResetDB()
@@ -433,7 +433,7 @@ def import_library(xmlpath, xmlfile, enable_places):
     except:
 	print traceback.print_exc()
     else:
-	iparser = IPhotoParser(xmlpath, xmlfile, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
 
 	progress_dialog.update(0, addon.getLocalizedString(30212))
 	try:
@@ -491,10 +491,28 @@ if (__name__ == "__main__"):
     origxml = os.path.join(xmlpath, ALBUM_DATA_XML)
     xmlfile = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.xml"))
 
+    enable_managed_lib = True
+    e = addon.getSetting('managed_lib_enable')
+    if (e == ""):
+	addon.setSetting('managed_lib_enable', "true")
+    elif (e == "false"):
+	enable_managed_lib = False
+
+    masterspath = ""
+    masters_realpath = ""
+    if (enable_managed_lib == False):
+	masterspath = addon.getSetting('masters_path')
+	masters_realpath = addon.getSetting('masters_real_path')
+	if (masterspath == "" or masters_realpath == ""):
+	    addon.setSetting('managed_lib_enable', "true")
+	    enable_managed_lib = True
+	    masterspath = ""
+	    masters_realpath = ""
+
     enable_places = True
     e = addon.getSetting('places_enable')
     if (e == ""):
-	addon.setSetting('places_enable', "True")
+	addon.setSetting('places_enable', "true")
     elif (e == "false"):
 	enable_places = False
 
@@ -554,7 +572,7 @@ if (__name__ == "__main__"):
 		os.remove(tmpfile)
 	    else:
 		os.rename(tmpfile, xmlfile)
-		import_library(xmlpath, xmlfile, enable_places)
+		import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
     else:
 	items = None
 	if (action == "events"):
@@ -578,7 +596,7 @@ if (__name__ == "__main__"):
 	    items = list_ratings(params)
 	elif (action == "rescan"):
 	    copyfile(origxml, xmlfile)
-	    import_library(xmlpath, xmlfile, enable_places)
+	    import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
 	elif (action == "hidekeyword"):
 	    items = hide_keyword(params)
 	elif (action == "rm_caches"):

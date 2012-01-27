@@ -43,6 +43,9 @@
     <string id="30022">XML Date</string>
     <string id="30025">Download maps from Google</string>
     <string id="30026">Show map as fanart</string>
+    <string id="30027">Managed Library (change requires rescan)</string>
+    <string id="30028">Local root path to Masters</string>
+    <string id="30029">Rewrite root path as</string>
 
     <!-- Plugin settings categories strings -->
     <string id="30050">General</string>
