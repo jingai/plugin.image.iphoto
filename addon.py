@@ -391,8 +391,6 @@ def progress_callback(progress_dialog, altinfo, nphotos, ntotal):
 def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places):
     global db
 
-    db.ResetDB()
-
     # always ignore Books and currently selected album
     album_ign = []
     album_ign.append("Book")
@@ -422,6 +420,8 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
     elif (e == "false"):
 	enable_maps = False
 
+    db.ResetDB()
+
     progress_dialog = gui.DialogProgress()
     try:
 	progress_dialog.create(addon.getLocalizedString(30210))
@@ -439,6 +439,8 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 	try:
 	    iparser.Parse()
 	    db.UpdateLastImport()
+	except ParseCanceled:
+	    pass
 	except:
 	    print traceback.print_exc()
 
@@ -607,7 +609,10 @@ if (__name__ == "__main__"):
 	    dialog = gui.Dialog()
 	    ret = dialog.yesno(addon.getLocalizedString(30230), addon.getLocalizedString(30231))
 	    if (ret == True):
-		os.remove(db_file)
+		try:
+		    os.remove(db_file)
+		except:
+		    pass
 	elif (action == "hidekeyword"):
 	    items = hide_keyword(params)
 	elif (action == "rm_caches"):
