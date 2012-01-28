@@ -69,12 +69,6 @@ class IPhotoDB:
 	    pass
 	return
 
-    def _cleanup_filename(self, filename):
-	if (filename.startswith("file://localhost")):
-	    return unquote(filename[16:])
-	else:
-	    return unquote(filename)
-
     def InitDB(self):
 	try:
 	    self.dbconn.execute("PRAGMA synchronous = OFF")
@@ -1002,9 +996,10 @@ class IPhotoParser:
 	if (state.archivepath):
 	    if (not state.key):
 		self.imagePath = state.value
-		print "Rewriting iPhoto archive path '%s'" % (to_str(self.imagePath))
-		print "as '%s'" % (to_str(self.libraryPath))
 		state.archivepath = False
+		if (self.imagePath != self.libraryPath):
+		    print "Rewriting iPhoto archive path '%s'" % (to_str(self.imagePath))
+		    print "as '%s'" % (to_str(self.libraryPath))
 	    state.inarchivepath -= 1
 
 	# Albums
