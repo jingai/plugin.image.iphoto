@@ -394,7 +394,7 @@ def list_ratings(params):
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     return n
 
-def progress_callback(progress_dialog, altinfo, nphotos, ntotal):
+def import_progress_callback(progress_dialog, altinfo, nphotos, ntotal):
     if (not progress_dialog):
 	return 0
     if (progress_dialog.iscanceled()):
@@ -451,7 +451,7 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 	    res_y = float(xbmc.getInfoLabel("System.ScreenHeight"))
 	    map_aspect = res_x / res_y
 
-	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, import_progress_callback, progress_dialog)
 
 	try:
 	    iparser.Parse()
@@ -649,10 +649,27 @@ if (__name__ == "__main__"):
 	elif (action == "hidekeyword"):
 	    items = hide_keyword(params)
 	elif (action == "rm_caches"):
-	    r = glob.glob(os.path.join(os.path.dirname(db_file), "map_*"))
-	    for f in r:
-# JSL: SHOW PROGRESS DIALOG
-		os.remove(f)
+	    progress_dialog = gui.DialogProgress()
+	    try:
+		progress_dialog.create(addon.getLocalizedString(30250))
+		progress_dialog.update(0, addon.getLocalizedString(30252))
+	    except:
+		print traceback.print_exc()
+	    else:
+		r = glob.glob(os.path.join(os.path.dirname(db_file), "map_*"))
+		ntotal = len(r)
+		nfiles = 0
+		for f in r:
+		    if (progress_dialog.iscanceled()):
+			break
+		    nfiles += 1
+		    percent = int(float(nfiles * 100) / ntotal)
+		    progress_dialog.update(percent, addon.getLocalizedString(30251) % (nfiles), os.path.basename(f))
+		    os.remove(f)
+		progress_dialog.close()
+		dialog = gui.Dialog()
+		dialog.ok(addon.getLocalizedString(30250), addon.getLocalizedString(30251) % (nfiles))
+		print "iPhoto: deleted %d cached map image files." % (nfiles)
 	else:
 	    # actions that do require a database connection
 	    try:
