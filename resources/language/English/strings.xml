@@ -8,10 +8,13 @@
     <string id="30213">Update library</string>
     <string id="30214">Ignore Keyword</string>
     <string id="30215">Remove cached maps</string>
+    <string id="30216">Reset addon database</string>
     <string id="30220">Enable Support for Places?</string>
     <string id="30221">Places looks up addresses via Google.</string>
     <string id="30222">This can slow down the library import a bit.</string>
     <string id="30223">You will also need to reimport your library.</string>
+    <string id="30230">Delete iPhoto addon database?</string>
+    <string id="30231">This will not harm your iPhoto Library.</string>
 
     <!-- Category strings -->
     <string id="30100">Events</string>
