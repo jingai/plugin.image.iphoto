@@ -65,8 +65,9 @@ class IPhotoDB:
 	    self.dbconn = sqlite.connect(dbfile)
 	    self.InitDB()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: init: " + to_str(e)
 	    pass
+#JSL: should raise e
 	return
 
     def InitDB(self):
@@ -77,7 +78,7 @@ class IPhotoDB:
 	    self.dbconn.execute("PRAGMA temp_store = MEMORY")
 	    self.dbconn.execute("PRAGMA encoding = \"UTF-8\"")
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: InitDB: " + to_str(e)
 	    pass
 
 	try:
@@ -243,20 +244,17 @@ class IPhotoDB:
 	    try:
 		self.dbconn.execute("DROP TABLE %s" % table)
 	    except Exception, e:
-		print to_str(e)
-		pass
-	try:
-	    self.InitDB()
-	except Exception, e:
-	    print to_str(e)
-	    raise e
+		print "iphoto.db: ResetDB: " + to_str(e)
+		raise e
+
+	self.InitDB()
 
     def Commit(self):
 	try:
 	    self.dbconn.commit()
 	except Exception, e:
-	    print "Commit Error: " + to_str(e)
-	    pass
+	    print "iphoto.db: Commit: " + to_str(e)
+	    raise e
 
     def GetConfig(self, key):
 	try:
@@ -266,16 +264,20 @@ class IPhotoDB:
 	    cur.close()
 	    if (row):
 		return row[0]
-	    return None
 	except:
-	    return None
+	    pass
+
+	return None
 
     def SetConfig(self, key, value):
 	if (self.GetConfig(key) == None):
 	    self.dbconn.execute("""INSERT INTO config (key, value) VALUES (?, ?)""", (key, value))
 	else:
 	    self.dbconn.execute("""UPDATE config SET value = ?  WHERE key = ?""", (value, key))
-	self.Commit()
+	try:
+	    self.Commit()
+	except:
+	    pass
 
     def UpdateLastImport(self):
 	self.SetConfig('lastimport', 'dummy')
@@ -311,7 +313,7 @@ class IPhotoDB:
 	    cur.close()
 	    return row[0] # return id
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetTableId: " + to_str(e)
 	    raise e
 
     def GetMediaTypeId(self, mediatype, autoadd=False):
@@ -325,8 +327,10 @@ class IPhotoDB:
 	    for tuple in cur:
 		albums.append(tuple)
 	    cur.close()
-	except:
+	except Exception, e:
+	    print "iphoto.db: GetAlbums: " + to_str(e)
 	    pass
+
 	return albums
 
     def GetMediaInAlbum(self, albumid, sort_col="NULL"):
@@ -342,8 +346,9 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetMediaInAlbum: " + to_str(e)
 	    pass
+
 	return media
 
     def GetRolls(self):
@@ -356,7 +361,7 @@ class IPhotoDB:
 		rolls.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetRolls: " + to_str(e)
 	    pass
 	return rolls
 
@@ -372,8 +377,9 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetMediaInRoll: " + to_str(e)
 	    pass
+
 	return media
 
     def GetFaces(self):
@@ -387,8 +393,9 @@ class IPhotoDB:
 		faces.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetFaces: " + to_str(e)
 	    pass
+
 	return faces
 
     def GetMediaWithFace(self, faceid, sort_col="NULL"):
@@ -404,8 +411,9 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetMediaWithFace: " + to_str(e)
 	    pass
+
 	return media
 
     def GetPlaces(self):
@@ -417,8 +425,9 @@ class IPhotoDB:
 		places.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetPlaces: " + to_str(e)
 	    pass
+
 	return places
 
     def GetMediaWithPlace(self, placeid, sort_col="NULL"):
@@ -434,8 +443,9 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetMediaWithPlace: " + to_str(e)
 	    pass
+
 	return media
 
     def GetKeywords(self):
@@ -447,8 +457,9 @@ class IPhotoDB:
 		keywords.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetKeywords: " + to_str(e)
 	    pass
+
 	return keywords
 
     def GetMediaWithKeyword(self, keywordid, sort_col="NULL"):
@@ -464,8 +475,9 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetMediaWithKeyword: " + to_str(e)
 	    pass
+
 	return media
 
     def GetMediaWithRating(self, rating, sort_col="NULL"):
@@ -480,8 +492,9 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: GetMediaWithRating: " + to_str(e)
 	    pass
+
 	return media
 
     def AddAlbumNew(self, album, album_ign):
@@ -689,8 +702,10 @@ class IPhotoDB:
 				placeid = len(self.placeList)
 				self.placeList[placeid] = []
 				#print "new placeid %d for addr '%s'" % (placeid, addr)
+		    except ParseCanceled:
+			raise
 		    except Exception, e:
-			print to_str(e)
+			print "iphoto.db: AddMediaNew: geocode: " + to_str(e)
 			raise e
 		except:
 		    #print "No location information for photo id %d" % (mediaid)
@@ -714,15 +729,15 @@ class IPhotoDB:
 				map.zoom("", 14)
 				thumbpath = map.fetch("map_", "_thumb")
 			    except Exception, e:
-				print to_str(e)
+				print "iphoto.db: AddMediaNew: map: " + to_str(e)
 				pass
 			updateProgress()
 
 			# add new Place
 			self.placeList[placeid].append(addr)
 			cur.execute("""
-			INSERT INTO places (id, latlon, address, thumbpath, fanartpath)
-			VALUES (?, ?, ?, ?, ?)""", (placeid, latlon, addr, thumbpath, fanartpath))
+				    INSERT INTO places (id, latlon, address, thumbpath, fanartpath)
+				    VALUES (?, ?, ?, ?, ?)""", (placeid, latlon, addr, thumbpath, fanartpath))
 
 		    if (latlon not in self.placeList[placeid]):
 			# existing Place, but add latlon to list for this address.
@@ -731,8 +746,8 @@ class IPhotoDB:
 			self.placeList[placeid].append(latlon)
 
 		    cur.execute("""
-		    INSERT INTO placesmedia (placeid, mediaid)
-		    VALUES (?, ?)""", (placeid, mediaid))
+				INSERT INTO placesmedia (placeid, mediaid)
+				VALUES (?, ?)""", (placeid, mediaid))
 		    cur.execute("""SELECT id, photocount
 				FROM places
 				WHERE id = ?""", (placeid,))
@@ -742,13 +757,13 @@ class IPhotoDB:
 			else:
 			    photocount = 1
 			self.dbconn.execute("""
-			UPDATE places SET photocount = ?
-			WHERE id = ?""", (photocount, placeid))
+					    UPDATE places SET photocount = ?
+					    WHERE id = ?""", (photocount, placeid))
 
 	    for keywordid in media['keywordlist']:
 		cur.execute("""
-		INSERT INTO keywordmedia (keywordid, mediaid)
-		VALUES (?, ?)""", (keywordid, mediaid))
+			    INSERT INTO keywordmedia (keywordid, mediaid)
+			    VALUES (?, ?)""", (keywordid, mediaid))
 		cur.execute("""SELECT id, photocount
 			    FROM keywords
 			    WHERE id = ?""", (keywordid,))
@@ -807,8 +822,11 @@ class IPhotoParser:
 	self.mastersPath = masters_path
 	self.mastersRealPath = masters_real_path
 	if (self.mastersPath and self.mastersRealPath):
-	    print "Rewriting referenced masters path '%s'" % (to_str(self.mastersPath))
-	    print "as '%s'" % (to_str(self.mastersRealPath))
+	    try:
+		print "Rewriting referenced masters path '%s'" % (to_str(self.mastersPath))
+		print "as '%s'" % (to_str(self.mastersRealPath))
+	    except:
+		pass
 	self.imagePath = ""
 	self.parser = xml.parsers.expat.ParserCreate()
 	self.parser.StartElementHandler = self.StartElement
@@ -886,7 +904,7 @@ class IPhotoParser:
 	state = self.state
 	ret = self.ProgressCallback(self.ProgressDialog, altinfo, state.nphotos, state.nphotostotal)
 	if (ret == None):
-	    raise ParseCanceled(0)
+	    raise ParseCanceled("iPhoto library parse canceled by user.")
 
     def commitAll(self):
 	state = self.state
@@ -926,7 +944,7 @@ class IPhotoParser:
 	except ParseCanceled:
 	    raise
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: commitAll: " + to_str(e)
 	    raise e
 
     def Parse(self):
@@ -939,18 +957,14 @@ class IPhotoParser:
 		buf = f.read(BLOCKSIZE)
 	    self.parser.Parse(buf, True)
 	    f.close()
-	except ParseCanceled:
-	    return
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: Parse: " + to_str(e)
 	    raise e
 
 	try:
 	    self.commitAll()
-	except ParseCanceled:
-	    return
 	except Exception, e:
-	    print to_str(e)
+	    print "iphoto.db: Parse: " + to_str(e)
 	    raise e
 
     def StartElement(self, name, attrs):
@@ -998,8 +1012,11 @@ class IPhotoParser:
 		self.imagePath = state.value
 		state.archivepath = False
 		if (self.imagePath != self.libraryPath):
-		    print "Rewriting iPhoto archive path '%s'" % (to_str(self.imagePath))
-		    print "as '%s'" % (to_str(self.libraryPath))
+		    try:
+			print "Rewriting iPhoto archive path '%s'" % (to_str(self.imagePath))
+			print "as '%s'" % (to_str(self.libraryPath))
+		    except:
+			pass
 	    state.inarchivepath -= 1
 
 	# Albums
