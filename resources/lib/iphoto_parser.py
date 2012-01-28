@@ -270,18 +270,19 @@ class IPhotoDB:
 	    self.dbconn.execute("""INSERT INTO config (key, value) VALUES (?, ?)""", (key, value))
 	else:
 	    self.dbconn.execute("""UPDATE config SET value = ?  WHERE key = ?""", (value, key))
-	try:
-	    self.Commit()
-	except:
-	    pass
+
+	self.Commit()
 
     def UpdateLastImport(self):
-	self.SetConfig('lastimport', 'dummy')
-	self.dbconn.execute("""UPDATE config
-			       SET value = datetime('now')
-			       WHERE key = ?""",
-			    ('lastimport',))
-	self.Commit()
+	try:
+	    self.SetConfig('lastimport', 'dummy')
+	    self.dbconn.execute("""UPDATE config
+				   SET value = datetime('now')
+				   WHERE key = ?""",
+				('lastimport',))
+	    self.Commit()
+	except Exception, e:
+	    print "iphoto.db: UpdateLastImport: " + to_str(e)
 
     def GetTableId(self, table, value, column='name', autoadd=False, autoclean=True):
 	try:
