@@ -66,20 +66,16 @@ class IPhotoDB:
 	    self.InitDB()
 	except Exception, e:
 	    print "iphoto.db: init: " + to_str(e)
-	    pass
-#JSL: should raise e
+	    raise e
+
 	return
 
     def InitDB(self):
-	try:
-	    self.dbconn.execute("PRAGMA synchronous = OFF")
-	    self.dbconn.execute("PRAGMA default_synchronous = OFF")
-	    self.dbconn.execute("PRAGMA journal_mode = OFF")
-	    self.dbconn.execute("PRAGMA temp_store = MEMORY")
-	    self.dbconn.execute("PRAGMA encoding = \"UTF-8\"")
-	except Exception, e:
-	    print "iphoto.db: InitDB: " + to_str(e)
-	    pass
+	self.dbconn.execute("PRAGMA synchronous = OFF")
+	self.dbconn.execute("PRAGMA default_synchronous = OFF")
+	self.dbconn.execute("PRAGMA journal_mode = OFF")
+	self.dbconn.execute("PRAGMA temp_store = MEMORY")
+	self.dbconn.execute("PRAGMA encoding = \"UTF-8\"")
 
 	try:
 	    # config table
@@ -143,7 +139,7 @@ class IPhotoDB:
 	       rollid integer,
 	       mediaid integer
 	    )""")
-	except Exception, e:
+	except:
 	    pass
 
 	try:
@@ -166,7 +162,7 @@ class IPhotoDB:
 	       albumid integer,
 	       mediaid integer
 	    )""")
-	except Exception, e:
+	except:
 	    pass
 
 	try:
@@ -191,7 +187,7 @@ class IPhotoDB:
 	       faceid integer,
 	       mediaid integer
 	    )""")
-	except Exception, e:
+	except:
 	    pass
 
 	try:
@@ -215,7 +211,7 @@ class IPhotoDB:
 	       placeid integer,
 	       mediaid integer
 	    )""")
-	except Exception, e:
+	except:
 	    pass
 
 	try:
@@ -236,7 +232,7 @@ class IPhotoDB:
 	       keywordid integer,
 	       mediaid integer
 	    )""")
-	except Exception, e:
+	except:
 	    pass
 
     def ResetDB(self):
