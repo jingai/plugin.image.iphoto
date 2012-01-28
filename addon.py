@@ -41,7 +41,7 @@ sys.path.append(LIB_PATH)
 
 from resources.lib.iphoto_parser import *
 db_file = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.db"))
-db = IPhotoDB(db_file)
+db = None
 
 apple_epoch = 978307200
 
@@ -122,7 +122,7 @@ def render_media(media):
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
-    if sort_date == True:
+    if (sort_date == True):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
 
     return n
@@ -477,8 +477,9 @@ def get_params(paramstring):
     print params
     return params
 
-def add_import_lib_context_item(item):
+def add_generic_context_menu_items(item):
     item.addContextMenuItems([(addon.getLocalizedString(30213), "XBMC.RunPlugin(\""+BASE_URL+"?action=rescan\")",)])
+    item.addContextMenuItems([(addon.getLocalizedString(30216), "XBMC.RunPlugin(\""+BASE_URL+"?action=resetdb\")",)])
 
 if (__name__ == "__main__"):
     xmlpath = addon.getSetting('albumdata_xml_path')
@@ -529,28 +530,28 @@ if (__name__ == "__main__"):
 	# main menu
 	try:
 	    item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
-	    add_import_lib_context_item(item)
+	    add_generic_context_menu_items(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=events", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30101), thumbnailImage=ICONS_PATH+"/albums.png")
-	    add_import_lib_context_item(item)
+	    add_generic_context_menu_items(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30105), thumbnailImage=ICONS_PATH+"/faces.png")
-	    add_import_lib_context_item(item)
+	    add_generic_context_menu_items(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=faces", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30106), thumbnailImage=ICONS_PATH+"/places.png")
-	    add_import_lib_context_item(item)
+	    add_generic_context_menu_items(item)
 	    item.addContextMenuItems([(addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",)])
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30104), thumbnailImage=ICONS_PATH+"/keywords.png")
-	    add_import_lib_context_item(item)
+	    add_generic_context_menu_items(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=keywords", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
-	    add_import_lib_context_item(item)
+	    add_generic_context_menu_items(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
 
 	    hide_import_lib = addon.getSetting('hide_import_lib')
@@ -578,8 +579,13 @@ if (__name__ == "__main__"):
 		os.remove(tmpfile)
 	    else:
 		os.rename(tmpfile, xmlfile)
+		db = IPhotoDB(db_file)
 		import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
     else:
+	# only open database connection for actions that require it
+	if (action != "resetdb" and action != "hidekeyword" and action != "rm_caches"):
+	    db = IPhotoDB(db_file)
+
 	items = None
 	if (action == "events"):
 	    items = list_events(params)
@@ -603,6 +609,11 @@ if (__name__ == "__main__"):
 	elif (action == "rescan"):
 	    copyfile(origxml, xmlfile)
 	    import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
+	elif (action == "resetdb"):
+	    dialog = gui.Dialog()
+	    ret = dialog.yesno(addon.getLocalizedString(30230), addon.getLocalizedString(30231))
+	    if (ret == True):
+		os.remove(db_file)
 	elif (action == "hidekeyword"):
 	    items = hide_keyword(params)
 	elif (action == "rm_caches"):
