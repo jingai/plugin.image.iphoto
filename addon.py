@@ -455,14 +455,21 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 
 	try:
 	    iparser.Parse()
-	    db.UpdateLastImport()
 	except:
 	    print traceback.print_exc()
 	    progress_dialog.close()
 	    xbmc.executebuiltin("XBMC.RunPlugin(%s?action=resetdb&corrupted=1)" % (BASE_URL))
 	else:
-	    progress_dialog.close()
 	    print "iPhoto Library imported successfully."
+
+	    progress_dialog.close()
+
+	    xbmc.sleep(1000)
+	    try:
+		# this is non-critical
+		db.UpdateLastImport()
+	    except:
+		pass
 
 def reset_db(params):
     try:
