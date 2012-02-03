@@ -4,7 +4,7 @@
 
 __plugin__ = "iPhoto"
 __author__ = "jingai <jingai@floatingpenguins.com>"
-__credits__ = "Anoop Menon, Nuka1195, JMarshal, jingai"
+__credits__ = "Anoop Menon, Nuka1195, JMarshal, jingai, brsev (http://brsev.com#licensing)"
 __url__ = "git://github.com/jingai/plugin.image.iphoto.git"
 
 import sys
