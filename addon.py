@@ -84,11 +84,17 @@ def render_media(media):
     global view_mode
 
     # default view in Confluence
-    view_mode = addon.getSetting('view_mode')
-    if (view_mode == ""):
-	view_mode = "0"
-	addon.setSetting('view_mode', view_mode)
-    view_mode = int(view_mode)
+    vm = addon.getSetting('view_mode')
+    if (vm == ""):
+	vm = "0"
+	addon.setSetting('view_mode', vm)
+    vm = int(vm)
+    if (vm == 1):
+	view_mode = 510
+    elif (vm == 2):
+	view_mode = 514
+    else:
+	view_mode = vm
 
     sort_date = False
     n = 0
@@ -130,7 +136,7 @@ def list_photos_in_album(params):
     return render_media(media)
 
 def list_albums(params):
-    global db, BASE_URL, ICONS_PATH, album_ign_empty
+    global db, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
 
     albumid = 0
     try:
@@ -160,6 +166,14 @@ def list_albums(params):
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+
+    # default view in Confluence
+    vm = addon.getSetting('confluence_view_albums')
+    if (vm == ""):
+	vm = "0"
+    view_mode = int(vm)
+    addon.setSetting('confluence_view_albums', "0")
+
     return n
 
 def list_photos_in_event(params):
@@ -170,7 +184,7 @@ def list_photos_in_event(params):
     return render_media(media)
 
 def list_events(params):
-    global db, BASE_URL, album_ign_empty
+    global db, BASE_URL, album_ign_empty, view_mode
 
     rollid = 0
     try:
@@ -208,6 +222,14 @@ def list_events(params):
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
     if (sort_date == True):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
+
+    # default view in Confluence
+    vm = addon.getSetting('confluence_view_events')
+    if (vm == ""):
+	vm = "0"
+    view_mode = int(vm)
+    addon.setSetting('confluence_view_events', "0")
+
     return n
 
 def list_photos_with_face(params):
@@ -218,7 +240,7 @@ def list_photos_with_face(params):
     return render_media(media)
 
 def list_faces(params):
-    global db, BASE_URL, album_ign_empty
+    global db, BASE_URL, album_ign_empty, view_mode
 
     faceid = 0
     try:
@@ -246,6 +268,14 @@ def list_faces(params):
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+
+    # default view in Confluence
+    vm = addon.getSetting('confluence_view_faces')
+    if (vm == ""):
+	vm = "0"
+    view_mode = int(vm)
+    addon.setSetting('confluence_view_faces', "0")
+
     return n
 
 def list_photos_with_place(params):
@@ -256,7 +286,7 @@ def list_photos_with_place(params):
     return render_media(media)
 
 def list_places(params):
-    global db, BASE_URL, album_ign_empty
+    global db, BASE_URL, album_ign_empty, view_mode
 
     # how to display Places labels:
     # 0 = Addresses
@@ -314,6 +344,14 @@ def list_places(params):
     if (n > 0):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+
+    # default view in Confluence
+    vm = addon.getSetting('confluence_view_places')
+    if (vm == ""):
+	vm = "0"
+    view_mode = int(vm)
+    addon.setSetting('confluence_view_places', "0")
+
     return n
 
 def list_photos_with_keyword(params):
@@ -324,7 +362,7 @@ def list_photos_with_keyword(params):
     return render_media(media)
 
 def list_keywords(params):
-    global db, BASE_URL, ICONS_PATH, album_ign_empty
+    global db, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
 
     keywordid = 0
     try:
@@ -358,6 +396,14 @@ def list_keywords(params):
     if (n > 0):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+
+    # default view in Confluence
+    vm = addon.getSetting('confluence_view_keywords')
+    if (vm == ""):
+	vm = "0"
+    view_mode = int(vm)
+    addon.setSetting('confluence_view_keywords', "0")
+
     return n
 
 def list_photos_with_rating(params):
@@ -368,7 +414,7 @@ def list_photos_with_rating(params):
     return render_media(media)
 
 def list_ratings(params):
-    global db, BASE_URL, ICONS_PATH
+    global db, BASE_URL, ICONS_PATH, view_mode
 
     albumid = 0
     try:
@@ -387,6 +433,14 @@ def list_ratings(params):
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+
+    # default view in Confluence
+    vm = addon.getSetting('confluence_view_ratings')
+    if (vm == ""):
+	vm = "0"
+    view_mode = int(vm)
+    addon.setSetting('confluence_view_ratings', "0")
+
     return n
 
 def import_progress_callback(progress_dialog, altinfo, nphotos, ntotal):
@@ -714,11 +768,8 @@ if (__name__ == "__main__"):
 
 	if (items):
 	    plugin.endOfDirectory(int(sys.argv[1]), True)
-	    if (view_mode > 0):
+	    if (view_mode > 0 and xbmc.getSkinDir() == "skin.confluence"):
 		xbmc.sleep(300)
-		if (view_mode == 1):
-		    xbmc.executebuiltin("Container.SetViewMode(510)")
-		elif (view_mode == 2):
-		    xbmc.executebuiltin("Container.SetViewMode(514)")
+		xbmc.executebuiltin("Container.SetViewMode(%d)" % (view_mode))
 
 # vim: tabstop=8 softtabstop=4 shiftwidth=4 noexpandtab:

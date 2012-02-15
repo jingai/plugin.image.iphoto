@@ -24,6 +24,12 @@
 	<setting id="album_ignore_flagged" type="bool" label="30002" default="true"/>
 	<setting type="sep"/>
 	<setting id="hidden_keywords" type="text" label="30006" default=""/>
+	<setting id="confluence_view_events" type="text" visible="false" default="0"/>
+	<setting id="confluence_view_albums" type="text" visible="false" default="51"/>
+	<setting id="confluence_view_faces" type="text" visible="false" default="500"/>
+	<setting id="confluence_view_places" type="text" visible="false" default="500"/>
+	<setting id="confluence_view_keywords" type="text" visible="false" default="51"/>
+	<setting id="confluence_view_ratings" type="text" visible="false" default="51"/>
     </category>
 
     <!-- Advanced -->
