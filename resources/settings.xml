@@ -35,5 +35,6 @@
     <!-- Advanced -->
     <category label="30059">
 	<setting id="hide_import_lib" type="bool" label="30004" default="false"/>
+	<setting id="hide_view_readme" type="bool" label="30030" default="false"/>
     </category>
 </settings>

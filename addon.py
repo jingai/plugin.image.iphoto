@@ -70,6 +70,28 @@ else:
     media_sort_col = "NULL"
 
 
+def textview(file):
+    WINDOW = 10147
+    CONTROL_LABEL = 1
+    CONTROL_TEXTBOX = 5
+
+    xbmc.executebuiltin("ActivateWindow(%d)" % (WINDOW))
+    retries = 5
+    while (gui.getCurrentWindowDialogId() != WINDOW and retries):
+	retries -= 1
+	xbmc.sleep(100)
+
+    window = gui.Window(WINDOW)
+
+    try:
+	heading = os.path.splitext(os.path.basename(file))[0]
+	text = open(os.path.join(PLUGIN_PATH, file)).read()
+    except:
+	print traceback.print_exc()
+    else:
+	window.getControl(CONTROL_LABEL).setLabel("%s - %s" % (heading, __plugin__))
+	window.getControl(CONTROL_TEXTBOX).setText(text)
+
 def md5sum(filename):
     try:
 	m = md5()
@@ -514,7 +536,7 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, import_progress_callback, progress_dialog)
 
 	try:
-	    progress_dialog.update(0, addon.getLocalizedString(30217))
+	    progress_dialog.update(0, addon.getLocalizedString(30219))
 	    db.ResetDB()
 
 	    progress_dialog.update(0, addon.getLocalizedString(30212))
@@ -597,6 +619,7 @@ def get_params(paramstring):
 def add_generic_context_menu_items(item):
     item.addContextMenuItems([(addon.getLocalizedString(30213), "XBMC.RunPlugin(\""+BASE_URL+"?action=rescan\")",)])
     item.addContextMenuItems([(addon.getLocalizedString(30216), "XBMC.RunPlugin(\""+BASE_URL+"?action=resetdb\")",)])
+    item.addContextMenuItems([(addon.getLocalizedString(30217), "XBMC.RunPlugin(\""+BASE_URL+"?action=textview&file=README.txt\")",)])
 
 if (__name__ == "__main__"):
     xmlpath = addon.getSetting('albumdata_xml_path')
@@ -671,13 +694,21 @@ if (__name__ == "__main__"):
 	    add_generic_context_menu_items(item)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
 
-	    hide_import_lib = addon.getSetting('hide_import_lib')
-	    if (hide_import_lib == ""):
-		hide_import_lib = "false"
-		addon.setSetting('hide_import_lib', hide_import_lib)
-	    if (hide_import_lib == "false"):
+	    hide_item = addon.getSetting('hide_import_lib')
+	    if (hide_item == ""):
+		hide_item = "false"
+		addon.setSetting('hide_import_lib', hide_item)
+	    if (hide_item == "false"):
 		item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=ICONS_PATH+"/update.png")
 		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
+
+	    hide_item = addon.getSetting('hide_view_readme')
+	    if (hide_item == ""):
+		hide_item = "false"
+		addon.setSetting('hide_view_readme', hide_item)
+	    if (hide_item == "false"):
+		item = gui.ListItem(addon.getLocalizedString(30107), thumbnailImage=ICONS_PATH+"/help.png")
+		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=textview&file=README.txt", item, False)
 	except:
 	    plugin.endOfDirectory(int(sys.argv[1]), False)
 	else:
@@ -712,6 +743,13 @@ if (__name__ == "__main__"):
 	    reset_db(params)
 	elif (action == "hidekeyword"):
 	    items = hide_keyword(params)
+	elif (action == "textview"):
+	    try:
+		file = params['file']
+	    except Exception, e:
+		print to_str(e)
+	    else:
+		textview(file)
 	elif (action == "rm_caches"):
 	    progress_dialog = gui.DialogProgress()
 	    try:
