@@ -402,6 +402,13 @@ def import_progress_callback(progress_dialog, altinfo, nphotos, ntotal):
 def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places):
     global db
 
+    # crude locking to prevent multiple simultaneous library imports
+    if (xbmc.getInfoLabel("Window(10000).Property(iphoto_scanning)") == "True"):
+	print "iPhoto: Library import already in progress."
+	return
+    else:
+	gui.Window(10000).setProperty("iphoto_scanning", "True")
+
     # always ignore Books and currently selected album
     album_ign = []
     album_ign.append("Book")
@@ -430,41 +437,49 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 	addon.setSetting('places_enable_maps', "true")
     elif (e == "false"):
 	enable_maps = False
+    if (enable_maps == True):
+	res_x = float(xbmc.getInfoLabel("System.ScreenWidth"))
+	res_y = float(xbmc.getInfoLabel("System.ScreenHeight"))
+	map_aspect = res_x / res_y
+    else:
+	map_aspect = 0.0
 
-    db.ResetDB()
-
-    progress_dialog = gui.DialogProgress()
     try:
-	progress_dialog.create(addon.getLocalizedString(30210))
-	progress_dialog.update(0, addon.getLocalizedString(30212))
+	# try to get progress dialog actually on-screen before we do work
+	retries = 10
+	progress_dialog = None
+	while (gui.getCurrentWindowDialogId() != 10101 and retries):
+	    if (not progress_dialog):
+		progress_dialog = gui.DialogProgress()
+		progress_dialog.create(addon.getLocalizedString(30210))
+	    retries -= 1
+	    xbmc.sleep(100)
     except:
 	print traceback.print_exc()
     else:
-	map_aspect = 0.0
-	if (enable_maps == True):
-	    res_x = float(xbmc.getInfoLabel("System.ScreenWidth"))
-	    res_y = float(xbmc.getInfoLabel("System.ScreenHeight"))
-	    map_aspect = res_x / res_y
-
 	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, import_progress_callback, progress_dialog)
 
 	try:
+	    progress_dialog.update(0, addon.getLocalizedString(30217))
+	    db.ResetDB()
+
+	    progress_dialog.update(0, addon.getLocalizedString(30212))
 	    iparser.Parse()
 	except:
 	    print traceback.print_exc()
+	    print "iPhoto: Library parse failed."
 	    progress_dialog.close()
 	    xbmc.executebuiltin("XBMC.RunPlugin(%s?action=resetdb&corrupted=1)" % (BASE_URL))
 	else:
-	    print "iPhoto Library imported successfully."
-
+	    print "iPhoto: Library imported successfully."
 	    progress_dialog.close()
-
-	    xbmc.sleep(1000)
 	    try:
 		# this is non-critical
 		db.UpdateLastImport()
 	    except:
 		pass
+
+    gui.Window(10000).setProperty("iphoto_scanning", "False")
 
 def reset_db(params):
     try:
