@@ -616,10 +616,14 @@ def get_params(paramstring):
     print params
     return params
 
-def add_generic_context_menu_items(item):
-    item.addContextMenuItems([(addon.getLocalizedString(30213), "XBMC.RunPlugin(\""+BASE_URL+"?action=rescan\")",)])
-    item.addContextMenuItems([(addon.getLocalizedString(30216), "XBMC.RunPlugin(\""+BASE_URL+"?action=resetdb\")",)])
-    item.addContextMenuItems([(addon.getLocalizedString(30217), "XBMC.RunPlugin(\""+BASE_URL+"?action=textview&file=README.txt\")",)])
+def add_generic_context_menu_items():
+    commands = []
+    commands.append((addon.getLocalizedString(30217), "XBMC.RunPlugin(\""+BASE_URL+"?action=textview&file=README.txt\")",))
+    commands.append((addon.getLocalizedString(30213), "XBMC.RunPlugin(\""+BASE_URL+"?action=rescan\")",))
+    commands.append((xbmc.getLocalizedString(1045), "XBMC.RunPlugin(\""+BASE_URL+"?action=settings\")",))
+    commands.append((addon.getLocalizedString(30216), "XBMC.RunPlugin(\""+BASE_URL+"?action=resetdb\")",))
+    commands.append((addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",))
+    return commands
 
 if (__name__ == "__main__"):
     xmlpath = addon.getSetting('albumdata_xml_path')
@@ -670,28 +674,33 @@ if (__name__ == "__main__"):
 	# main menu
 	try:
 	    item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
-	    add_generic_context_menu_items(item)
+	    commands = add_generic_context_menu_items()
+	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=events", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30101), thumbnailImage=ICONS_PATH+"/albums.png")
-	    add_generic_context_menu_items(item)
+	    commands = add_generic_context_menu_items()
+	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30105), thumbnailImage=ICONS_PATH+"/faces.png")
-	    add_generic_context_menu_items(item)
+	    commands = add_generic_context_menu_items()
+	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=faces", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30106), thumbnailImage=ICONS_PATH+"/places.png")
-	    add_generic_context_menu_items(item)
-	    item.addContextMenuItems([(addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",)])
+	    commands = add_generic_context_menu_items()
+	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30104), thumbnailImage=ICONS_PATH+"/keywords.png")
-	    add_generic_context_menu_items(item)
+	    commands = add_generic_context_menu_items()
+	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=keywords", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
-	    add_generic_context_menu_items(item)
+	    commands = add_generic_context_menu_items()
+	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
 
 	    hide_item = addon.getSetting('hide_import_lib')
@@ -700,6 +709,8 @@ if (__name__ == "__main__"):
 		addon.setSetting('hide_import_lib', hide_item)
 	    if (hide_item == "false"):
 		item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=ICONS_PATH+"/update.png")
+		commands = add_generic_context_menu_items()
+		item.addContextMenuItems(commands, True)
 		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
 
 	    hide_item = addon.getSetting('hide_view_readme')
@@ -708,6 +719,8 @@ if (__name__ == "__main__"):
 		addon.setSetting('hide_view_readme', hide_item)
 	    if (hide_item == "false"):
 		item = gui.ListItem(addon.getLocalizedString(30107), thumbnailImage=ICONS_PATH+"/help.png")
+		commands = add_generic_context_menu_items()
+		item.addContextMenuItems(commands, True)
 		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=textview&file=README.txt", item, False)
 	except:
 	    plugin.endOfDirectory(int(sys.argv[1]), False)
@@ -741,15 +754,6 @@ if (__name__ == "__main__"):
 	# actions that don't require a database connection
 	if (action == "resetdb"):
 	    reset_db(params)
-	elif (action == "hidekeyword"):
-	    items = hide_keyword(params)
-	elif (action == "textview"):
-	    try:
-		file = params['file']
-	    except Exception, e:
-		print to_str(e)
-	    else:
-		textview(file)
 	elif (action == "rm_caches"):
 	    progress_dialog = gui.DialogProgress()
 	    try:
@@ -772,6 +776,17 @@ if (__name__ == "__main__"):
 		dialog = gui.Dialog()
 		dialog.ok(addon.getLocalizedString(30250), addon.getLocalizedString(30251) % (nfiles))
 		print "iPhoto: deleted %d cached map image files." % (nfiles)
+	elif (action == "textview"):
+	    try:
+		file = params['file']
+	    except Exception, e:
+		print to_str(e)
+	    else:
+		textview(file)
+	elif (action == "settings"):
+	    addon.openSettings(BASE_URL)
+	elif (action == "hidekeyword"):
+	    items = hide_keyword(params)
 	else:
 	    # actions that do require a database connection
 	    try:
