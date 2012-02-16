@@ -575,17 +575,17 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 	    print traceback.print_exc()
 	    print "iPhoto: Library parse failed."
 	    progress_dialog.close()
+	    gui.Window(10000).setProperty("iphoto_scanning", "False")
 	    xbmc.executebuiltin("XBMC.RunPlugin(%s?action=resetdb&corrupted=1)" % (BASE_URL))
 	else:
 	    print "iPhoto: Library imported successfully."
 	    progress_dialog.close()
+	    gui.Window(10000).setProperty("iphoto_scanning", "False")
 	    try:
 		# this is non-critical
 		db.UpdateLastImport()
 	    except:
 		pass
-
-    gui.Window(10000).setProperty("iphoto_scanning", "False")
 
 def reset_db(params):
     try:
@@ -609,6 +609,12 @@ def reset_db(params):
 	    confirmed = dialog.yesno(addon.getLocalizedString(30230), addon.getLocalizedString(30232), addon.getLocalizedString(30233))
 
     if (confirmed):
+	if (xbmc.getInfoLabel("Window(10000).Property(iphoto_scanning)") == "True"):
+	    dialog = gui.Dialog()
+	    dialog.ok(addon.getLocalizedString(30260), addon.getLocalizedString(30261))
+	    print "iPhoto: Library import in progress; not resetting database."
+	    return
+
 	remove_tries = 3
 	while (remove_tries and os.path.isfile(db_file)):
 	    try:

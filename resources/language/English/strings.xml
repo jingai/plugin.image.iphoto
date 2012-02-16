@@ -24,6 +24,8 @@
     <string id="30250">Deleting cached map images</string>
     <string id="30251">Deleted %d cached maps</string>
     <string id="30252">Scanning...</string>
+    <string id="30260">Library import in progress</string>
+    <string id="30261">Unable to reset database.</string>
 
     <!-- Category strings -->
     <string id="30100">Events</string>
