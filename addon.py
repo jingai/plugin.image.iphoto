@@ -70,6 +70,15 @@ else:
     media_sort_col = "NULL"
 
 
+def generic_context_menu_items(commands=[]):
+    commands.append((addon.getLocalizedString(30217), "XBMC.RunPlugin(\""+BASE_URL+"?action=textview&file=README.txt\")",))
+    commands.append((xbmc.getLocalizedString(1045), "XBMC.RunPlugin(\""+BASE_URL+"?action=settings\")",))
+
+def maintenance_context_menu_items(commands=[]):
+    commands.append((addon.getLocalizedString(30213), "XBMC.RunPlugin(\""+BASE_URL+"?action=rescan\")",))
+    commands.append((addon.getLocalizedString(30216), "XBMC.RunPlugin(\""+BASE_URL+"?action=resetdb\")",))
+    commands.append((addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",))
+
 def textview(file):
     WINDOW = 10147
     CONTROL_LABEL = 1
@@ -174,6 +183,9 @@ def list_albums(params):
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
+    commands = []
+    generic_context_menu_items(commands)
+
     n = 0
     for (albumid, name, count) in albums:
 	if (name == "Photos"):
@@ -183,6 +195,7 @@ def list_albums(params):
 	    continue
 
 	item = gui.ListItem(name, thumbnailImage=ICONS_PATH+"/folder.png")
+	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
 
@@ -222,6 +235,9 @@ def list_events(params):
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
+    commands = []
+    generic_context_menu_items(commands)
+
     sort_date = False
     n = 0
     for (rollid, name, thumbpath, rolldate, count) in rolls:
@@ -229,6 +245,7 @@ def list_events(params):
 	    continue
 
 	item = gui.ListItem(name, thumbnailImage=thumbpath)
+	item.addContextMenuItems(commands, True)
 
 	try:
 	    item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(rolldate)))
@@ -278,13 +295,16 @@ def list_faces(params):
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
+    commands = []
+    generic_context_menu_items(commands)
+
     n = 0
     for (faceid, name, thumbpath, count) in faces:
 	if (not count and album_ign_empty == "true"):
 	    continue
 
 	item = gui.ListItem(name, thumbnailImage=thumbpath)
-
+	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=faces&faceid=%s" % (faceid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
 
@@ -341,6 +361,9 @@ def list_places(params):
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
+    commands = []
+    generic_context_menu_items(commands)
+
     n = 0
     for (placeid, latlon, address, thumbpath, fanartpath, count) in places:
 	if (not count and album_ign_empty == "true"):
@@ -352,8 +375,7 @@ def list_places(params):
 	    item = gui.ListItem(latlon, address)
 	else:
 	    item = gui.ListItem(address, latlon)
-
-	item.addContextMenuItems([(addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",)])
+	item.addContextMenuItems(commands, True)
 
 	if (thumbpath):
 	    item.setThumbnailImage(thumbpath)
@@ -402,6 +424,9 @@ def list_keywords(params):
 
     hidden_keywords = addon.getSetting('hidden_keywords')
 
+    commands = []
+    generic_context_menu_items(commands)
+
     n = 0
     for (keywordid, name, count) in keywords:
 	if (name in hidden_keywords):
@@ -411,7 +436,8 @@ def list_keywords(params):
 	    continue
 
 	item = gui.ListItem(name, thumbnailImage=ICONS_PATH+"/folder.png")
-	item.addContextMenuItems([(addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (name),)])
+	commands.append((addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (name),))
+	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
 
@@ -446,10 +472,14 @@ def list_ratings(params):
 	print to_str(e)
 	pass
 
+    commands = []
+    generic_context_menu_items(commands)
+
     n = 0
     for a in range(1,6):
 	rating = addon.getLocalizedString(30200) % (a)
 	item = gui.ListItem(rating, thumbnailImage=ICONS_PATH+"/star%d.png" % (a))
+	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings&rating=%d" % (a), listitem = item, isFolder = True)
 	n += 1
 
@@ -616,15 +646,6 @@ def get_params(paramstring):
     print params
     return params
 
-def add_generic_context_menu_items():
-    commands = []
-    commands.append((addon.getLocalizedString(30217), "XBMC.RunPlugin(\""+BASE_URL+"?action=textview&file=README.txt\")",))
-    commands.append((addon.getLocalizedString(30213), "XBMC.RunPlugin(\""+BASE_URL+"?action=rescan\")",))
-    commands.append((xbmc.getLocalizedString(1045), "XBMC.RunPlugin(\""+BASE_URL+"?action=settings\")",))
-    commands.append((addon.getLocalizedString(30216), "XBMC.RunPlugin(\""+BASE_URL+"?action=resetdb\")",))
-    commands.append((addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",))
-    return commands
-
 if (__name__ == "__main__"):
     xmlpath = addon.getSetting('albumdata_xml_path')
     if (xmlpath == ""):
@@ -673,33 +694,31 @@ if (__name__ == "__main__"):
     except:
 	# main menu
 	try:
+	    commands = []
+	    generic_context_menu_items(commands)
+	    maintenance_context_menu_items(commands)
+
 	    item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
-	    commands = add_generic_context_menu_items()
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=events", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30101), thumbnailImage=ICONS_PATH+"/albums.png")
-	    commands = add_generic_context_menu_items()
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30105), thumbnailImage=ICONS_PATH+"/faces.png")
-	    commands = add_generic_context_menu_items()
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=faces", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30106), thumbnailImage=ICONS_PATH+"/places.png")
-	    commands = add_generic_context_menu_items()
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30104), thumbnailImage=ICONS_PATH+"/keywords.png")
-	    commands = add_generic_context_menu_items()
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=keywords", item, True)
 
 	    item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
-	    commands = add_generic_context_menu_items()
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
 
@@ -709,7 +728,6 @@ if (__name__ == "__main__"):
 		addon.setSetting('hide_import_lib', hide_item)
 	    if (hide_item == "false"):
 		item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=ICONS_PATH+"/update.png")
-		commands = add_generic_context_menu_items()
 		item.addContextMenuItems(commands, True)
 		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
 
@@ -719,7 +737,6 @@ if (__name__ == "__main__"):
 		addon.setSetting('hide_view_readme', hide_item)
 	    if (hide_item == "false"):
 		item = gui.ListItem(addon.getLocalizedString(30107), thumbnailImage=ICONS_PATH+"/help.png")
-		commands = add_generic_context_menu_items()
 		item.addContextMenuItems(commands, True)
 		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=textview&file=README.txt", item, False)
 	except:
