@@ -654,6 +654,7 @@ if (__name__ == "__main__"):
 	    addon.setSetting('albumdata_xml_path', xmlpath)
 	except:
 	    pass
+	addon.openSettings(BASE_URL)
 
     # we used to store the file path to the XML instead of the iPhoto Library directory.
     if (os.path.basename(xmlpath) == ALBUM_DATA_XML):
