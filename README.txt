@@ -117,6 +117,22 @@ your debug log from XBMC and, if you don't mind, your AlbumData.xml from your
 iPhoto library.  Remember to remove any private information from both files
 before posting them.
 
+For iOS platforms (AppleTV2, iPhone, iPad, etc) please read:
+
+  http://forum.xbmc.org/showthread.php?t=92480
+
+For Mac:
+
+  http://forum.xbmc.org/showthread.php?t=47124
+
+For Linux:
+
+  http://forum.xbmc.org/showthread.php?t=34655
+
+For Windows:
+
+  http://forum.xbmc.org/showthread.php?t=42708
+
 
 Credits
 =======
