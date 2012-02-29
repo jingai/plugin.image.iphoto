@@ -82,7 +82,7 @@ def generic_context_menu_items(commands=[]):
     commands.append((addon.getLocalizedString(30217), "XBMC.RunPlugin(\""+BASE_URL+"?action=textview&file=README.txt\")",))
     commands.append((xbmc.getLocalizedString(1045), "XBMC.RunPlugin(\""+BASE_URL+"?action=settings\")",))
 
-def maintenance_context_menu_items(commands=[]):
+def generic_maint_context_menu_items(commands=[]):
     commands.append((addon.getLocalizedString(30213), "XBMC.RunPlugin(\""+BASE_URL+"?action=rescan\")",))
     commands.append((addon.getLocalizedString(30216), "XBMC.RunPlugin(\""+BASE_URL+"?action=resetdb\")",))
     commands.append((addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",))
@@ -174,20 +174,20 @@ def render_media(media):
 
     return n
 
-def list_photos_in_album(params):
+def album_list_photos(params):
     global db, media_sort_col
 
     albumid = params['albumid']
     media = db.GetMediaInAlbum(albumid, media_sort_col)
     return render_media(media)
 
-def list_albums(params):
+def album_list(params):
     global db, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
 
     albumid = 0
     try:
 	albumid = params['albumid']
-	return list_photos_in_album(params)
+	return album_list_photos(params)
     except Exception, e:
 	print to_str(e)
 	pass
@@ -198,9 +198,6 @@ def list_albums(params):
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
-    commands = []
-    generic_context_menu_items(commands)
-
     n = 0
     for (albumid, name, count) in albums:
 	if (name == "Photos"):
@@ -209,7 +206,10 @@ def list_albums(params):
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	item = gui.ListItem(name, thumbnailImage=ICONS_PATH+"/folder.png")
+	thumbpath = ICONS_PATH+"/folder.png"
+	item = gui.ListItem(name, thumbnailImage=thumbpath)
+	commands = []
+	generic_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
@@ -228,20 +228,20 @@ def list_albums(params):
 
     return n
 
-def list_photos_in_event(params):
+def event_list_photos(params):
     global db, media_sort_col
 
     rollid = params['rollid']
     media = db.GetMediaInRoll(rollid, media_sort_col)
     return render_media(media)
 
-def list_events(params):
+def event_list(params):
     global db, BASE_URL, album_ign_empty, view_mode
 
     rollid = 0
     try:
 	rollid = params['rollid']
-	return list_photos_in_event(params)
+	return event_list_photos(params)
     except Exception, e:
 	print to_str(e)
 	pass
@@ -252,9 +252,6 @@ def list_events(params):
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
-    commands = []
-    generic_context_menu_items(commands)
-
     sort_date = False
     n = 0
     for (rollid, name, thumbpath, rolldate, count) in rolls:
@@ -262,6 +259,8 @@ def list_events(params):
 	    continue
 
 	item = gui.ListItem(name, thumbnailImage=thumbpath)
+	commands = []
+	generic_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 
 	try:
@@ -290,20 +289,20 @@ def list_events(params):
 
     return n
 
-def list_photos_with_face(params):
+def face_list_photos(params):
     global db, media_sort_col
 
     faceid = params['faceid']
     media = db.GetMediaWithFace(faceid, media_sort_col)
     return render_media(media)
 
-def list_faces(params):
+def face_list(params):
     global db, BASE_URL, album_ign_empty, view_mode
 
     faceid = 0
     try:
 	faceid = params['faceid']
-	return list_photos_with_face(params)
+	return face_list_photos(params)
     except Exception, e:
 	print to_str(e)
 	pass
@@ -314,16 +313,16 @@ def list_faces(params):
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
-    commands = []
-    generic_context_menu_items(commands)
-
     n = 0
     for (faceid, name, thumbpath, count) in faces:
 	if (not count and album_ign_empty == "true"):
 	    continue
 
 	item = gui.ListItem(name, thumbnailImage=thumbpath)
+	commands = []
+	generic_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
+
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=faces&faceid=%s" % (faceid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
 
@@ -341,14 +340,14 @@ def list_faces(params):
 
     return n
 
-def list_photos_with_place(params):
+def place_list_photos(params):
     global db, media_sort_col
 
     placeid = params['placeid']
     media = db.GetMediaWithPlace(placeid, media_sort_col)
     return render_media(media)
 
-def list_places(params):
+def place_list(params):
     global db, BASE_URL, album_ign_empty, view_mode
 
     # how to display Places labels:
@@ -371,7 +370,7 @@ def list_places(params):
     placeid = 0
     try:
 	placeid = params['placeid']
-	return list_photos_with_place(params)
+	return place_list_photos(params)
     except Exception, e:
 	print to_str(e)
 	pass
@@ -381,9 +380,6 @@ def list_places(params):
 	dialog = gui.Dialog()
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
-
-    commands = []
-    generic_context_menu_items(commands)
 
     n = 0
     for (placeid, latlon, address, thumbpath, fanartpath, count) in places:
@@ -396,12 +392,14 @@ def list_places(params):
 	    item = gui.ListItem(latlon, address)
 	else:
 	    item = gui.ListItem(address, latlon)
-	item.addContextMenuItems(commands, True)
-
 	if (thumbpath):
 	    item.setThumbnailImage(thumbpath)
 	if (show_fanart == True and fanartpath):
 	    item.setProperty("Fanart_Image", fanartpath)
+
+	commands = []
+	generic_context_menu_items(commands)
+	item.addContextMenuItems(commands, True)
 
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=places&placeid=%s" % (placeid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
@@ -421,20 +419,20 @@ def list_places(params):
 
     return n
 
-def list_photos_with_keyword(params):
+def keyword_list_photos(params):
     global db, media_sort_col
 
     keywordid = params['keywordid']
     media = db.GetMediaWithKeyword(keywordid, media_sort_col)
     return render_media(media)
 
-def list_keywords(params):
+def keyword_list(params):
     global db, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
 
     keywordid = 0
     try:
 	keywordid = params['keywordid']
-	return list_photos_with_keyword(params)
+	return keyword_list_photos(params)
     except Exception, e:
 	print to_str(e)
 	pass
@@ -447,19 +445,19 @@ def list_keywords(params):
 
     hidden_keywords = addon.getSetting('hidden_keywords')
 
-    commands = []
-    generic_context_menu_items(commands)
-
     n = 0
-    for (keywordid, name, count) in keywords:
-	if (name in hidden_keywords):
+    for (keywordid, keyword, count) in keywords:
+	if (keyword in hidden_keywords):
 	    continue
 
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	item = gui.ListItem(name, thumbnailImage=ICONS_PATH+"/folder.png")
-	commands.append((addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (name),))
+	thumbpath = ICONS_PATH+"/folder.png"
+	item = gui.ListItem(keyword, thumbnailImage=thumbpath)
+	commands = []
+	generic_context_menu_items(commands)
+	commands.append((addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (keyword),))
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
@@ -479,33 +477,32 @@ def list_keywords(params):
 
     return n
 
-def list_photos_with_rating(params):
+def rating_list_photos(params):
     global db, media_sort_col
 
-    rating = params['rating']
-    media = db.GetMediaWithRating(rating, media_sort_col)
+    ratingid = params['ratingid']
+    media = db.GetMediaWithRating(ratingid, media_sort_col)
     return render_media(media)
 
-def list_ratings(params):
+def rating_list(params):
     global db, BASE_URL, ICONS_PATH, view_mode
 
     albumid = 0
     try:
-	rating = params['rating']
-	return list_photos_with_rating(params)
+	rating = params['ratingid']
+	return rating_list_photos(params)
     except Exception, e:
 	print to_str(e)
 	pass
 
-    commands = []
-    generic_context_menu_items(commands)
-
     n = 0
     for a in range(1,6):
-	rating = addon.getLocalizedString(30200) % (a)
-	item = gui.ListItem(rating, thumbnailImage=ICONS_PATH+"/star%d.png" % (a))
+	thumbpath = ICONS_PATH+"/star%d.png" % (a)
+	item = gui.ListItem(addon.getLocalizedString(30200) % (a), thumbnailImage=thumbpath)
+	commands = []
+	generic_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings&rating=%d" % (a), listitem = item, isFolder = True)
+	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings&ratingid=%d" % (a), listitem = item, isFolder = True)
 	n += 1
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
@@ -730,7 +727,7 @@ if (__name__ == "__main__"):
 	try:
 	    commands = []
 	    generic_context_menu_items(commands)
-	    maintenance_context_menu_items(commands)
+	    generic_maint_context_menu_items(commands)
 
 	    item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
 	    item.addContextMenuItems(commands, True)
@@ -851,14 +848,14 @@ if (__name__ == "__main__"):
 		    copyfile(origxml, xmlfile)
 		    import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
 		elif (action == "events"):
-		    items = list_events(params)
+		    items = event_list(params)
 		elif (action == "albums"):
-		    items = list_albums(params)
+		    items = album_list(params)
 		elif (action == "faces"):
-		    items = list_faces(params)
+		    items = face_list(params)
 		elif (action == "places"):
 		    if (enable_places == True):
-			items = list_places(params)
+			items = place_list(params)
 		    else:
 			dialog = gui.Dialog()
 			ret = dialog.yesno(addon.getLocalizedString(30220), addon.getLocalizedString(30221), addon.getLocalizedString(30222), addon.getLocalizedString(30223))
@@ -866,9 +863,9 @@ if (__name__ == "__main__"):
 			    enable_places = True
 			    addon.setSetting('places_enable', "true")
 		elif (action == "keywords"):
-		    items = list_keywords(params)
+		    items = keyword_list(params)
 		elif (action == "ratings"):
-		    items = list_ratings(params)
+		    items = rating_list(params)
 
 	if (items):
 	    plugin.endOfDirectory(int(sys.argv[1]), True)
