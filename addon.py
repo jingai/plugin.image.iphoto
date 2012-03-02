@@ -82,6 +82,28 @@ def generic_context_menu_items(commands=[]):
     commands.append((addon.getLocalizedString(30217), "XBMC.RunPlugin(\""+BASE_URL+"?action=textview&file=README.txt\")",))
     commands.append((xbmc.getLocalizedString(1045), "XBMC.RunPlugin(\""+BASE_URL+"?action=settings\")",))
 
+def slideshow_context_menu_args(mediakind='file', mediaid=None):
+    if (mediaid is None):
+	print "iPhoto: slideshow_context_menu_args: Trying to add item without media ID!"
+	return None
+    ss_args = "show=onthego&mediakind=%s&mediaid=%s" % (mediakind, mediaid)
+    return ss_args
+
+def slideshow_context_menu_item_add(commands=[], mediakind='file', mediaid=None):
+    ss_args = slideshow_context_menu_args(mediakind, mediaid)
+    if (ss_args is None):
+	return
+    commands.append((addon.getLocalizedString(30311), "XBMC.RunPlugin(\""+BASE_URL+"?action=slideshows&cmd=add&%s\")" % (ss_args),))
+
+def slideshow_context_menu_item_del(commands=[], mediakind='file', mediaid=None):
+    ss_args = slideshow_context_menu_args(mediakind, mediaid)
+    if (ss_args is None):
+	return
+    commands.append((addon.getLocalizedString(30312), "XBMC.RunPlugin(\""+BASE_URL+"?action=slideshows&cmd=del&%s\")" % (ss_args),))
+
+def slideshow_maint_context_menu_items(commands=[]):
+    commands.append((addon.getLocalizedString(30310), "XBMC.RunPlugin(\""+BASE_URL+"?action=slideshows&show=onthego&cmd=clear\")",))
+
 def generic_maint_context_menu_items(commands=[]):
     commands.append((addon.getLocalizedString(30213), "XBMC.RunPlugin(\""+BASE_URL+"?action=rescan\")",))
     commands.append((addon.getLocalizedString(30216), "XBMC.RunPlugin(\""+BASE_URL+"?action=resetdb\")",))
@@ -122,8 +144,11 @@ def md5sum(filename):
 	    m.update(chunk)
     return m.hexdigest()
 
-def render_media(media):
+def render_media(media, in_slideshow=False):
     global view_mode
+
+    if (not media):
+	return 0
 
     # default view for select skins
     if (SKIN_NAME != ""):
@@ -142,6 +167,7 @@ def render_media(media):
 		    view_mode = 500	    # Picture Grid
 		elif (vm == 2):
 		    view_mode = 59	    # Galary Fanart
+
     sort_date = False
     n = 0
     for (caption, mediapath, thumbpath, originalpath, rating, mediadate, mediasize) in media:
@@ -164,32 +190,69 @@ def render_media(media):
 	    except:
 		pass
 
+	    commands = []
+	    if (in_slideshow == False):
+		slideshow_context_menu_item_add(commands, 'file', mediapath)
+	    else:
+		slideshow_context_menu_item_del(commands, 'file', mediapath)
+	    slideshow_maint_context_menu_items(commands)
+	    item.addContextMenuItems(commands, False)
+
 	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url = mediapath, listitem = item, isFolder = False)
 	    n += 1
 
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
-    if (sort_date == True):
-	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
+    if (n > 0):
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+	if (sort_date == True):
+	    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
+
+    # default view in Confluence
+    vm = addon.getSetting('view_mode')
+    if (vm == ""):
+	vm = "0"
+	addon.setSetting('view_mode', vm)
+    vm = int(vm)
+    if (vm == 1):
+	view_mode = 510
+    elif (vm == 2):
+	view_mode = 514
+    else:
+	view_mode = vm
 
     return n
 
-def album_list_photos(params):
+def photo_list(mediakind, mediaid):
     global db, media_sort_col
 
-    albumid = params['albumid']
-    media = db.GetMediaInAlbum(albumid, media_sort_col)
-    return render_media(media)
+    media = []
+    if (mediakind == 'file'):
+	media = db.GetMedia(mediaid, media_sort_col)
+    elif (mediakind == 'album'):
+	media = db.GetMediaInAlbum(mediaid, media_sort_col)
+    elif (mediakind == 'event'):
+	media = db.GetMediaInEvent(mediaid, media_sort_col)
+    elif (mediakind == 'face'):
+	media = db.GetMediaWithFace(mediaid, media_sort_col)
+    elif (mediakind == 'place'):
+	media = db.GetMediaWithPlace(mediaid, media_sort_col)
+    elif (mediakind == 'keyword'):
+	media = db.GetMediaWithKeyword(mediaid, media_sort_col)
+    elif (mediakind == 'rating'):
+	media = db.GetMediaWithRating(mediaid, media_sort_col)
+    elif (mediakind == 'slideshow'):
+	print "XXX: Viewing slideshow '%s'" % (mediaid)
+
+    return media
 
 def album_list(params):
     global db, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
 
-    albumid = 0
     try:
 	albumid = params['albumid']
-	return album_list_photos(params)
-    except Exception, e:
-	print to_str(e)
+	media = photo_list('album', albumid)
+	return render_media(media)
+    except:
 	pass
 
     albums = db.GetAlbums()
@@ -210,12 +273,15 @@ def album_list(params):
 	item = gui.ListItem(name, thumbnailImage=thumbpath)
 	commands = []
 	generic_context_menu_items(commands)
+	slideshow_context_menu_item_add(commands, 'album', albumid)
+	slideshow_maint_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
 
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+    if (n > 0):
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
 
     # default view for select skins
     if (SKIN_NAME != ""):
@@ -228,55 +294,50 @@ def album_list(params):
 
     return n
 
-def event_list_photos(params):
-    global db, media_sort_col
-
-    rollid = params['rollid']
-    media = db.GetMediaInRoll(rollid, media_sort_col)
-    return render_media(media)
-
 def event_list(params):
     global db, BASE_URL, album_ign_empty, view_mode
 
-    rollid = 0
     try:
-	rollid = params['rollid']
-	return event_list_photos(params)
-    except Exception, e:
-	print to_str(e)
+	eventid = params['eventid']
+	media = photo_list('event', eventid)
+	return render_media(media)
+    except:
 	pass
 
-    rolls = db.GetRolls()
-    if (not rolls):
+    events = db.GetEvents()
+    if (not events):
 	dialog = gui.Dialog()
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
     sort_date = False
     n = 0
-    for (rollid, name, thumbpath, rolldate, count) in rolls:
+    for (eventid, name, thumbpath, eventdate, count) in events:
 	if (not count and album_ign_empty == "true"):
 	    continue
 
 	item = gui.ListItem(name, thumbnailImage=thumbpath)
 	commands = []
 	generic_context_menu_items(commands)
+	slideshow_context_menu_item_add(commands, 'event', eventid)
+	slideshow_maint_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 
 	try:
-	    item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(rolldate)))
+	    item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(eventdate)))
 	    item.setInfo(type="pictures", infoLabels={ "date": item_date })
 	    sort_date = True
 	except:
 	    pass
 
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events&rollid=%s" % (rollid), listitem = item, isFolder = True, totalItems = count)
+	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events&eventid=%s" % (eventid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
 
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
-    if (sort_date == True):
-	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
+    if (n > 0):
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+	if (sort_date == True):
+	    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
 
     # default view for select skins
     if (SKIN_NAME != ""):
@@ -289,22 +350,14 @@ def event_list(params):
 
     return n
 
-def face_list_photos(params):
-    global db, media_sort_col
-
-    faceid = params['faceid']
-    media = db.GetMediaWithFace(faceid, media_sort_col)
-    return render_media(media)
-
 def face_list(params):
     global db, BASE_URL, album_ign_empty, view_mode
 
-    faceid = 0
     try:
 	faceid = params['faceid']
-	return face_list_photos(params)
-    except Exception, e:
-	print to_str(e)
+	media = photo_list('face', faceid)
+	return render_media(media)
+    except:
 	pass
 
     faces = db.GetFaces()
@@ -321,13 +374,16 @@ def face_list(params):
 	item = gui.ListItem(name, thumbnailImage=thumbpath)
 	commands = []
 	generic_context_menu_items(commands)
+	slideshow_context_menu_item_add(commands, 'face', faceid)
+	slideshow_maint_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=faces&faceid=%s" % (faceid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
 
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+    if (n > 0):
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
 
     # default view for select skins
     if (SKIN_NAME != ""):
@@ -340,15 +396,15 @@ def face_list(params):
 
     return n
 
-def place_list_photos(params):
-    global db, media_sort_col
-
-    placeid = params['placeid']
-    media = db.GetMediaWithPlace(placeid, media_sort_col)
-    return render_media(media)
-
 def place_list(params):
     global db, BASE_URL, album_ign_empty, view_mode
+
+    try:
+	placeid = params['placeid']
+	media = photo_list('place', placeid)
+	return render_media(media)
+    except:
+	pass
 
     # how to display Places labels:
     # 0 = Addresses
@@ -366,14 +422,6 @@ def place_list(params):
 	addon.setSetting('places_show_fanart', "true")
     elif (e == "false"):
 	show_fanart = False
-
-    placeid = 0
-    try:
-	placeid = params['placeid']
-	return place_list_photos(params)
-    except Exception, e:
-	print to_str(e)
-	pass
 
     places = db.GetPlaces()
     if (not places):
@@ -399,6 +447,8 @@ def place_list(params):
 
 	commands = []
 	generic_context_menu_items(commands)
+	slideshow_context_menu_item_add(commands, 'place', placeid)
+	slideshow_maint_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=places&placeid=%s" % (placeid), listitem = item, isFolder = True, totalItems = count)
@@ -419,22 +469,33 @@ def place_list(params):
 
     return n
 
-def keyword_list_photos(params):
-    global db, media_sort_col
-
-    keywordid = params['keywordid']
-    media = db.GetMediaWithKeyword(keywordid, media_sort_col)
-    return render_media(media)
+def hide_keyword(keyword):
+    try:
+	hidden_keywords = addon.getSetting('hidden_keywords')
+	if (hidden_keywords != ""):
+	    hidden_keywords += ", "
+	hidden_keywords += keyword
+	addon.setSetting('hidden_keywords', hidden_keywords)
+    except Exception, e:
+	print to_str(e)
+	pass
 
 def keyword_list(params):
     global db, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
 
-    keywordid = 0
+    try:
+	keyword = params['hide']
+	hide_keyword(keyword);
+	xbmc.executebuiltin("Container.Refresh")
+	return 0
+    except:
+	pass
+
     try:
 	keywordid = params['keywordid']
-	return keyword_list_photos(params)
-    except Exception, e:
-	print to_str(e)
+	media = photo_list('keyword', keywordid)
+	return render_media(media)
+    except:
 	pass
 
     keywords = db.GetKeywords()
@@ -457,7 +518,9 @@ def keyword_list(params):
 	item = gui.ListItem(keyword, thumbnailImage=thumbpath)
 	commands = []
 	generic_context_menu_items(commands)
-	commands.append((addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (keyword),))
+	slideshow_context_menu_item_add(commands, 'keyword', keywordid)
+	slideshow_maint_context_menu_items(commands)
+	commands.append((addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=keywords&hide=%s\")" % (keyword),))
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
@@ -477,36 +540,31 @@ def keyword_list(params):
 
     return n
 
-def rating_list_photos(params):
-    global db, media_sort_col
-
-    ratingid = params['ratingid']
-    media = db.GetMediaWithRating(ratingid, media_sort_col)
-    return render_media(media)
-
 def rating_list(params):
     global db, BASE_URL, ICONS_PATH, view_mode
 
-    albumid = 0
     try:
-	rating = params['ratingid']
-	return rating_list_photos(params)
-    except Exception, e:
-	print to_str(e)
+	ratingid = params['ratingid']
+	media = photo_list('rating', ratingid)
+	return render_media(media)
+    except:
 	pass
 
     n = 0
-    for a in range(1,6):
-	thumbpath = ICONS_PATH+"/star%d.png" % (a)
-	item = gui.ListItem(addon.getLocalizedString(30200) % (a), thumbnailImage=thumbpath)
+    for ratingid in range(1,6):
+	thumbpath = ICONS_PATH+"/star%d.png" % (ratingid)
+	item = gui.ListItem(addon.getLocalizedString(30200) % (ratingid), thumbnailImage=thumbpath)
 	commands = []
 	generic_context_menu_items(commands)
+	slideshow_context_menu_item_add(commands, 'rating', ratingid)
+	slideshow_maint_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings&ratingid=%d" % (a), listitem = item, isFolder = True)
+	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings&ratingid=%d" % (ratingid), listitem = item, isFolder = True)
 	n += 1
 
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
-    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+    if (n > 0):
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
 
     # default view for select skins
     if (SKIN_NAME != ""):
@@ -518,6 +576,42 @@ def rating_list(params):
 	    addon.setSetting(SKIN_NAME + '_view_ratings', str(view_mode))
 
     return n
+
+def slideshow_clear(show):
+    print "XXX: Clearing slideshow '%s'." % (show)
+    return 0
+
+def slideshow_add(show, mediakind, mediaid):
+    print "XXX: Adding to slideshow '%s':" % (show)
+    media = photo_list(mediakind, mediaid)
+    print media
+
+def slideshow_del(show, mediakind, mediaid):
+    print "XXX: Deleting from slideshow '%s':" % (show)
+    media = photo_list(mediakind, mediaid)
+    print media
+
+def slideshow_list(params):
+    try:
+	show = params['show']
+	command = params['cmd']
+	if (command == 'clear'):
+	    return slideshow_clear(show)
+	mediakind = params['mediakind']
+	mediaid = params['mediaid']
+    except:
+	pass
+    else:
+	if (command == 'add'):
+	    slideshow_add(show, mediakind, mediaid)
+	    return 0
+	elif (command == 'del'):
+	    slideshow_del(show, mediakind, mediaid)
+	    xbmc.executebuiltin("Container.Refresh")
+	    return 0
+
+    media = photo_list('slideshow', 'onthego')
+    return render_media(media, in_slideshow=True)
 
 def import_progress_callback(progress_dialog, altinfo, nphotos, ntotal):
     if (not progress_dialog):
@@ -587,7 +681,7 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
     except:
 	print traceback.print_exc()
     else:
-	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, import_progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddEventNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, import_progress_callback, progress_dialog)
 
 	try:
 	    progress_dialog.update(0, addon.getLocalizedString(30219))
@@ -649,20 +743,6 @@ def reset_db(params):
 	    else:
 		print "iPhoto addon database deleted."
 
-def hide_keyword(params):
-    try:
-	keyword = params['keyword']
-	hidden_keywords = addon.getSetting('hidden_keywords')
-	if (hidden_keywords != ""):
-	    hidden_keywords += " "
-	hidden_keywords += keyword
-	addon.setSetting('hidden_keywords', hidden_keywords)
-    except Exception, e:
-	print to_str(e)
-	pass
-
-    xbmc.executebuiltin("Container.Refresh")
-
 def get_params(paramstring):
     params = {}
     paramstring = str(paramstring).strip()
@@ -673,6 +753,7 @@ def get_params(paramstring):
     for param in paramlist:
 	(k,v) = param.split("=")
 	params[k] = v
+    print "iPhoto: called with parameters:"
     print params
     return params
 
@@ -727,6 +808,7 @@ if (__name__ == "__main__"):
 	try:
 	    commands = []
 	    generic_context_menu_items(commands)
+	    slideshow_maint_context_menu_items(commands)
 	    generic_maint_context_menu_items(commands)
 
 	    item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
@@ -752,6 +834,10 @@ if (__name__ == "__main__"):
 	    item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
+
+	    item = gui.ListItem(addon.getLocalizedString(30108), thumbnailImage=ICONS_PATH+"/slideshow.png")
+	    item.addContextMenuItems(commands, True)
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=slideshows", item, True)
 
 	    hide_item = addon.getSetting('hide_import_lib')
 	    if (hide_item == ""):
@@ -833,8 +919,6 @@ if (__name__ == "__main__"):
 		textview(file)
 	elif (action == "settings"):
 	    addon.openSettings(BASE_URL)
-	elif (action == "hidekeyword"):
-	    items = hide_keyword(params)
 	else:
 	    # actions that do require a database connection
 	    try:
@@ -866,6 +950,8 @@ if (__name__ == "__main__"):
 		    items = keyword_list(params)
 		elif (action == "ratings"):
 		    items = rating_list(params)
+		elif (action == "slideshows"):
+		    items = slideshow_list(params)
 
 	if (items):
 	    plugin.endOfDirectory(int(sys.argv[1]), True)

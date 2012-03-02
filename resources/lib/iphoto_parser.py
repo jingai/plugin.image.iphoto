@@ -316,6 +316,23 @@ class IPhotoDB:
     def GetMediaTypeId(self, mediatype, autoadd=False):
 	return self.GetTableId('mediatypes', mediatype, 'name', autoadd)
 
+    def GetMedia(self, mediapath, sort_col="NULL"):
+	media = []
+	try:
+	    if (sort_col != "NULL"):
+		sort_col = "M." + sort_col
+	    cur = self.dbconn.cursor()
+	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
+			FROM media M WHERE M.mediapath = ? ORDER BY %s ASC""" % (sort_col), (mediapath,))
+	    for tuple in cur:
+		media.append(tuple)
+	    cur.close()
+	except Exception, e:
+	    print "iphoto.db: GetMedia: " + to_str(e)
+	    pass
+
+	return media
+
     def GetAlbums(self):
 	albums = []
 	try:
@@ -348,33 +365,33 @@ class IPhotoDB:
 
 	return media
 
-    def GetRolls(self):
-	rolls = []
+    def GetEvents(self):
+	events = []
 	try:
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT R.id, R.name, M.thumbpath, R.rolldate, R.photocount 
 			 FROM rolls R LEFT JOIN media M ON R.keyphotoid = M.id WHERE R.keyphotoid != 0""")
 	    for tuple in cur:
-		rolls.append(tuple)
+		events.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetRolls: " + to_str(e)
+	    print "iphoto.db: GetEvents: " + to_str(e)
 	    pass
-	return rolls
+	return events
 
-    def GetMediaInRoll(self, rollid, sort_col="NULL"):
+    def GetMediaInEvent(self, eventid, sort_col="NULL"):
 	media = []
 	try:
 	    if (sort_col != "NULL"):
 		sort_col = "M." + sort_col
 	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
-			FROM media M WHERE M.rollid = ? ORDER BY %s ASC""" % (sort_col), (rollid,))
+			FROM media M WHERE M.rollid = ? ORDER BY %s ASC""" % (sort_col), (eventid,))
 	    for tuple in cur:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetMediaInRoll: " + to_str(e)
+	    print "iphoto.db: GetMediaInEvent: " + to_str(e)
 	    pass
 
 	return media
@@ -525,11 +542,11 @@ class IPhotoDB:
 	except Exception, e:
 	    raise e
 
-    def AddRollNew(self, roll):
-	#print "AddRollNew()", roll
+    def AddEventNew(self, event):
+	#print "AddEventNew()", event
 
 	try:
-	    rollid = int(roll['RollID'])
+	    eventid = int(event['RollID'])
 	except:
 	    return
 
@@ -537,15 +554,15 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    INSERT INTO rolls (id, name, keyphotoid, rolldate, photocount)
 	    VALUES (?, ?, ?, ?, ?)""",
-				(rollid,
-				 roll['RollName'],
-				 roll['KeyPhotoKey'],
-				 int(float(roll['RollDateAsTimerInterval'])),
-				 roll['PhotoCount']))
-	    for media in roll['medialist']:
+				(eventid,
+				 event['RollName'],
+				 event['KeyPhotoKey'],
+				 int(float(event['RollDateAsTimerInterval'])),
+				 event['PhotoCount']))
+	    for media in event['medialist']:
 		self.dbconn.execute("""
 		INSERT INTO rollmedia (rollid, mediaid)
-		VALUES (?, ?)""", (rollid, media))
+		VALUES (?, ?)""", (eventid, media))
 	except sqlite.IntegrityError:
 	    pass
 	except Exception, e:
@@ -795,8 +812,8 @@ class IPhotoParserState:
 	self.inarchivepath = 0
 	self.albums = False
 	self.inalbum = 0
-	self.rolls = False
-	self.inroll = 0
+	self.events = False
+	self.inevent = 0
 	self.faces = False
 	self.inface = 0
 	self.keywords = False
@@ -812,7 +829,7 @@ class IPhotoParserState:
 class IPhotoParser:
     def __init__(self, library_path="", xmlfile="", masters_path="", masters_real_path="",
 		 album_ign=[], enable_places=False, map_aspect=0.0,
-		 album_callback=None, roll_callback=None, face_callback=None, keyword_callback=None, photo_callback=None,
+		 album_callback=None, event_callback=None, face_callback=None, keyword_callback=None, photo_callback=None,
 		 progress_callback=None, progress_dialog=None):
 	self.libraryPath = library_path
 	self.xmlfile = xmlfile
@@ -833,19 +850,19 @@ class IPhotoParser:
 	self.ele = ""
 	self.currentPhoto = {}
 	self.currentAlbum = {}
-	self.currentRoll = {}
+	self.currentEvent = {}
 	self.currentFace = {}
 	self.currentKeyword = {}
 	self.photoList = []
 	self.albumList = []
-	self.rollList = []
+	self.eventList = []
 	self.faceList = []
 	self.keywordList = []
 	self.albumIgn = album_ign
 	self.enablePlaces = enable_places
 	self.mapAspect = map_aspect
 	self.AlbumCallback = album_callback
-	self.RollCallback = roll_callback
+	self.EventCallback = event_callback
 	self.FaceCallback = face_callback
 	self.KeywordCallback = keyword_callback
 	self.PhotoCallback = photo_callback
@@ -854,7 +871,7 @@ class IPhotoParser:
 	self.lastdata = False
 	self._reset_photo()
 	self._reset_album()
-	self._reset_roll()
+	self._reset_event()
 	self._reset_face()
 	self._reset_keyword()
 
@@ -878,11 +895,11 @@ class IPhotoParser:
 	    self.currentAlbum[a] = ""
 	self.currentAlbum['medialist'] = []
 
-    def _reset_roll(self):
-	self.currentRoll = {}
-	for a in self.currentRoll.keys():
-	    self.currentRoll[a] = ""
-	self.currentRoll['medialist'] = []
+    def _reset_event(self):
+	self.currentEvent = {}
+	for a in self.currentEvent.keys():
+	    self.currentEvent[a] = ""
+	self.currentEvent['medialist'] = []
 
     def _reset_face(self):
 	self.currentFace = {}
@@ -906,7 +923,7 @@ class IPhotoParser:
     def commitAll(self):
 	state = self.state
 
-	state.nphotostotal = len(self.albumList) + len(self.rollList) + len(self.faceList) + len(self.keywordList) + len(self.photoList)
+	state.nphotostotal = len(self.albumList) + len(self.eventList) + len(self.faceList) + len(self.keywordList) + len(self.photoList)
 
 	try:
 	    if (self.AlbumCallback and len(self.albumList) > 0):
@@ -915,9 +932,9 @@ class IPhotoParser:
 		    state.nphotos += 1
 		    self.updateProgress()
 
-	    if (self.RollCallback and len(self.rollList) > 0):
-		for a in self.rollList:
-		    self.RollCallback(a)
+	    if (self.EventCallback and len(self.eventList) > 0):
+		for a in self.eventList:
+		    self.EventCallback(a)
 		    state.nphotos += 1
 		    self.updateProgress()
 
@@ -973,8 +990,8 @@ class IPhotoParser:
 	elif (state.albums):
 	    state.inalbum += 1
 	    state.key = name
-	elif (state.rolls):
-	    state.inroll += 1
+	elif (state.events):
+	    state.inevent += 1
 	    state.key = name
 	elif (state.faces):
 	    state.inface += 1
@@ -1029,18 +1046,18 @@ class IPhotoParser:
 		self.albumList.append(self.currentAlbum)
 		self._reset_album()
 
-	# Rolls
-	elif (state.rolls):
-	    if (state.inroll == 3 and self.currentRoll.has_key('RollID')):
-		self.currentRoll['medialist'].append(state.value)
-	    elif (state.inroll == 2 and not state.key):
+	# Events
+	elif (state.events):
+	    if (state.inevent == 3 and self.currentEvent.has_key('RollID')):
+		self.currentEvent['medialist'].append(state.value)
+	    elif (state.inevent == 2 and not state.key):
 		#print "Mapping %s => %s" % ( to_str(state.keyValue), to_str(state.value))
-		self.currentRoll[state.keyValue] = state.value
-	    state.inroll -= 1
-	    if (state.inroll == 0 and self.currentRoll.has_key('RollID')):
-		# Finished reading roll
-		self.rollList.append(self.currentRoll)
-		self._reset_roll()
+		self.currentEvent[state.keyValue] = state.value
+	    state.inevent -= 1
+	    if (state.inevent == 0 and self.currentEvent.has_key('RollID')):
+		# Finished reading event
+		self.eventList.append(self.currentEvent)
+		self._reset_event()
 
 	# Faces
 	elif (state.faces):
@@ -1101,42 +1118,42 @@ class IPhotoParser:
 	    if (data == "Archive Path"):
 		state.archivepath = True
 		state.albums = False
-		state.rolls = False
+		state.events = False
 		state.faces = False
 		state.keywords = False
 		state.master = False
 	    elif (data == "List of Albums"):
 		state.archivepath = False
 		state.albums = True
-		state.rolls = False
+		state.events = False
 		state.faces = False
 		state.keywords = False
 		state.master = False
 	    elif (data == "List of Rolls"):
 		state.archivepath = False
 		state.albums = False
-		state.rolls = True
+		state.events = True
 		state.faces = False
 		state.keywords = False
 		state.master = False
 	    elif (data == "List of Faces"):
 		state.archivepath = False
 		state.albums = False
-		state.rolls = False
+		state.events = False
 		state.faces = True
 		state.keywords = False
 		state.master = False
 	    elif (data == "List of Keywords"):
 		state.archivepath = False
 		state.albums = False
-		state.rolls = False
+		state.events = False
 		state.faces = False
 		state.keywords = True
 		state.master = False
 	    elif (data == "Master Image List"):
 		state.archivepath = False
 		state.albums = False
-		state.rolls = False
+		state.events = False
 		state.faces = False
 		state.keywords = False
 		state.master = True
@@ -1167,7 +1184,7 @@ def main():
 
     db = IPhotoDB(dbfile)
     db.ResetDB()
-    iparser = IPhotoParser("", xmlfile, "", "", "", False, 0.0, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, test_progress_callback)
+    iparser = IPhotoParser("", xmlfile, "", "", "", False, 0.0, db.AddAlbumNew, db.AddEventNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, test_progress_callback)
     try:
 	iparser.Parse()
     except:
