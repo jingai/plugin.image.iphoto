@@ -35,6 +35,7 @@ ALBUM_DATA_XML = "AlbumData.xml"
 BASE_URL = "%s" % (sys.argv[0])
 PLUGIN_PATH = addon.getAddonInfo("path")
 RESOURCE_PATH = os.path.join(PLUGIN_PATH, "resources")
+PROFILE_PATH = xbmc.translatePath(addon.getAddonInfo("Profile"))
 ICONS_THEME = "token_light"
 ICONS_PATH = os.path.join(RESOURCE_PATH, "icons", ICONS_THEME)
 LIB_PATH = os.path.join(RESOURCE_PATH, "lib")
@@ -50,9 +51,13 @@ else:
     SKIN_NAME = ""
 view_mode = 0
 
+from resources.lib.common import *
 from resources.lib.iphoto_parser import *
-db_file = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.db"))
-db = None
+
+iphotodb_file = xbmc.translatePath(os.path.join(PROFILE_PATH, "iphoto.db"))
+iphotodb = None
+slideshowdb_file = xbmc.translatePath(os.path.join(PROFILE_PATH, "slideshow.db"))
+slideshowdb = None
 
 apple_epoch = 978307200
 
@@ -223,30 +228,30 @@ def render_media(media, in_slideshow=False):
     return n
 
 def photo_list(mediakind, mediaid):
-    global db, media_sort_col
+    global iphotodb, slideshowdb, media_sort_col
 
     media = []
     if (mediakind == 'file'):
-	media = db.GetMedia(mediaid, media_sort_col)
+	media = iphotodb.GetMedia(mediaid, media_sort_col)
     elif (mediakind == 'album'):
-	media = db.GetMediaInAlbum(mediaid, media_sort_col)
+	media = iphotodb.GetMediaInAlbum(mediaid, media_sort_col)
     elif (mediakind == 'event'):
-	media = db.GetMediaInEvent(mediaid, media_sort_col)
+	media = iphotodb.GetMediaInEvent(mediaid, media_sort_col)
     elif (mediakind == 'face'):
-	media = db.GetMediaWithFace(mediaid, media_sort_col)
+	media = iphotodb.GetMediaWithFace(mediaid, media_sort_col)
     elif (mediakind == 'place'):
-	media = db.GetMediaWithPlace(mediaid, media_sort_col)
+	media = iphotodb.GetMediaWithPlace(mediaid, media_sort_col)
     elif (mediakind == 'keyword'):
-	media = db.GetMediaWithKeyword(mediaid, media_sort_col)
+	media = iphotodb.GetMediaWithKeyword(mediaid, media_sort_col)
     elif (mediakind == 'rating'):
-	media = db.GetMediaWithRating(mediaid, media_sort_col)
+	media = iphotodb.GetMediaWithRating(mediaid, media_sort_col)
     elif (mediakind == 'slideshow'):
 	print "XXX: Viewing slideshow '%s'" % (mediaid)
 
     return media
 
 def album_list(params):
-    global db, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
+    global iphotodb, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
 
     try:
 	albumid = params['albumid']
@@ -255,7 +260,7 @@ def album_list(params):
     except:
 	pass
 
-    albums = db.GetAlbums()
+    albums = iphotodb.GetAlbums()
     if (not albums):
 	dialog = gui.Dialog()
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
@@ -295,7 +300,7 @@ def album_list(params):
     return n
 
 def event_list(params):
-    global db, BASE_URL, album_ign_empty, view_mode
+    global iphotodb, BASE_URL, album_ign_empty, view_mode
 
     try:
 	eventid = params['eventid']
@@ -304,7 +309,7 @@ def event_list(params):
     except:
 	pass
 
-    events = db.GetEvents()
+    events = iphotodb.GetEvents()
     if (not events):
 	dialog = gui.Dialog()
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
@@ -351,7 +356,7 @@ def event_list(params):
     return n
 
 def face_list(params):
-    global db, BASE_URL, album_ign_empty, view_mode
+    global iphotodb, BASE_URL, album_ign_empty, view_mode
 
     try:
 	faceid = params['faceid']
@@ -360,7 +365,7 @@ def face_list(params):
     except:
 	pass
 
-    faces = db.GetFaces()
+    faces = iphotodb.GetFaces()
     if (not faces):
 	dialog = gui.Dialog()
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
@@ -397,7 +402,7 @@ def face_list(params):
     return n
 
 def place_list(params):
-    global db, BASE_URL, album_ign_empty, view_mode
+    global iphotodb, BASE_URL, album_ign_empty, view_mode
 
     try:
 	placeid = params['placeid']
@@ -423,7 +428,7 @@ def place_list(params):
     elif (e == "false"):
 	show_fanart = False
 
-    places = db.GetPlaces()
+    places = iphotodb.GetPlaces()
     if (not places):
 	dialog = gui.Dialog()
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
@@ -481,7 +486,7 @@ def hide_keyword(keyword):
 	pass
 
 def keyword_list(params):
-    global db, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
+    global iphotodb, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
 
     try:
 	keyword = params['hide']
@@ -498,7 +503,7 @@ def keyword_list(params):
     except:
 	pass
 
-    keywords = db.GetKeywords()
+    keywords = iphotodb.GetKeywords()
     if (not keywords):
 	dialog = gui.Dialog()
 	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
@@ -541,7 +546,7 @@ def keyword_list(params):
     return n
 
 def rating_list(params):
-    global db, BASE_URL, ICONS_PATH, view_mode
+    global iphotodb, BASE_URL, ICONS_PATH, view_mode
 
     try:
 	ratingid = params['ratingid']
@@ -578,40 +583,48 @@ def rating_list(params):
     return n
 
 def slideshow_clear(show):
+    global slideshowdb
+
     print "XXX: Clearing slideshow '%s'." % (show)
     return 0
 
 def slideshow_add(show, mediakind, mediaid):
+    global slideshowdb
+
     print "XXX: Adding to slideshow '%s':" % (show)
     media = photo_list(mediakind, mediaid)
     print media
 
 def slideshow_del(show, mediakind, mediaid):
+    global slideshowdb
+
     print "XXX: Deleting from slideshow '%s':" % (show)
     media = photo_list(mediakind, mediaid)
     print media
 
 def slideshow_list(params):
+    global slideshowdb
+
+    rv = 0
+    show = params['show']
     try:
-	show = params['show']
 	command = params['cmd']
 	if (command == 'clear'):
 	    return slideshow_clear(show)
 	mediakind = params['mediakind']
 	mediaid = params['mediaid']
     except:
+	media = photo_list('slideshow', show)
+	rv = render_media(media, in_slideshow=True)
 	pass
     else:
 	if (command == 'add'):
 	    slideshow_add(show, mediakind, mediaid)
-	    return 0
 	elif (command == 'del'):
 	    slideshow_del(show, mediakind, mediaid)
 	    xbmc.executebuiltin("Container.Refresh")
-	    return 0
 
-    media = photo_list('slideshow', 'onthego')
-    return render_media(media, in_slideshow=True)
+    return rv
 
 def import_progress_callback(progress_dialog, altinfo, nphotos, ntotal):
     if (progress_dialog is None):
@@ -624,7 +637,7 @@ def import_progress_callback(progress_dialog, altinfo, nphotos, ntotal):
     return nphotos
 
 def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places):
-    global db
+    global iphotodb
 
     # crude locking to prevent multiple simultaneous library imports
     if (xbmc.getInfoLabel("Window(10000).Property(iphoto_scanning)") == "True"):
@@ -681,11 +694,11 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
     except:
 	print traceback.print_exc()
     else:
-	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddEventNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, import_progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, iphotodb.AddAlbumNew, iphotodb.AddEventNew, iphotodb.AddFaceNew, iphotodb.AddKeywordNew, iphotodb.AddMediaNew, import_progress_callback, progress_dialog)
 
 	try:
 	    progress_dialog.update(0, addon.getLocalizedString(30219))
-	    db.ResetDB()
+	    iphotodb.ResetDB()
 
 	    progress_dialog.update(0, addon.getLocalizedString(30212))
 	    iparser.Parse()
@@ -701,7 +714,7 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 	    gui.Window(10000).setProperty("iphoto_scanning", "False")
 	    try:
 		# this is non-critical
-		db.UpdateLastImport()
+		iphotodb.UpdateLastImport()
 	    except:
 		pass
 
@@ -734,9 +747,9 @@ def reset_db(params):
 	    return
 
 	remove_tries = 3
-	while (remove_tries and os.path.isfile(db_file)):
+	while (remove_tries and os.path.isfile(iphotodb_file)):
 	    try:
-		os.remove(db_file)
+		os.remove(iphotodb_file)
 	    except:
 		remove_tries -= 1
 		xbmc.sleep(1000)
@@ -875,7 +888,7 @@ if (__name__ == "__main__"):
 	    else:
 		os.rename(tmpfile, xmlfile)
 		try:
-		    db = IPhotoDB(db_file)
+		    iphotodb = IPhotoDB(iphotodb_file)
 		except:
 		    dialog = gui.Dialog()
 		    dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
@@ -896,7 +909,7 @@ if (__name__ == "__main__"):
 	    except:
 		print traceback.print_exc()
 	    else:
-		r = glob.glob(os.path.join(os.path.dirname(db_file), "map_*"))
+		r = glob.glob(os.path.join(PROFILE_PATH, "map_*"))
 		ntotal = len(r)
 		nfiles = 0
 		for f in r:
@@ -922,7 +935,7 @@ if (__name__ == "__main__"):
 	else:
 	    # actions that do require a database connection
 	    try:
-		db = IPhotoDB(db_file)
+		iphotodb = IPhotoDB(iphotodb_file)
 	    except:
 		dialog = gui.Dialog()
 		dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))

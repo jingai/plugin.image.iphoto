@@ -19,6 +19,11 @@ import os
 import locale
 
 try:
+    from resources.lib.common import *
+except:
+    from common import *
+
+try:
     from resources.lib.geo import *
 except:
     from geo import *
@@ -65,7 +70,7 @@ class IPhotoDB:
 	    self.dbconn = sqlite.connect(dbfile)
 	    self.InitDB()
 	except Exception, e:
-	    print "iphoto.db: init: " + to_str(e)
+	    print "iphoto_parser: init: " + to_str(e)
 	    raise e
 
 	return
@@ -240,7 +245,7 @@ class IPhotoDB:
 	    try:
 		self.dbconn.execute("DROP TABLE %s" % table)
 	    except Exception, e:
-		print "iphoto.db: ResetDB: " + to_str(e)
+		print "iphoto_parser: ResetDB: " + to_str(e)
 		raise e
 
 	self.InitDB()
@@ -249,7 +254,7 @@ class IPhotoDB:
 	try:
 	    self.dbconn.commit()
 	except Exception, e:
-	    print "iphoto.db: Commit: " + to_str(e)
+	    print "iphoto_parser: Commit: " + to_str(e)
 	    raise e
 
     def GetConfig(self, key):
@@ -282,7 +287,7 @@ class IPhotoDB:
 				('lastimport',))
 	    self.Commit()
 	except Exception, e:
-	    print "iphoto.db: UpdateLastImport: " + to_str(e)
+	    print "iphoto_parser: UpdateLastImport: " + to_str(e)
 
     def GetTableId(self, table, value, column='name', autoadd=False, autoclean=True):
 	try:
@@ -310,7 +315,7 @@ class IPhotoDB:
 	    cur.close()
 	    return row[0] # return id
 	except Exception, e:
-	    print "iphoto.db: GetTableId: " + to_str(e)
+	    print "iphoto_parser: GetTableId: " + to_str(e)
 	    raise e
 
     def GetMediaTypeId(self, mediatype, autoadd=False):
@@ -328,7 +333,7 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetMedia: " + to_str(e)
+	    print "iphoto_parser: GetMedia: " + to_str(e)
 	    pass
 
 	return media
@@ -342,7 +347,7 @@ class IPhotoDB:
 		albums.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetAlbums: " + to_str(e)
+	    print "iphoto_parser: GetAlbums: " + to_str(e)
 	    pass
 
 	return albums
@@ -360,7 +365,7 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetMediaInAlbum: " + to_str(e)
+	    print "iphoto_parser: GetMediaInAlbum: " + to_str(e)
 	    pass
 
 	return media
@@ -375,7 +380,7 @@ class IPhotoDB:
 		events.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetEvents: " + to_str(e)
+	    print "iphoto_parser: GetEvents: " + to_str(e)
 	    pass
 	return events
 
@@ -391,7 +396,7 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetMediaInEvent: " + to_str(e)
+	    print "iphoto_parser: GetMediaInEvent: " + to_str(e)
 	    pass
 
 	return media
@@ -407,7 +412,7 @@ class IPhotoDB:
 		faces.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetFaces: " + to_str(e)
+	    print "iphoto_parser: GetFaces: " + to_str(e)
 	    pass
 
 	return faces
@@ -425,7 +430,7 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetMediaWithFace: " + to_str(e)
+	    print "iphoto_parser: GetMediaWithFace: " + to_str(e)
 	    pass
 
 	return media
@@ -439,7 +444,7 @@ class IPhotoDB:
 		places.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetPlaces: " + to_str(e)
+	    print "iphoto_parser: GetPlaces: " + to_str(e)
 	    pass
 
 	return places
@@ -457,7 +462,7 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetMediaWithPlace: " + to_str(e)
+	    print "iphoto_parser: GetMediaWithPlace: " + to_str(e)
 	    pass
 
 	return media
@@ -471,7 +476,7 @@ class IPhotoDB:
 		keywords.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetKeywords: " + to_str(e)
+	    print "iphoto_parser: GetKeywords: " + to_str(e)
 	    pass
 
 	return keywords
@@ -489,7 +494,7 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetMediaWithKeyword: " + to_str(e)
+	    print "iphoto_parser: GetMediaWithKeyword: " + to_str(e)
 	    pass
 
 	return media
@@ -506,7 +511,7 @@ class IPhotoDB:
 		media.append(tuple)
 	    cur.close()
 	except Exception, e:
-	    print "iphoto.db: GetMediaWithRating: " + to_str(e)
+	    print "iphoto_parser: GetMediaWithRating: " + to_str(e)
 	    pass
 
 	return media
@@ -719,7 +724,7 @@ class IPhotoDB:
 		    except ParseCanceled:
 			raise
 		    except Exception, e:
-			print "iphoto.db: AddMediaNew: geocode: " + to_str(e)
+			print "iphoto_parser: AddMediaNew: geocode: " + to_str(e)
 			raise e
 		except:
 		    #print "No location information for photo id %d" % (mediaid)
@@ -743,7 +748,7 @@ class IPhotoDB:
 				map.zoom("", 14)
 				thumbpath = map.fetch("map_", "_thumb")
 			    except Exception, e:
-				print "iphoto.db: AddMediaNew: map: " + to_str(e)
+				print "iphoto_parser: AddMediaNew: map: " + to_str(e)
 				pass
 			updateProgress()
 
@@ -958,7 +963,7 @@ class IPhotoParser:
 	except ParseCanceled:
 	    raise
 	except Exception, e:
-	    print "iphoto.db: commitAll: " + to_str(e)
+	    print "iphoto_parser: commitAll: " + to_str(e)
 	    raise e
 
     def Parse(self):
@@ -972,13 +977,13 @@ class IPhotoParser:
 	    self.parser.Parse(buf, True)
 	    f.close()
 	except Exception, e:
-	    print "iphoto.db: Parse: " + to_str(e)
+	    print "iphoto_parser: Parse: " + to_str(e)
 	    raise e
 
 	try:
 	    self.commitAll()
 	except Exception, e:
-	    print "iphoto.db: Parse: " + to_str(e)
+	    print "iphoto_parser: Parse: " + to_str(e)
 	    raise e
 
     def StartElement(self, name, attrs):
