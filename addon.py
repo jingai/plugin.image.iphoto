@@ -191,7 +191,7 @@ def render_media(media, in_slideshow=False):
 		pass
 
 	    commands = []
-	    if (in_slideshow == False):
+	    if (not in_slideshow):
 		slideshow_context_menu_item_add(commands, 'file', mediapath)
 	    else:
 		slideshow_context_menu_item_del(commands, 'file', mediapath)
@@ -204,12 +204,12 @@ def render_media(media, in_slideshow=False):
     if (n > 0):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
-	if (sort_date == True):
+	if (sort_date):
 	    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
 
     # default view in Confluence
     vm = addon.getSetting('view_mode')
-    if (vm == ""):
+    if (not vm):
 	vm = "0"
 	addon.setSetting('view_mode', vm)
     vm = int(vm)
@@ -336,7 +336,7 @@ def event_list(params):
     if (n > 0):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
-	if (sort_date == True):
+	if (sort_date):
 	    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
 
     # default view for select skins
@@ -442,7 +442,7 @@ def place_list(params):
 	    item = gui.ListItem(address, latlon)
 	if (thumbpath):
 	    item.setThumbnailImage(thumbpath)
-	if (show_fanart == True and fanartpath):
+	if (show_fanart and fanartpath):
 	    item.setProperty("Fanart_Image", fanartpath)
 
 	commands = []
@@ -472,7 +472,7 @@ def place_list(params):
 def hide_keyword(keyword):
     try:
 	hidden_keywords = addon.getSetting('hidden_keywords')
-	if (hidden_keywords != ""):
+	if (hidden_keywords):
 	    hidden_keywords += ", "
 	hidden_keywords += keyword
 	addon.setSetting('hidden_keywords', hidden_keywords)
@@ -614,10 +614,10 @@ def slideshow_list(params):
     return render_media(media, in_slideshow=True)
 
 def import_progress_callback(progress_dialog, altinfo, nphotos, ntotal):
-    if (not progress_dialog):
+    if (progress_dialog is None):
 	return 0
     if (progress_dialog.iscanceled()):
-	return
+	return None
 
     percent = int(float(nphotos * 100) / ntotal)
     progress_dialog.update(percent, addon.getLocalizedString(30211) % (nphotos), altinfo)
@@ -640,7 +640,7 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 
     # ignore albums published to MobileMe if configured to do so
     album_ign_publ = addon.getSetting('album_ignore_published')
-    if (album_ign_publ == ""):
+    if (not album_ign_publ):
 	album_ign_publ = "true"
 	addon.setSetting('album_ignore_published', album_ign_publ)
     if (album_ign_publ == "true"):
@@ -648,7 +648,7 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 
     # ignore flagged albums if configured to do so
     album_ign_flagged = addon.getSetting('album_ignore_flagged')
-    if (album_ign_flagged == ""):
+    if (not album_ign_flagged):
 	album_ign_flagged = "true"
 	addon.setSetting('album_ignore_flagged', album_ign_flagged)
     if (album_ign_flagged == "true"):
@@ -657,11 +657,11 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
     # download maps from Google?
     enable_maps = True
     e = addon.getSetting('places_enable_maps')
-    if (e == ""):
+    if (not e):
 	addon.setSetting('places_enable_maps', "true")
     elif (e == "false"):
 	enable_maps = False
-    if (enable_maps == True):
+    if (enable_maps):
 	res_x = float(xbmc.getInfoLabel("System.ScreenWidth"))
 	res_y = float(xbmc.getInfoLabel("System.ScreenHeight"))
 	map_aspect = res_x / res_y
@@ -673,7 +673,7 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 	retries = 10
 	progress_dialog = None
 	while (gui.getCurrentWindowDialogId() != 10101 and retries):
-	    if (not progress_dialog):
+	    if (progress_dialog is None):
 		progress_dialog = gui.DialogProgress()
 		progress_dialog.create(addon.getLocalizedString(30210))
 	    retries -= 1
@@ -753,13 +753,13 @@ def get_params(paramstring):
     for param in paramlist:
 	(k,v) = param.split("=")
 	params[k] = v
-    print "iPhoto: called with parameters:"
+    print "iPhoto addon called with parameters:"
     print params
     return params
 
 if (__name__ == "__main__"):
     xmlpath = addon.getSetting('albumdata_xml_path')
-    if (xmlpath == ""):
+    if (not xmlpath):
 	try:
 	    xmlpath = os.getenv("HOME") + "/Pictures/iPhoto Library/"
 	    addon.setSetting('albumdata_xml_path', xmlpath)
@@ -777,17 +777,17 @@ if (__name__ == "__main__"):
 
     enable_managed_lib = True
     e = addon.getSetting('managed_lib_enable')
-    if (e == ""):
+    if (not e):
 	addon.setSetting('managed_lib_enable', "true")
     elif (e == "false"):
 	enable_managed_lib = False
 
     masterspath = ""
     masters_realpath = ""
-    if (enable_managed_lib == False):
+    if (not enable_managed_lib):
 	masterspath = addon.getSetting('masters_path')
 	masters_realpath = addon.getSetting('masters_real_path')
-	if (masterspath == "" or masters_realpath == ""):
+	if (not masterspath or not masters_realpath):
 	    addon.setSetting('managed_lib_enable', "true")
 	    enable_managed_lib = True
 	    masterspath = ""
@@ -795,7 +795,7 @@ if (__name__ == "__main__"):
 
     enable_places = True
     e = addon.getSetting('places_enable')
-    if (e == ""):
+    if (not e):
 	addon.setSetting('places_enable', "true")
     elif (e == "false"):
 	enable_places = False
@@ -840,7 +840,7 @@ if (__name__ == "__main__"):
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=slideshows", item, True)
 
 	    hide_item = addon.getSetting('hide_import_lib')
-	    if (hide_item == ""):
+	    if (not hide_item):
 		hide_item = "false"
 		addon.setSetting('hide_import_lib', hide_item)
 	    if (hide_item == "false"):
@@ -849,7 +849,7 @@ if (__name__ == "__main__"):
 		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
 
 	    hide_item = addon.getSetting('hide_view_readme')
-	    if (hide_item == ""):
+	    if (not hide_item):
 		hide_item = "false"
 		addon.setSetting('hide_view_readme', hide_item)
 	    if (hide_item == "false"):
@@ -864,7 +864,7 @@ if (__name__ == "__main__"):
 
 	# automatically update library if desired
 	auto_update_lib = addon.getSetting('auto_update_lib')
-	if (auto_update_lib == ""):
+	if (not auto_update_lib):
 	    auto_update_lib = "false"
 	    addon.setSetting('auto_update_lib', auto_update_lib)
 	if (auto_update_lib == "true"):
@@ -883,7 +883,7 @@ if (__name__ == "__main__"):
 		else:
 		    import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
     else:
-	items = None
+	items = 0
 
 	# actions that don't require a database connection
 	if (action == "resetdb"):
@@ -938,12 +938,12 @@ if (__name__ == "__main__"):
 		elif (action == "faces"):
 		    items = face_list(params)
 		elif (action == "places"):
-		    if (enable_places == True):
+		    if (enable_places):
 			items = place_list(params)
 		    else:
 			dialog = gui.Dialog()
 			ret = dialog.yesno(addon.getLocalizedString(30220), addon.getLocalizedString(30221), addon.getLocalizedString(30222), addon.getLocalizedString(30223))
-			if (ret == True):
+			if (ret):
 			    enable_places = True
 			    addon.setSetting('places_enable', "true")
 		elif (action == "keywords"):

@@ -297,9 +297,9 @@ class IPhotoDB:
 	    row = cur.fetchone()
 
 	    # create named ID if requested
-	    if not row and autoadd and value and len(value) > 0:
+	    if (not row and autoadd and value and len(value) > 0):
 		nextid = cur.execute("SELECT MAX(id) FROM %s" % table).fetchone()[0]
-		if not nextid:
+		if (not nextid):
 		    nextid = 1
 		else:
 		    nextid += 1
@@ -660,8 +660,8 @@ class IPhotoDB:
 		INSERT INTO facesmedia (faceid, mediaid)
 		VALUES (?, ?)""", (faceid, mediaid))
 
-		for fid, fkey, fkeyidx in faces:
-		    if int(fkey) == int(mediaid):
+		for (fid, fkey, fkeyidx) in faces:
+		    if (int(fkey) == int(mediaid)):
 			fthumb = os.path.splitext(thumbpath)[0] + "_face%s.jpg" % (fkeyidx)
 			self.dbconn.execute("""
 			UPDATE faces SET thumbpath = ?
@@ -685,7 +685,7 @@ class IPhotoDB:
 				 thumbpath,
 				 originalpath))
 
-	    if enablePlaces == True:
+	    if (enablePlaces):
 		# convert lat/lon pair to an address
 		try:
 		    lat = float(media['latitude'])
@@ -696,14 +696,14 @@ class IPhotoDB:
 		    lon = to_str(lon)
 		    latlon = lat + "+" + lon
 		    try:
-			addr = None
+			addr = ""
 			placeid = None
 			for i in self.placeList:
 			    if (latlon in self.placeList[i]):
 				addr = self.placeList[i][0]
 				placeid = i
 				break
-			if addr is None:
+			if (addr):
 			    updateProgress("Geocoding %s %s" % (lat, lon))
 			    addr = geocode("%s %s" % (lat, lon))[0]
 			    updateProgress()
@@ -712,7 +712,7 @@ class IPhotoDB:
 				if (self.placeList[i][0] == addr):
 				    placeid = i
 				    break
-			    if placeid is None:
+			    if (placeid is None):
 				placeid = len(self.placeList)
 				self.placeList[placeid] = []
 				#print "new placeid %d for addr '%s'" % (placeid, addr)
@@ -917,8 +917,8 @@ class IPhotoParser:
 
 	state = self.state
 	ret = self.ProgressCallback(self.ProgressDialog, altinfo, state.nphotos, state.nphotostotal)
-	if (ret == None):
-	    raise ParseCanceled("iPhoto library parse canceled by user.")
+	if (ret is None):
+	    raise ParseCanceled("iPhoto library parse canceled.")
 
     def commitAll(self):
 	state = self.state
@@ -966,7 +966,7 @@ class IPhotoParser:
 	    BLOCKSIZE = 8192
 	    f = open(self.xmlfile, "r")
 	    buf = f.read(BLOCKSIZE)
-	    while buf:
+	    while (buf):
 		self.parser.Parse(buf, False)
 		buf = f.read(BLOCKSIZE)
 	    self.parser.Parse(buf, True)
@@ -1191,7 +1191,7 @@ def main():
 	print traceback.print_exc()
     db.Commit()
 
-if __name__=="__main__":
+if (__name__=="__main__"):
     #main()
     profile_main()
 
