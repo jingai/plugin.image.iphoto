@@ -726,59 +726,59 @@ class IPhotoDB:
 			    if (self.placeList[i][0] == addr):
 				placeid = i
 				break
-			if (placeid is None):
-			    placeid = len(self.placeList)
-			    self.placeList[placeid] = []
-			    #print "new placeid %d for addr '%s'" % (placeid, addr)
 
-			if (addr not in self.placeList[placeid]):
-			    # download thumbnail and fanart maps for Place
-			    fanartpath = ""
-			    thumbpath = ""
-			    if (mapAspect != 0.0):
-				updateProgress("Fetching map...")
-				try:
-				    map_size_x = MAP_IMAGE_X_MAX
-				    map_size_y = int(float(map_size_x) / mapAspect)
-				    map = staticmap(self.dbPath, latlon, False, xsize=map_size_x, ysize=map_size_y)
-				    fanartpath = map.fetch("map_", "_%dx%d" % (map_size_x, map_size_y))
-				    map.set_xsize(256)
-				    map.set_ysize(256)
-				    map.set_type("roadmap")
-				    map.toggle_marker()
-				    map.zoom("", 14)
-				    thumbpath = map.fetch("map_", "_thumb")
-				except Exception, e:
-				    print "iphoto_parser: AddMediaNew: map: " + to_str(e)
-				    pass
-			    updateProgress()
+		    if (placeid is None):
+			placeid = len(self.placeList)
+			self.placeList[placeid] = []
+			#print "new placeid %d for addr '%s'" % (placeid, addr)
 
-			    # add new Place
-			    self.placeList[placeid].append(addr)
-			    cur.execute("""
-					INSERT INTO places (id, latlon, address, thumbpath, fanartpath)
-					VALUES (?, ?, ?, ?, ?)""", (placeid, latlon, addr, thumbpath, fanartpath))
+			# download thumbnail and fanart maps for Place
+			fanartpath = ""
+			thumbpath = ""
+			if (mapAspect != 0.0):
+			    updateProgress("Fetching map...")
+			    try:
+				map_size_x = MAP_IMAGE_X_MAX
+				map_size_y = int(float(map_size_x) / mapAspect)
+				map = staticmap(self.dbPath, latlon, False, xsize=map_size_x, ysize=map_size_y)
+				fanartpath = map.fetch("map_", "_%dx%d" % (map_size_x, map_size_y))
+				map.set_xsize(256)
+				map.set_ysize(256)
+				map.set_type("roadmap")
+				map.toggle_marker()
+				map.zoom("", 14)
+				thumbpath = map.fetch("map_", "_thumb")
+			    except Exception, e:
+				print "iphoto_parser: AddMediaNew: map: " + to_str(e)
+				pass
+			updateProgress()
 
-			if (latlon not in self.placeList[placeid]):
-			    # existing Place, but add latlon to list for this address.
-			    # do this to prevent the script from hitting google more
-			    # than necessary.
-			    self.placeList[placeid].append(latlon)
-
+			# add new Place
+			self.placeList[placeid].append(addr)
 			cur.execute("""
-				    INSERT INTO placesmedia (placeid, mediaid)
-				    VALUES (?, ?)""", (placeid, mediaid))
-			cur.execute("""SELECT id, photocount
-				    FROM places
-				    WHERE id = ?""", (placeid,))
-			for tuple in cur:
-			    if (tuple[1]):
-				photocount = int(tuple[1]) + 1
-			    else:
-				photocount = 1
-			    self.dbconn.execute("""
-						UPDATE places SET photocount = ?
-						WHERE id = ?""", (photocount, placeid))
+				    INSERT INTO places (id, latlon, address, thumbpath, fanartpath)
+				    VALUES (?, ?, ?, ?, ?)""", (placeid, latlon, addr, thumbpath, fanartpath))
+
+		    if (latlon not in self.placeList[placeid]):
+			# existing Place, but add latlon to list for this address.
+			# do this to prevent the script from hitting google more
+			# than necessary.
+			self.placeList[placeid].append(latlon)
+
+		    cur.execute("""
+				INSERT INTO placesmedia (placeid, mediaid)
+				VALUES (?, ?)""", (placeid, mediaid))
+		    cur.execute("""SELECT id, photocount
+				FROM places
+				WHERE id = ?""", (placeid,))
+		    for tuple in cur:
+			if (tuple[1]):
+			    photocount = int(tuple[1]) + 1
+			else:
+			    photocount = 1
+			self.dbconn.execute("""
+					    UPDATE places SET photocount = ?
+					    WHERE id = ?""", (photocount, placeid))
 
 	    for keywordid in media['keywordlist']:
 		cur.execute("""
