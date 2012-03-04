@@ -85,6 +85,8 @@ else:
 
 def generic_context_menu_items(commands=[]):
     commands.append((addon.getLocalizedString(30217), "XBMC.RunPlugin(\""+BASE_URL+"?action=textview&file=README.txt\")",))
+    #XXX: hard-coded because we replace the whole context menu but still want this item
+    #XXX: see http://forum.xbmc.org/showthread.php?t=52028
     commands.append((xbmc.getLocalizedString(1045), "XBMC.RunPlugin(\""+BASE_URL+"?action=settings\")",))
 
 def slideshow_context_menu_args(mediakind='file', mediaid=None):
@@ -188,8 +190,8 @@ def render_media(media, in_slideshow=False):
 
 	    try:
 		item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(mediadate)))
-		#JSL: setting the date here to enable sorting prevents XBMC
-		#JSL: from scanning the EXIF/IPTC info
+		#XXX: setting the date here to enable sorting prevents XBMC
+		#XXX: from scanning the EXIF/IPTC info
 		#item.setInfo(type="pictures", infoLabels={ "date": item_date })
 		#sort_date = True
 	    except:
@@ -200,7 +202,7 @@ def render_media(media, in_slideshow=False):
 		slideshow_context_menu_item_add(commands, 'file', mediapath)
 	    else:
 		slideshow_context_menu_item_del(commands, 'file', mediapath)
-	    slideshow_maint_context_menu_items(commands)
+		slideshow_maint_context_menu_items(commands)
 	    item.addContextMenuItems(commands, False)
 
 	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url = mediapath, listitem = item, isFolder = False)
@@ -279,7 +281,6 @@ def album_list(params):
 	commands = []
 	generic_context_menu_items(commands)
 	slideshow_context_menu_item_add(commands, 'album', albumid)
-	slideshow_maint_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
@@ -325,7 +326,6 @@ def event_list(params):
 	commands = []
 	generic_context_menu_items(commands)
 	slideshow_context_menu_item_add(commands, 'event', eventid)
-	slideshow_maint_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 
 	try:
@@ -380,7 +380,6 @@ def face_list(params):
 	commands = []
 	generic_context_menu_items(commands)
 	slideshow_context_menu_item_add(commands, 'face', faceid)
-	slideshow_maint_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=faces&faceid=%s" % (faceid), listitem = item, isFolder = True, totalItems = count)
@@ -453,7 +452,6 @@ def place_list(params):
 	commands = []
 	generic_context_menu_items(commands)
 	slideshow_context_menu_item_add(commands, 'place', placeid)
-	slideshow_maint_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=places&placeid=%s" % (placeid), listitem = item, isFolder = True, totalItems = count)
@@ -524,7 +522,6 @@ def keyword_list(params):
 	commands = []
 	generic_context_menu_items(commands)
 	slideshow_context_menu_item_add(commands, 'keyword', keywordid)
-	slideshow_maint_context_menu_items(commands)
 	commands.append((addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=keywords&hide=%s\")" % (keyword),))
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem = item, isFolder = True, totalItems = count)
@@ -562,7 +559,6 @@ def rating_list(params):
 	commands = []
 	generic_context_menu_items(commands)
 	slideshow_context_menu_item_add(commands, 'rating', ratingid)
-	slideshow_maint_context_menu_items(commands)
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings&ratingid=%d" % (ratingid), listitem = item, isFolder = True)
 	n += 1
@@ -821,7 +817,6 @@ if (__name__ == "__main__"):
 	try:
 	    commands = []
 	    generic_context_menu_items(commands)
-	    slideshow_maint_context_menu_items(commands)
 	    generic_maint_context_menu_items(commands)
 
 	    item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
