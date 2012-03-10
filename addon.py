@@ -83,9 +83,19 @@ else:
     media_sort_col = "NULL"
 
 
+def md5sum(filename):
+    try:
+	m = md5()
+    except:
+	m = md5.new()
+    with open(filename, 'rb') as f:
+	for chunk in iter(lambda: f.read(128 * m.block_size), ''):
+	    m.update(chunk)
+    return m.hexdigest()
+
 def generic_context_menu_items(commands=[]):
     commands.append((addon.getLocalizedString(30217), "XBMC.RunPlugin(\""+BASE_URL+"?action=textview&file=README.txt\")",))
-    #XXX: hard-coded because we replace the whole context menu but still want this item
+    #XXX: hard-coded because we replace the whole context menu but still want "Add-on settings"
     #XXX: see http://forum.xbmc.org/showthread.php?t=52028
     commands.append((xbmc.getLocalizedString(1045), "XBMC.RunPlugin(\""+BASE_URL+"?action=settings\")",))
 
@@ -117,15 +127,17 @@ def generic_maint_context_menu_items(commands=[]):
     commands.append((addon.getLocalizedString(30215), "XBMC.RunPlugin(\""+BASE_URL+"?action=rm_caches\")",))
 
 def textview(file):
+    #XXX: hard-coded for now
+    #XXX: see http://forum.xbmc.org/showthread.php?t=122779
     WINDOW = 10147
     CONTROL_LABEL = 1
     CONTROL_TEXTBOX = 5
 
     xbmc.executebuiltin("ActivateWindow(%d)" % (WINDOW))
-    retries = 5
+    retries = 40
     while (gui.getCurrentWindowDialogId() != WINDOW and retries):
 	retries -= 1
-	xbmc.sleep(100)
+	xbmc.sleep(50)
 
     window = gui.Window(WINDOW)
 
@@ -141,39 +153,11 @@ def textview(file):
 	    pass
 	window.getControl(CONTROL_TEXTBOX).setText(text)
 
-def md5sum(filename):
-    try:
-	m = md5()
-    except:
-	m = md5.new()
-    with open(filename, 'rb') as f:
-	for chunk in iter(lambda: f.read(128 * m.block_size), ''):
-	    m.update(chunk)
-    return m.hexdigest()
-
 def render_media(media, in_slideshow=False):
     global view_mode
 
     if (not media):
 	return 0
-
-    # default view for select skins
-    if (SKIN_NAME != ""):
-	vm = addon.getSetting(SKIN_NAME + '_view_default')
-	if (vm == ""):
-	    addon.setSetting(SKIN_NAME + '_view_default', "0")
-	else:
-	    vm = int(vm)
-	    if (SKIN_NAME == "confluence"):
-		if (vm == 1):
-		    view_mode = 514	    # Pic Thumbs
-		elif (vm == 2):
-		    view_mode = 510	    # Image Wrap
-	    if (SKIN_NAME == "metropolis"):
-		if (vm == 1):
-		    view_mode = 500	    # Picture Grid
-		elif (vm == 2):
-		    view_mode = 59	    # Galary Fanart
 
     sort_date = False
     n = 0
@@ -214,18 +198,24 @@ def render_media(media, in_slideshow=False):
 	if (sort_date):
 	    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
 
-    # default view in Confluence
-    vm = addon.getSetting('view_mode')
-    if (not vm):
-	vm = "0"
-	addon.setSetting('view_mode', vm)
-    vm = int(vm)
-    if (vm == 1):
-	view_mode = 510
-    elif (vm == 2):
-	view_mode = 514
-    else:
-	view_mode = vm
+    # default view for select skins
+    # XXX: this is a hack to force view mode user has chosen
+    if (SKIN_NAME != ""):
+	vm = addon.getSetting(SKIN_NAME + '_view_default')
+	if (vm == ""):
+	    addon.setSetting(SKIN_NAME + '_view_default', "0")
+	else:
+	    vm = int(vm)
+	    if (SKIN_NAME == "confluence"):
+		if (vm == 1):
+		    view_mode = 514	    # Pic Thumbs
+		elif (vm == 2):
+		    view_mode = 510	    # Image Wrap
+	    if (SKIN_NAME == "metropolis"):
+		if (vm == 1):
+		    view_mode = 500	    # Picture Grid
+		elif (vm == 2):
+		    view_mode = 59	    # Galary Fanart
 
     return n
 
@@ -251,54 +241,6 @@ def photo_list(mediakind, mediaid):
 	print "XXX: Viewing slideshow '%s'" % (mediaid)
 
     return media
-
-def album_list(params):
-    global iphotodb, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
-
-    try:
-	albumid = params['albumid']
-	media = photo_list('album', albumid)
-	return render_media(media)
-    except:
-	pass
-
-    albums = iphotodb.GetAlbums()
-    if (not albums):
-	dialog = gui.Dialog()
-	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
-	return
-
-    n = 0
-    for (albumid, name, count) in albums:
-	if (name == "Photos"):
-	    continue
-
-	if (not count and album_ign_empty == "true"):
-	    continue
-
-	thumbpath = ICONS_PATH+"/folder.png"
-	item = gui.ListItem(name, thumbnailImage=thumbpath)
-	commands = []
-	generic_context_menu_items(commands)
-	slideshow_context_menu_item_add(commands, 'album', albumid)
-	item.addContextMenuItems(commands, True)
-	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True, totalItems = count)
-	n += 1
-
-    if (n > 0):
-	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
-	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
-
-    # default view for select skins
-    if (SKIN_NAME != ""):
-	if (addon.getSetting(SKIN_NAME + '_view_albums') == ""):
-	    if (SKIN_NAME == "confluence"):
-		view_mode = 51			# Big List
-	    elif (SKIN_NAME == "metropolis"):
-		view_mode = 0
-	    addon.setSetting(SKIN_NAME + '_view_albums', str(view_mode))
-
-    return n
 
 def event_list(params):
     global iphotodb, BASE_URL, album_ign_empty, view_mode
@@ -345,6 +287,56 @@ def event_list(params):
 	    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
 
     # default view for select skins
+    # XXX: this is a hack to force view mode user has chosen
+    if (SKIN_NAME != ""):
+	if (addon.getSetting(SKIN_NAME + '_view_albums') == ""):
+	    if (SKIN_NAME == "confluence"):
+		view_mode = 51			# Big List
+	    elif (SKIN_NAME == "metropolis"):
+		view_mode = 0
+	    addon.setSetting(SKIN_NAME + '_view_albums', str(view_mode))
+
+    return n
+
+def album_list(params):
+    global iphotodb, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
+
+    try:
+	albumid = params['albumid']
+	media = photo_list('album', albumid)
+	return render_media(media)
+    except:
+	pass
+
+    albums = iphotodb.GetAlbums()
+    if (not albums):
+	dialog = gui.Dialog()
+	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
+	return
+
+    n = 0
+    for (albumid, name, count) in albums:
+	if (name == "Photos"):
+	    continue
+
+	if (not count and album_ign_empty == "true"):
+	    continue
+
+	thumbpath = ICONS_PATH+"/folder.png"
+	item = gui.ListItem(name, thumbnailImage=thumbpath)
+	commands = []
+	generic_context_menu_items(commands)
+	slideshow_context_menu_item_add(commands, 'album', albumid)
+	item.addContextMenuItems(commands, True)
+	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True, totalItems = count)
+	n += 1
+
+    if (n > 0):
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
+
+    # default view for select skins
+    # XXX: this is a hack to force view mode user has chosen
     if (SKIN_NAME != ""):
 	if (addon.getSetting(SKIN_NAME + '_view_events') == ""):
 	    if (SKIN_NAME == "confluence"):
@@ -390,6 +382,7 @@ def face_list(params):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
 
     # default view for select skins
+    # XXX: this is a hack to force view mode user has chosen
     if (SKIN_NAME != ""):
 	if (addon.getSetting(SKIN_NAME + '_view_faces') == ""):
 	    if (SKIN_NAME == "confluence"):
@@ -462,6 +455,7 @@ def place_list(params):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
 
     # default view for select skins
+    # XXX: this is a hack to force view mode user has chosen
     if (SKIN_NAME != ""):
 	if (addon.getSetting(SKIN_NAME + '_view_places') == ""):
 	    if (SKIN_NAME == "confluence"):
@@ -532,6 +526,7 @@ def keyword_list(params):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
 
     # default view for select skins
+    # XXX: this is a hack to force view mode user has chosen
     if (SKIN_NAME != ""):
 	if (addon.getSetting(SKIN_NAME + '_view_keywords') == ""):
 	    if (SKIN_NAME == "confluence"):
@@ -568,6 +563,7 @@ def rating_list(params):
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_LABEL)
 
     # default view for select skins
+    # XXX: this is a hack to force view mode user has chosen
     if (SKIN_NAME != ""):
 	if (addon.getSetting(SKIN_NAME + '_view_ratings') == ""):
 	    if (SKIN_NAME == "confluence"):
@@ -679,14 +675,14 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 
     try:
 	# try to get progress dialog actually on-screen before we do work
-	retries = 10
+	retries = 40
 	progress_dialog = None
 	while (gui.getCurrentWindowDialogId() != 10101 and retries):
 	    if (progress_dialog is None):
 		progress_dialog = gui.DialogProgress()
 		progress_dialog.create(addon.getLocalizedString(30210))
 	    retries -= 1
-	    xbmc.sleep(100)
+	    xbmc.sleep(50)
     except:
 	print traceback.print_exc()
     else:
@@ -963,8 +959,13 @@ if (__name__ == "__main__"):
 
 	if (items):
 	    plugin.endOfDirectory(int(sys.argv[1]), True)
+	    # XXX: this is a hack to force view mode user has chosen
 	    if (view_mode):
-		xbmc.sleep(300)
-		xbmc.executebuiltin("Container.SetViewMode(%d)" % (view_mode))
+		retries = 40
+		while (gui.getCurrentWindowDialogId() != 10002 and retries):
+		    retries -= 1
+		    xbmc.sleep(50)
+		if (retries >= 0):
+		    xbmc.executebuiltin("Container.SetViewMode(%d)" % (view_mode))
 
 # vim: tabstop=8 softtabstop=4 shiftwidth=4 noexpandtab:
