@@ -98,7 +98,10 @@ def textview(file):
     except:
 	print traceback.print_exc()
     else:
-	window.getControl(CONTROL_LABEL).setLabel("%s - %s" % (heading, __plugin__))
+	try:
+	    window.getControl(CONTROL_LABEL).setLabel("%s - %s" % (heading, __plugin__))
+	except:
+	    pass
 	window.getControl(CONTROL_TEXTBOX).setText(text)
 
 def md5sum(filename):
