@@ -289,12 +289,12 @@ def event_list(params):
     # default view for select skins
     # XXX: this is a hack to force view mode user has chosen
     if (SKIN_NAME != ""):
-	if (addon.getSetting(SKIN_NAME + '_view_albums') == ""):
+	if (addon.getSetting(SKIN_NAME + '_view_events') == ""):
 	    if (SKIN_NAME == "confluence"):
 		view_mode = 51			# Big List
 	    elif (SKIN_NAME == "metropolis"):
 		view_mode = 0
-	    addon.setSetting(SKIN_NAME + '_view_albums', str(view_mode))
+	    addon.setSetting(SKIN_NAME + '_view_events', str(view_mode))
 
     return n
 
@@ -338,12 +338,12 @@ def album_list(params):
     # default view for select skins
     # XXX: this is a hack to force view mode user has chosen
     if (SKIN_NAME != ""):
-	if (addon.getSetting(SKIN_NAME + '_view_events') == ""):
+	if (addon.getSetting(SKIN_NAME + '_view_albums') == ""):
 	    if (SKIN_NAME == "confluence"):
 		view_mode = 0
 	    elif (SKIN_NAME == "metropolis"):
 		view_mode = 0
-	    addon.setSetting(SKIN_NAME + '_view_events', str(view_mode))
+	    addon.setSetting(SKIN_NAME + '_view_albums', str(view_mode))
 
     return n
 
