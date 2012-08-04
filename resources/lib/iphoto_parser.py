@@ -694,7 +694,6 @@ class IPhotoDB:
 		# convert lat/lon pair to an address
 		addr = ""
 		placeid = None
-
 		try:
 		    lat = float(media['latitude'])
 		    lon = float(media['longitude'])
@@ -703,35 +702,37 @@ class IPhotoDB:
 		    lat = to_str(lat)
 		    lon = to_str(lon)
 		    latlon = lat + "+" + lon
+		    try:
+			for i in self.placeList:
+			    if (latlon in self.placeList[i]):
+				addr = self.placeList[i][0]
+				placeid = i
+				break
+
+			if (not addr):
+			    updateProgress("Geocoding %s %s" % (lat, lon))
+			    addr = geocode("%s %s" % (lat, lon))[0]
+			    updateProgress()
+
+			    for i in self.placeList:
+				if (self.placeList[i][0] == addr):
+				    placeid = i
+				    break
+
+			    if (placeid is None):
+				placeid = len(self.placeList)
+				self.placeList[placeid] = []
+				#print "iphoto_parser: AddMediaNew: geocode: new placeid %d for addr '%s'" % (placeid, addr)
+		    except ParseCanceled:
+			raise
+		    except Exception, e:
+			print "iphoto_parser: AddMediaNew: geocode: " + to_str(e)
+			raise e
 		except:
 		    #print "No location information for photo id %d" % (mediaid)
 		    pass
 		else:
-		    for i in self.placeList:
-			if (latlon in self.placeList[i]):
-			    addr = self.placeList[i][0]
-			    placeid = i
-			    break
-
-		    if (not addr):
-			updateProgress("Geocoding %s %s" % (lat, lon))
-			try:
-			    addr = geocode("%s %s" % (lat, lon))[0]
-			except Exception, e:
-			    print "iphoto_parser: AddMediaNew: geocode: " + to_str(e)
-			    raise e
-			updateProgress()
-
-			for i in self.placeList:
-			    if (self.placeList[i][0] == addr):
-				placeid = i
-				break
-
-		    if (placeid is None):
-			placeid = len(self.placeList)
-			self.placeList[placeid] = []
-			#print "new placeid %d for addr '%s'" % (placeid, addr)
-
+		    if (addr not in self.placeList[placeid]):
 			# download thumbnail and fanart maps for Place
 			fanartpath = ""
 			thumbpath = ""
