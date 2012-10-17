@@ -581,7 +581,7 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
     except:
 	print traceback.print_exc()
     else:
-	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, import_progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.SetConfig, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, import_progress_callback, progress_dialog)
 
 	try:
 	    progress_dialog.update(0, addon.getLocalizedString(30219))
@@ -599,11 +599,6 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 	    print "iPhoto: Library imported successfully."
 	    progress_dialog.close()
 	    gui.Window(10000).setProperty("iphoto_scanning", "False")
-	    try:
-		# this is non-critical
-		db.UpdateLastImport()
-	    except:
-		pass
 
 def reset_db(params):
     try:
