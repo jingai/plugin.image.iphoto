@@ -532,12 +532,13 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
     else:
 	gui.Window(10000).setProperty("iphoto_scanning", "True")
 
-    # always ignore Books and currently selected album
+    # always ignore Books and all Event type albums
     album_ign = []
     album_ign.append("Book")
     album_ign.append("Selected Event Album")
+    album_ign.append("Event")
 
-    # ignore albums published to MobileMe if configured to do so
+    # ignore albums published to MobileMe/iCloud if configured to do so
     album_ign_publ = addon.getSetting('album_ignore_published')
     if (album_ign_publ == ""):
 	album_ign_publ = "true"
