@@ -194,8 +194,6 @@ def list_albums(params):
 
     albums = db.GetAlbums()
     if (not albums):
-	dialog = gui.Dialog()
-	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
     commands = []
@@ -248,8 +246,6 @@ def list_events(params):
 
     rolls = db.GetRolls()
     if (not rolls):
-	dialog = gui.Dialog()
-	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
     commands = []
@@ -310,8 +306,6 @@ def list_faces(params):
 
     faces = db.GetFaces()
     if (not faces):
-	dialog = gui.Dialog()
-	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
     commands = []
@@ -378,8 +372,6 @@ def list_places(params):
 
     places = db.GetPlaces()
     if (not places):
-	dialog = gui.Dialog()
-	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
     commands = []
@@ -441,8 +433,6 @@ def list_keywords(params):
 
     keywords = db.GetKeywords()
     if (not keywords):
-	dialog = gui.Dialog()
-	dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 	return
 
     hidden_keywords = addon.getSetting('hidden_keywords')
