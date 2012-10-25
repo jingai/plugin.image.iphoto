@@ -31,7 +31,8 @@ except ImportError:
     import md5
 
 addon = xbmcaddon.Addon(id="plugin.image.iphoto")
-ALBUM_DATA_XML = "AlbumData.xml"
+IPHOTO_ALBUM_DATA_XML = "AlbumData.xml"
+APERTURE_ALBUM_DATA_XML = "ApertureData.xml"
 BASE_URL = "%s" % (sys.argv[0])
 PLUGIN_PATH = addon.getAddonInfo("path")
 RESOURCE_PATH = os.path.join(PLUGIN_PATH, "resources")
@@ -230,7 +231,10 @@ def list_photos_in_event(params):
     global db, media_sort_col
 
     rollid = params['rollid']
-    media = db.GetMediaInRoll(rollid, media_sort_col)
+    if (db.GetLibrarySource() == "iPhoto"):
+	media = db.GetMediaInRoll(rollid, media_sort_col)
+    else:
+	media = db.GetMediaInAlbum(rollid, media_sort_col)
     return render_media(media)
 
 def list_events(params):
@@ -423,9 +427,11 @@ def list_photos_with_keyword(params):
 def list_keywords(params):
     global db, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
 
-    if (db.GetIphotoVersion() >= 9.4):
+    src = db.GetLibrarySource()
+    ver = db.GetLibraryVersion()
+    if (src == "Aperture" or ver >= 9.4):
 	dialog = gui.Dialog()
-	dialog.ok(addon.getLocalizedString(30262), addon.getLocalizedString(30263))
+	dialog.ok(addon.getLocalizedString(30262), addon.getLocalizedString(30263) % ("in this version of", src))
 	return
 
     keywordid = 0
@@ -484,6 +490,12 @@ def list_photos_with_rating(params):
 def list_ratings(params):
     global db, BASE_URL, ICONS_PATH, view_mode
 
+    src = db.GetLibrarySource()
+    if (src == "Aperture"):
+	dialog = gui.Dialog()
+	dialog.ok(addon.getLocalizedString(30262), addon.getLocalizedString(30263) % ("in", src))
+	return
+
     albumid = 0
     try:
 	rating = params['rating']
@@ -527,7 +539,7 @@ def import_progress_callback(progress_dialog, altinfo, nphotos, ntotal):
     progress_dialog.update(percent, addon.getLocalizedString(30211) % (nphotos), altinfo)
     return nphotos
 
-def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places):
+def import_library(xmlsrc, xmlpath, xmlfile, masterspath, masters_realpath, enable_places):
     global db
 
     # crude locking to prevent multiple simultaneous library imports
@@ -539,9 +551,18 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 
     # always ignore Books and all Event type albums
     album_ign = []
+    # iPhoto albums
     album_ign.append("Book")
     album_ign.append("Selected Event Album")
     album_ign.append("Event")
+    # Aperture albums (by AlbumType)
+    album_ign.append("5")
+    album_ign.append("97")
+    album_ign.append("98")
+    album_ign.append("99")
+    # Aperture albums (by uuid)
+    album_ign.append("fiveStarAlbum")
+    album_ign.append("oneStarAlbum")
 
     # ignore albums published to MobileMe/iCloud if configured to do so
     album_ign_publ = addon.getSetting('album_ignore_published')
@@ -558,6 +579,7 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
 	addon.setSetting('album_ignore_flagged', album_ign_flagged)
     if (album_ign_flagged == "true"):
 	album_ign.append("Shelf")
+	album_ign.append("95")
 
     # download maps from Google?
     enable_maps = True
@@ -586,7 +608,7 @@ def import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_place
     except:
 	print traceback.print_exc()
     else:
-	iparser = IPhotoParser(xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.SetConfig, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, import_progress_callback, progress_dialog)
+	iparser = IPhotoParser(xmlsrc, xmlpath, xmlfile, masterspath, masters_realpath, album_ign, enable_places, map_aspect, db.SetConfig, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, import_progress_callback, progress_dialog)
 
 	try:
 	    progress_dialog.update(0, addon.getLocalizedString(30219))
@@ -681,11 +703,16 @@ if (__name__ == "__main__"):
 	addon.openSettings(BASE_URL)
 
     # we used to store the file path to the XML instead of the iPhoto Library directory.
-    if (os.path.basename(xmlpath) == ALBUM_DATA_XML):
+    if (os.path.basename(xmlpath) == IPHOTO_ALBUM_DATA_XML):
 	xmlpath = os.path.dirname(xmlpath)
 	addon.setSetting('albumdata_xml_path', xmlpath)
 
-    origxml = os.path.join(xmlpath, ALBUM_DATA_XML)
+    origxml = os.path.join(xmlpath, IPHOTO_ALBUM_DATA_XML)
+    if (not os.path.isfile(origxml)):
+	xmlsrc = "Aperture"
+	origxml = os.path.join(xmlpath, APERTURE_ALBUM_DATA_XML)
+    else:
+	xmlsrc = "iPhoto"
     xmlfile = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.xml"))
 
     enable_managed_lib = True
@@ -789,7 +816,7 @@ if (__name__ == "__main__"):
 		    dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 		    xbmc.executebuiltin('XBMC.RunPlugin(%s?action=resetdb&noconfirm=1)' % BASE_URL)
 		else:
-		    import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
+		    import_library(xmlsrc, xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
     else:
 	items = None
 
@@ -840,7 +867,7 @@ if (__name__ == "__main__"):
 	    else:
 		if (action == "rescan"):
 		    copyfile(origxml, xmlfile)
-		    import_library(xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
+		    import_library(xmlsrc, xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
 		elif (action == "events"):
 		    items = list_events(params)
 		elif (action == "albums"):

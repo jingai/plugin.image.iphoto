@@ -92,7 +92,7 @@ class IPhotoDB:
 	    # media table
 	    self.dbconn.execute("""
 	    CREATE TABLE media (
-	       id integer primary key,
+	       id varchar primary key,
 	       mediatypeid integer,
 	       rollid integer,
 	       caption varchar,
@@ -126,7 +126,7 @@ class IPhotoDB:
 	    CREATE TABLE rolls (
 	       id integer primary key,
 	       name varchar,
-	       keyphotoid integer,
+	       keyphotoid varchar,
 	       rolldate integer,
 	       photocount integer
 	    )""")
@@ -138,7 +138,7 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    CREATE TABLE rollmedia (
 	       rollid integer,
-	       mediaid integer
+	       mediaid varchar
 	    )""")
 	except:
 	    pass
@@ -150,7 +150,7 @@ class IPhotoDB:
 	       id integer primary key,
 	       name varchar,
 	       master boolean,
-	       guid varchar,
+	       uuid varchar,
 	       photocount integer
 	    )""")
 	except:
@@ -161,7 +161,7 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    CREATE TABLE albummedia (
 	       albumid integer,
-	       mediaid integer
+	       mediaid varchar
 	    )""")
 	except:
 	    pass
@@ -186,7 +186,7 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    CREATE TABLE facesmedia (
 	       faceid integer,
-	       mediaid integer
+	       mediaid varchar
 	    )""")
 	except:
 	    pass
@@ -210,7 +210,7 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    CREATE TABLE placesmedia (
 	       placeid integer,
-	       mediaid integer
+	       mediaid varchar
 	    )""")
 	except:
 	    pass
@@ -231,7 +231,7 @@ class IPhotoDB:
 	    self.dbconn.execute("""
 	    CREATE TABLE keywordmedia (
 	       keywordid integer,
-	       mediaid integer
+	       mediaid varchar
 	    )""")
 	except:
 	    pass
@@ -274,9 +274,15 @@ class IPhotoDB:
 
 	self.Commit()
 
-    def GetIphotoVersion(self):
+    def GetLibrarySource(self):
+	src = self.GetConfig('source')
+	if (src is None):
+	    src = "iPhoto"
+	return src
+
+    def GetLibraryVersion(self):
 	verstr = self.GetConfig('version')
-	if (verstr == None):
+	if (verstr is None):
 	    ver = 0.0
 	else:
 	    ver = float('.'.join(verstr.split('.')[:2]))
@@ -382,7 +388,7 @@ class IPhotoDB:
 	try:
 	    cur = self.dbconn.cursor()
 
-	    if (self.GetIphotoVersion() < 9.4):
+	    if (self.GetLibrarySource() == "iPhoto" and self.GetLibraryVersion() < 9.4):
 		idtype = "M.id"
 	    else:
 		idtype = "M.guid"
@@ -505,23 +511,34 @@ class IPhotoDB:
 
 	try:
 	    albumid = int(album['AlbumId'])
+	    albumuuid = album['uuid']
 	    albumtype = album['Album Type']
 	except:
 	    return
 
+	try:
+	    photocount = album['PhotoCount']
+	except:
+	    photocount = 0
+	    pass
+
 	# weed out ignored albums
-	if (albumtype in album_ign):
+	if (photocount == 0 or albumtype in album_ign or albumuuid in album_ign):
+	    try:
+		print "iphoto.db: Ignoring album '%s'" % (album['AlbumName'])
+	    except:
+		pass
 	    return
 
 	try:
 	    self.dbconn.execute("""
-	    INSERT INTO albums (id, name, master, guid, photocount)
+	    INSERT INTO albums (id, name, master, uuid, photocount)
 	    VALUES (?, ?, ?, ?, ?)""",
 				(albumid,
 				 album['AlbumName'],
 				 album.has_key('Master'),
-				 album['GUID'],
-				 album['PhotoCount']))
+				 albumuuid,
+				 photocount))
 	    for media in album['medialist']:
 		self.dbconn.execute("""
 		INSERT INTO albummedia (albumid, mediaid)
@@ -534,9 +551,34 @@ class IPhotoDB:
     def AddRollNew(self, roll):
 	#print "AddRollNew()", roll
 
+	src = self.GetLibrarySource()
+
 	try:
-	    rollid = int(roll['RollID'])
+	    if (src == "iPhoto"):
+		rollid = int(roll['RollID'])
+		rollname = roll['RollName']
+		rolldate = int(float(roll['RollDateAsTimerInterval']))
+	    else:
+		rollid = int(roll['AlbumId'])
+		rollname = roll['ProjectName']
+		rolldate = int(float(roll['ProjectEarliestDateAsTimerInterval']))
 	except:
+	    return
+
+	try:
+	    if (src == "iPhoto"):
+		photocount = roll['PhotoCount']
+	    else:
+		photocount = roll['NumImages']
+	except:
+	    photocount = 0
+	    pass
+
+	if (photocount == 0):
+	    try:
+		print "iphoto.db: Ignoring event/project '%s'" % (rollname)
+	    except:
+		pass
 	    return
 
 	try:
@@ -544,10 +586,10 @@ class IPhotoDB:
 	    INSERT INTO rolls (id, name, keyphotoid, rolldate, photocount)
 	    VALUES (?, ?, ?, ?, ?)""",
 				(rollid,
-				 roll['RollName'],
+				 rollname,
 				 roll['KeyPhotoKey'],
-				 int(float(roll['RollDateAsTimerInterval'])),
-				 roll['PhotoCount']))
+				 rolldate,
+				 photocount))
 	    for media in roll['medialist']:
 		self.dbconn.execute("""
 		INSERT INTO rollmedia (rollid, mediaid)
@@ -568,6 +610,19 @@ class IPhotoDB:
 	    return
 
 	try:
+	    photocount = face['PhotoCount']
+	except:
+	    photocount = 0
+	    pass
+
+	if (photocount == 0):
+	    try:
+		print "iphoto.db: Ignoring face '%s'" % (face['name'])
+	    except:
+		pass
+	    return
+
+	try:
 	    self.dbconn.execute("""
 	    INSERT INTO faces (id, name, keyphotoid, keyphotoidx, photocount, faceorder)
 	    VALUES (?, ?, ?, ?, ?, ?)""",
@@ -575,7 +630,7 @@ class IPhotoDB:
 				 face['name'],
 				 facekey,
 				 faceidx,
-				 face['PhotoCount'],
+				 photocount,
 				 face['Order']))
 	except sqlite.IntegrityError:
 	    pass
@@ -641,7 +696,7 @@ class IPhotoDB:
 	try:
 	    cur = self.dbconn.cursor()
 
-	    if (self.GetIphotoVersion() < 9.4):
+	    if (self.GetLibrarySource() == "iPhoto" and self.GetLibraryVersion() < 9.4):
 		cmpkey = 'MediaID'
 	    else:
 		cmpkey = 'GUID'
@@ -804,8 +859,8 @@ class IPhotoParserState:
 	self.nphotos = 0
 	self.nphotostotal = 0
 	self.level = 0
-	self.appversion = False
-	self.inappversion = 0
+	self.libversion = False
+	self.inlibversion = 0
 	self.archivepath = False
 	self.inarchivepath = 0
 	self.albums = False
@@ -825,11 +880,13 @@ class IPhotoParserState:
 	self.valueType = ""
 
 class IPhotoParser:
-    def __init__(self, library_path="", xmlfile="", masters_path="", masters_real_path="",
+    def __init__(self, library_source="iPhoto", library_path="", xmlfile="", masters_path="", masters_real_path="",
 		 album_ign=[], enable_places=False, map_aspect=0.0,
 		 config_callback=None,
 		 album_callback=None, roll_callback=None, face_callback=None, keyword_callback=None, photo_callback=None,
 		 progress_callback=None, progress_dialog=None):
+	self.librarySource = library_source
+	self.libraryVersion = "0.0.0"
 	self.libraryPath = library_path
 	self.xmlfile = xmlfile
 	self.mastersPath = masters_path
@@ -840,7 +897,6 @@ class IPhotoParser:
 		print "iphoto.db: as '%s'" % (to_str(self.mastersRealPath))
 	    except:
 		pass
-	self.iphotoVersion = "0.0.0"
 	self.imagePath = ""
 	self.parser = xml.parsers.expat.ParserCreate()
 	self.parser.StartElementHandler = self.StartElement
@@ -890,27 +946,32 @@ class IPhotoParser:
 
     def _reset_album(self):
 	self.currentAlbum = {}
-	for a in ['GUID', 'Master']:
+	for a in ['uuid', 'master']:
 	    self.currentAlbum[a] = ""
 	for a in self.currentAlbum.keys():
 	    self.currentAlbum[a] = ""
+	self.currentAlbum['PhotoCount'] = '0'
 	self.currentAlbum['medialist'] = []
 
     def _reset_roll(self):
 	self.currentRoll = {}
 	for a in self.currentRoll.keys():
 	    self.currentRoll[a] = ""
+	self.currentRoll['PhotoCount'] = '0'
+	self.currentRoll['NumImages'] = '0'
 	self.currentRoll['medialist'] = []
 
     def _reset_face(self):
 	self.currentFace = {}
 	for a in self.currentFace.keys():
 	    self.currentFace[a] = ""
+	self.currentFace['PhotoCount'] = '0'
 
     def _reset_keyword(self):
 	self.currentKeyword = {}
 	for a in self.currentKeyword.keys():
 	    self.currentKeyword[a] = ""
+	self.currentKeyword['PhotoCount'] = '0'
 
     def updateProgress(self, altinfo=""):
 	if (not self.ProgressCallback):
@@ -959,9 +1020,10 @@ class IPhotoParser:
 
 	    if (self.ConfigCallback):
 		print "iphoto.db: Writing configuration"
-		if (self.iphotoVersion != "0.0.0"):
-		    self.ConfigCallback('version', self.iphotoVersion)
+		if (self.libraryVersion != "0.0.0"):
+		    self.ConfigCallback('version', self.libraryVersion)
 		try:
+		    self.ConfigCallback('source', self.librarySource)
 		    self.ConfigCallback('lastimport', to_str(time.time()))
 		except:
 		    pass
@@ -994,8 +1056,8 @@ class IPhotoParser:
     def StartElement(self, name, attrs):
 	state = self.state
 	self.lastdata = False
-	if (state.appversion):
-	    state.inappversion += 1
+	if (state.libversion):
+	    state.inlibversion += 1
 	    state.key = name
 	elif (state.archivepath):
 	    state.inarchivepath += 1
@@ -1035,12 +1097,12 @@ class IPhotoParser:
 	state = self.state
 
 	# Application Version
-	if (state.appversion):
+	if (state.libversion):
 	    if (not state.key):
-		self.iphotoVersion = state.value
-		print "iphoto.db: Detected iPhoto Version %s" % self.iphotoVersion
-		state.appversion = False
-	    state.inappversion -= 1
+		self.libraryVersion = state.value
+		print "iphoto.db: Detected %s Version %s" % (self.librarySource, self.libraryVersion)
+		state.libversion = False
+	    state.inlibversion -= 1
 
 	# Archive Path
 	elif (state.archivepath):
@@ -1070,13 +1132,13 @@ class IPhotoParser:
 
 	# Rolls
 	elif (state.rolls):
-	    if (state.inroll == 3 and self.currentRoll.has_key('RollID')):
+	    if (state.inroll == 3 and (self.currentRoll.has_key('RollID') or self.currentRoll.has_key('AlbumId'))):
 		self.currentRoll['medialist'].append(state.value)
 	    elif (state.inroll == 2 and not state.key):
 		#print "Mapping %s => %s" % ( to_str(state.keyValue), to_str(state.value))
 		self.currentRoll[state.keyValue] = state.value
 	    state.inroll -= 1
-	    if (state.inroll == 0 and self.currentRoll.has_key('RollID')):
+	    if (state.inroll == 0 and (self.currentRoll.has_key('RollID') or self.currentRoll.has_key('AlbumId'))):
 		# Finished reading roll
 		self.rollList.append(self.currentRoll)
 		self._reset_roll()
@@ -1107,6 +1169,8 @@ class IPhotoParser:
 	elif (state.master):
 	    if (state.inmaster == 1 and state.key):
 		self.currentPhoto['MediaID'] = state.keyValue
+		if (self.librarySource == "Aperture"):
+		    self.currentPhoto['GUID'] = state.keyValue
 	    elif (state.inmaster == 3 and not state.key and state.keyValue == "Keywords"):
 		self.currentPhoto['keywordlist'].append(state.value)
 	    elif (state.inmaster == 4 and not state.key and state.keyValue == "face key"):
@@ -1115,7 +1179,7 @@ class IPhotoParser:
 		#print "Mapping %s => %s" % ( to_str(state.keyValue), to_str(state.value))
 		self.currentPhoto[state.keyValue] = state.value
 	    state.inmaster -= 1
-	    if (state.inmaster == 0 and self.currentPhoto.has_key('GUID') and self.currentPhoto['GUID']):
+	    if (state.inmaster == 0 and self.currentPhoto.has_key('ThumbPath') and self.currentPhoto['ThumbPath']):
 		# Finished reading master photo list
 		self.photoList.append(self.currentPhoto)
 		self._reset_photo()
@@ -1138,7 +1202,7 @@ class IPhotoParser:
 	# determine which section we are in
 	if (state.key and state.level == 3):
 	    if (data == "Application Version"):
-		state.appversion = True
+		state.libversion = True
 		state.albums = False
 		state.rolls = False
 		state.faces = False
@@ -1152,15 +1216,15 @@ class IPhotoParser:
 		state.keywords = False
 		state.master = False
 	    elif (data == "List of Albums"):
-		state.appversion = False
+		state.libversion = False
 		state.archivepath = False
 		state.albums = True
 		state.rolls = False
 		state.faces = False
 		state.keywords = False
 		state.master = False
-	    elif (data == "List of Rolls"):
-		state.appversion = False
+	    elif (data == "List of Rolls" or data == "Project List"):
+		state.libversion = False
 		state.archivepath = False
 		state.albums = False
 		state.rolls = True
@@ -1168,7 +1232,7 @@ class IPhotoParser:
 		state.keywords = False
 		state.master = False
 	    elif (data == "List of Faces"):
-		state.appversion = False
+		state.libversion = False
 		state.archivepath = False
 		state.albums = False
 		state.rolls = False
@@ -1176,7 +1240,7 @@ class IPhotoParser:
 		state.keywords = False
 		state.master = False
 	    elif (data == "List of Keywords"):
-		state.appversion = False
+		state.libversion = False
 		state.archivepath = False
 		state.albums = False
 		state.rolls = False
@@ -1184,7 +1248,7 @@ class IPhotoParser:
 		state.keywords = True
 		state.master = False
 	    elif (data == "Master Image List"):
-		state.appversion = False
+		state.libversion = False
 		state.archivepath = False
 		state.albums = False
 		state.rolls = False
