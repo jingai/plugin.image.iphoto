@@ -143,6 +143,7 @@ def render_media(media):
 		    view_mode = 500	    # Picture Grid
 		elif (vm == 2):
 		    view_mode = 59	    # Galary Fanart
+
     sort_date = False
     n = 0
     for (caption, mediapath, thumbpath, originalpath, rating, mediadate, mediasize) in media:
@@ -154,7 +155,7 @@ def render_media(media):
 	    caption = mediapath
 
 	if (caption):
-	    item = gui.ListItem(caption, thumbnailImage=thumbpath)
+	    item = gui.ListItem(caption, iconImage=thumbpath, thumbnailImage=mediapath)
 
 	    try:
 		item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(mediadate)))
@@ -165,7 +166,7 @@ def render_media(media):
 	    except:
 		pass
 
-	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url = mediapath, listitem = item, isFolder = False)
+	    plugin.addDirectoryItem(handle=int(sys.argv[1]), url=mediapath, listitem=item, isFolder=False)
 	    n += 1
 
     plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
@@ -200,6 +201,8 @@ def list_albums(params):
     commands = []
     generic_context_menu_items(commands)
 
+    thumbpath = ICONS_PATH+"/folder.png"
+
     n = 0
     for (albumid, name, count) in albums:
 	if (name == "Photos"):
@@ -208,7 +211,7 @@ def list_albums(params):
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	item = gui.ListItem(name, thumbnailImage=ICONS_PATH+"/folder.png")
+	item = gui.ListItem(name, iconImage=thumbpath, thumbnailImage=thumbpath)
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
@@ -234,6 +237,7 @@ def list_photos_in_event(params):
     if (db.GetLibrarySource() == "iPhoto"):
 	media = db.GetMediaInRoll(rollid, media_sort_col)
     else:
+	# Aperture Projects are lists of Albums
 	media = db.GetMediaInAlbum(rollid, media_sort_col)
     return render_media(media)
 
@@ -261,7 +265,7 @@ def list_events(params):
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	item = gui.ListItem(name, thumbnailImage=thumbpath)
+	item = gui.ListItem(name, iconImage=thumbpath, thumbnailImage=thumbpath)
 	item.addContextMenuItems(commands, True)
 
 	try:
@@ -320,7 +324,7 @@ def list_faces(params):
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	item = gui.ListItem(name, thumbnailImage=thumbpath)
+	item = gui.ListItem(name, iconImage=thumbpath, thumbnailImage=thumbpath)
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=faces&faceid=%s" % (faceid), listitem = item, isFolder = True, totalItems = count)
 	n += 1
@@ -451,6 +455,8 @@ def list_keywords(params):
     commands = []
     generic_context_menu_items(commands)
 
+    thumbpath = ICONS_PATH+"/folder.png"
+
     n = 0
     for (keywordid, name, count) in keywords:
 	if (name in hidden_keywords):
@@ -459,7 +465,7 @@ def list_keywords(params):
 	if (not count and album_ign_empty == "true"):
 	    continue
 
-	item = gui.ListItem(name, thumbnailImage=ICONS_PATH+"/folder.png")
+	item = gui.ListItem(name, iconImage=thumbpath, thumbnailImage=thumbpath)
 	commands.append((addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (name),))
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem = item, isFolder = True, totalItems = count)
@@ -510,7 +516,8 @@ def list_ratings(params):
     n = 0
     for a in range(1,6):
 	rating = addon.getLocalizedString(30200) % (a)
-	item = gui.ListItem(rating, thumbnailImage=ICONS_PATH+"/star%d.png" % (a))
+	thumbpath = ICONS_PATH+"/star%d.png" % (a)
+	item = gui.ListItem(rating, iconImage=thumbpath, thumbnailImage=thumbpath)
 	item.addContextMenuItems(commands, True)
 	plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings&rating=%d" % (a), listitem = item, isFolder = True)
 	n += 1
@@ -549,7 +556,6 @@ def import_library(xmlsrc, xmlpath, xmlfile, masterspath, masters_realpath, enab
     else:
 	gui.Window(10000).setProperty("iphoto_scanning", "True")
 
-    # always ignore Books and all Event type albums
     album_ign = []
     # iPhoto albums
     album_ign.append("Book")
@@ -707,6 +713,7 @@ if (__name__ == "__main__"):
 	xmlpath = os.path.dirname(xmlpath)
 	addon.setSetting('albumdata_xml_path', xmlpath)
 
+    # is this an iPhoto or Aperture library?
     origxml = os.path.join(xmlpath, IPHOTO_ALBUM_DATA_XML)
     if (not os.path.isfile(origxml)):
 	xmlsrc = "Aperture"
@@ -750,27 +757,33 @@ if (__name__ == "__main__"):
 	    generic_context_menu_items(commands)
 	    maintenance_context_menu_items(commands)
 
-	    item = gui.ListItem(addon.getLocalizedString(30100), thumbnailImage=ICONS_PATH+"/events.png")
+	    thumbpath = ICONS_PATH+"/events.png"
+	    item = gui.ListItem(addon.getLocalizedString(30100), iconImage=thumbpath, thumbnailImage=thumbpath)
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=events", item, True)
 
-	    item = gui.ListItem(addon.getLocalizedString(30101), thumbnailImage=ICONS_PATH+"/albums.png")
+	    thumbpath = ICONS_PATH+"/albums.png"
+	    item = gui.ListItem(addon.getLocalizedString(30101), iconImage=thumbpath, thumbnailImage=thumbpath)
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
 
-	    item = gui.ListItem(addon.getLocalizedString(30105), thumbnailImage=ICONS_PATH+"/faces.png")
+	    thumbpath = ICONS_PATH+"/faces.png"
+	    item = gui.ListItem(addon.getLocalizedString(30105), iconImage=thumbpath, thumbnailImage=thumbpath)
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=faces", item, True)
 
-	    item = gui.ListItem(addon.getLocalizedString(30106), thumbnailImage=ICONS_PATH+"/places.png")
+	    thumbpath = ICONS_PATH+"/places.png"
+	    item = gui.ListItem(addon.getLocalizedString(30106), iconImage=thumbpath, thumbnailImage=thumbpath)
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
 
-	    item = gui.ListItem(addon.getLocalizedString(30104), thumbnailImage=ICONS_PATH+"/keywords.png")
+	    thumbpath = ICONS_PATH+"/keywords.png"
+	    item = gui.ListItem(addon.getLocalizedString(30104), iconImage=thumbpath, thumbnailImage=thumbpath)
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=keywords", item, True)
 
-	    item = gui.ListItem(addon.getLocalizedString(30102), thumbnailImage=ICONS_PATH+"/star.png")
+	    thumbpath = ICONS_PATH+"/star.png"
+	    item = gui.ListItem(addon.getLocalizedString(30102), iconImage=thumbpath, thumbnailImage=thumbpath)
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
 
@@ -779,7 +792,8 @@ if (__name__ == "__main__"):
 		hide_item = "false"
 		addon.setSetting('hide_import_lib', hide_item)
 	    if (hide_item == "false"):
-		item = gui.ListItem(addon.getLocalizedString(30103), thumbnailImage=ICONS_PATH+"/update.png")
+		thumbpath = ICONS_PATH+"/update.png"
+		item = gui.ListItem(addon.getLocalizedString(30103), iconImage=thumbpath, thumbnailImage=thumbpath)
 		item.addContextMenuItems(commands, True)
 		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
 
@@ -788,7 +802,8 @@ if (__name__ == "__main__"):
 		hide_item = "false"
 		addon.setSetting('hide_view_readme', hide_item)
 	    if (hide_item == "false"):
-		item = gui.ListItem(addon.getLocalizedString(30107), thumbnailImage=ICONS_PATH+"/help.png")
+		thumbpath = ICONS_PATH+"/help.png"
+		item = gui.ListItem(addon.getLocalizedString(30107), iconImage=thumbpath, thumbnailImage=thumbpath)
 		item.addContextMenuItems(commands, True)
 		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=textview&file=README.txt", item, False)
 	except:
