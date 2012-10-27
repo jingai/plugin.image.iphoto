@@ -276,8 +276,6 @@ class IPhotoDB:
 
     def GetLibrarySource(self):
 	src = self.GetConfig('source')
-	if (src is None):
-	    src = "iPhoto"
 	return src
 
     def GetLibraryVersion(self):
@@ -525,7 +523,7 @@ class IPhotoDB:
 	# weed out ignored albums
 	if (photocount == 0 or albumtype in album_ign or albumuuid in album_ign):
 	    try:
-		print "iphoto.db: Ignoring album '%s'" % (album['AlbumName'])
+		print "iphoto.db: Ignoring album '%s' of type '%s'" % (album['AlbumName'], albumtype)
 	    except:
 		pass
 	    return
