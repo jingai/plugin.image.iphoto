@@ -158,6 +158,8 @@ def render_media(media):
 	    item = gui.ListItem(caption, iconImage=thumbpath, thumbnailImage=mediapath)
 
 	    try:
+		item.setProperty('Fanart_Image', mediapath)
+
 		item_date = time.strftime("%d.%m.%Y", time.localtime(apple_epoch + float(mediadate)))
 		#JSL: setting the date here to enable sorting prevents XBMC
 		#JSL: from scanning the EXIF/IPTC info
