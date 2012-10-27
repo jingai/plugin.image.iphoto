@@ -54,6 +54,8 @@ view_mode = 0
 from resources.lib.iphoto_parser import *
 db_file = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.db"))
 db = None
+dbSrc = None
+dbVer = 0.0
 
 apple_epoch = 978307200
 
@@ -233,10 +235,10 @@ def list_albums(params):
     return n
 
 def list_photos_in_event(params):
-    global db, media_sort_col
+    global db, dbSrc, media_sort_col
 
     rollid = params['rollid']
-    if (db.GetLibrarySource() == "iPhoto"):
+    if (dbSrc == "iPhoto"):
 	media = db.GetMediaInRoll(rollid, media_sort_col)
     else:
 	# Aperture Projects are lists of Albums
@@ -431,13 +433,11 @@ def list_photos_with_keyword(params):
     return render_media(media)
 
 def list_keywords(params):
-    global db, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
+    global db, dbSrc, dbVer, BASE_URL, ICONS_PATH, album_ign_empty, view_mode
 
-    src = db.GetLibrarySource()
-    ver = db.GetLibraryVersion()
-    if (src == "Aperture" or ver >= 9.4):
+    if (dbSrc == "Aperture" or dbVer >= 9.4):
 	dialog = gui.Dialog()
-	dialog.ok(addon.getLocalizedString(30262), addon.getLocalizedString(30263) % ("in this version of", src))
+	dialog.ok(addon.getLocalizedString(30262), addon.getLocalizedString(30263) % ("in this version of", dbSrc))
 	return
 
     keywordid = 0
@@ -496,12 +496,11 @@ def list_photos_with_rating(params):
     return render_media(media)
 
 def list_ratings(params):
-    global db, BASE_URL, ICONS_PATH, view_mode
+    global db, dbSrc, BASE_URL, ICONS_PATH, view_mode
 
-    src = db.GetLibrarySource()
-    if (src == "Aperture"):
+    if (dbSrc == "Aperture"):
 	dialog = gui.Dialog()
-	dialog.ok(addon.getLocalizedString(30262), addon.getLocalizedString(30263) % ("in", src))
+	dialog.ok(addon.getLocalizedString(30262), addon.getLocalizedString(30263) % ("in", dbSrc))
 	return
 
     albumid = 0
@@ -750,6 +749,15 @@ if (__name__ == "__main__"):
 	enable_places = False
 
     try:
+	db = IPhotoDB(db_file)
+    except:
+	db = None
+	pass
+    else:
+	dbSrc = db.GetLibrarySource()
+	dbVer = db.GetLibraryVersion()
+
+    try:
 	params = get_params(sys.argv[2])
 	action = params['action']
     except:
@@ -760,7 +768,10 @@ if (__name__ == "__main__"):
 	    maintenance_context_menu_items(commands)
 
 	    thumbpath = ICONS_PATH+"/events.png"
-	    item = gui.ListItem(addon.getLocalizedString(30100), iconImage=thumbpath, thumbnailImage=thumbpath)
+	    if (dbSrc == "Aperture"):
+		item = gui.ListItem(addon.getLocalizedString(30108), iconImage=thumbpath, thumbnailImage=thumbpath)
+	    else:
+		item = gui.ListItem(addon.getLocalizedString(30100), iconImage=thumbpath, thumbnailImage=thumbpath)
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=events", item, True)
 
@@ -779,15 +790,19 @@ if (__name__ == "__main__"):
 	    item.addContextMenuItems(commands, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
 
-	    thumbpath = ICONS_PATH+"/keywords.png"
-	    item = gui.ListItem(addon.getLocalizedString(30104), iconImage=thumbpath, thumbnailImage=thumbpath)
-	    item.addContextMenuItems(commands, True)
-	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=keywords", item, True)
+	    # Keywords not yet supported in Aperture or iPhoto >= 9.4
+	    if (dbSrc == "iPhoto" and dbVer < 9.4):
+		thumbpath = ICONS_PATH+"/keywords.png"
+		item = gui.ListItem(addon.getLocalizedString(30104), iconImage=thumbpath, thumbnailImage=thumbpath)
+		item.addContextMenuItems(commands, True)
+		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=keywords", item, True)
 
-	    thumbpath = ICONS_PATH+"/star.png"
-	    item = gui.ListItem(addon.getLocalizedString(30102), iconImage=thumbpath, thumbnailImage=thumbpath)
-	    item.addContextMenuItems(commands, True)
-	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
+	    # Ratings not yet supported in Aperture
+	    if (dbSrc != "Aperture"):
+		thumbpath = ICONS_PATH+"/star.png"
+		item = gui.ListItem(addon.getLocalizedString(30102), iconImage=thumbpath, thumbnailImage=thumbpath)
+		item.addContextMenuItems(commands, True)
+		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
 
 	    hide_item = addon.getSetting('hide_import_lib')
 	    if (hide_item == ""):
@@ -827,13 +842,13 @@ if (__name__ == "__main__"):
 	    else:
 		os.rename(tmpfile, xmlfile)
 		try:
-		    db = IPhotoDB(db_file)
+		    if (db is None):
+			db = IPhotoDB(db_file)
+		    import_library(xmlsrc, xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
 		except:
 		    dialog = gui.Dialog()
 		    dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 		    xbmc.executebuiltin('XBMC.RunPlugin(%s?action=resetdb&noconfirm=1)' % BASE_URL)
-		else:
-		    import_library(xmlsrc, xmlpath, xmlfile, masterspath, masters_realpath, enable_places)
     else:
 	items = None
 
@@ -875,9 +890,7 @@ if (__name__ == "__main__"):
 	    items = hide_keyword(params)
 	else:
 	    # actions that do require a database connection
-	    try:
-		db = IPhotoDB(db_file)
-	    except:
+	    if (db is None):
 		dialog = gui.Dialog()
 		dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 		xbmc.executebuiltin('XBMC.RunPlugin(%s?action=resetdb&noconfirm=1)' % BASE_URL)
