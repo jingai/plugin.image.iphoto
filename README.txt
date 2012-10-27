@@ -4,7 +4,7 @@ This plugin imports an iPhoto or Aperture library into XBMC.  After importing,
 you will see categories that correspond with their iPhoto/Aperture
 counterparts:
 
-* Events (links to Projects in Aperture)
+* Events/Projects
 * Albums
 * Faces
 * Places
@@ -25,6 +25,9 @@ correct path in the plugin's settings dialog.
 Note that there is no default path if you're using Aperture.  You will need to
 specify the path to the library that contains the ApertureData.xml.  Aperture
 can support multiple libraries, but this plugin currently only supports one.
+
+ALSO NOTE: Aperture will ONLY generate the required ApertureData.xml if you
+have enabled "Share previews with iLife and iWork" in Preferences->Previews.
 
 The iPhoto plugin can also be configured to ignore certain album types.
 It is currently hard-coded to ignore albums of type "Book" and
