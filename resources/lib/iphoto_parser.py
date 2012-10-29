@@ -88,8 +88,11 @@ class IPhotoDB:
 	       key varchar primary key,
 	       value varchar
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # media table
@@ -110,8 +113,11 @@ class IPhotoDB:
 	       thumbpath varchar,
 	       originalpath varchar
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # mediatypes table
@@ -120,8 +126,11 @@ class IPhotoDB:
 	       id integer primary key,
 	       name varchar
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # rolls (events) table
@@ -133,8 +142,11 @@ class IPhotoDB:
 	       rolldate integer,
 	       photocount integer
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # rollmedia table
@@ -143,8 +155,11 @@ class IPhotoDB:
 	       rollid integer,
 	       mediaid varchar
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # albums table
@@ -156,8 +171,11 @@ class IPhotoDB:
 	       uuid varchar,
 	       photocount integer
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # albummedia table
@@ -166,8 +184,11 @@ class IPhotoDB:
 	       albumid integer,
 	       mediaid varchar
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # faces table
@@ -181,8 +202,11 @@ class IPhotoDB:
 	       photocount integer,
 	       faceorder integer
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # facesmedia table
@@ -191,8 +215,11 @@ class IPhotoDB:
 	       faceid integer,
 	       mediaid varchar
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # places table
@@ -205,8 +232,11 @@ class IPhotoDB:
 	       fanartpath varchar,
 	       photocount integer
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # placesmedia table
@@ -215,8 +245,11 @@ class IPhotoDB:
 	       placeid integer,
 	       mediaid varchar
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # keywords table
@@ -226,8 +259,11 @@ class IPhotoDB:
 	       name varchar,
 	       photocount integer
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
 
 	try:
 	    # keywordmedia table
@@ -236,17 +272,25 @@ class IPhotoDB:
 	       keywordid integer,
 	       mediaid varchar
 	    )""")
-	except:
+	except sqlite.OperationalError, e:
 	    pass
+	except Exception, e:
+	    print "iphoto.db: InitDB: " + to_str(e)
+	    raise e
+
+	self.Commit()
 
     def ResetDB(self):
 	print "iphoto.db: Resetting"
 	for table in ['media', 'mediatypes', 'rolls', 'rollmedia', 'albums', 'albummedia', 'faces', 'facesmedia', 'places', 'placesmedia', 'keywords', 'keywordmedia']:
 	    try:
 		self.dbconn.execute("DROP TABLE %s" % table)
+	    except sqlite.OperationalError:
+		pass
 	    except Exception, e:
 		print "iphoto.db: ResetDB: " + to_str(e)
 		raise e
+	self.Commit()
 
     def CloseDB(self):
 	print "iphoto.db: Closing"
