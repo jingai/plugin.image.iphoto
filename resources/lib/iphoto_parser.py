@@ -389,7 +389,7 @@ class IPhotoDB:
 	return albums
 
     def GetMediaInAlbum(self, albumid, sort_col="NULL"):
-	print "iphoto.db: Retrieving media from Album ID %d" % (albumid)
+	print "iphoto.db: Retrieving media from Album ID %s" % (to_str(albumid))
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -424,7 +424,7 @@ class IPhotoDB:
 	return rolls
 
     def GetMediaInRoll(self, rollid, sort_col="NULL"):
-	print "iphoto.db: Retrieving media from Event ID %d" % (rollid)
+	print "iphoto.db: Retrieving media from Event ID %s" % (to_str(rollid))
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -467,7 +467,7 @@ class IPhotoDB:
 	return faces
 
     def GetMediaWithFace(self, faceid, sort_col="NULL"):
-	print "iphoto.db: Retrieving media with Face ID %d" % (faceid)
+	print "iphoto.db: Retrieving media with Face ID %s" % (to_str(faceid))
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -501,7 +501,7 @@ class IPhotoDB:
 	return places
 
     def GetMediaWithPlace(self, placeid, sort_col="NULL"):
-	print "iphoto.db: Retrieving media with Place ID %d" % (placeid)
+	print "iphoto.db: Retrieving media with Place ID %s" % (to_str(placeid))
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -535,7 +535,7 @@ class IPhotoDB:
 	return keywords
 
     def GetMediaWithKeyword(self, keywordid, sort_col="NULL"):
-	print "iphoto.db: Retrieving media with Keyword ID %d" % (keywordid)
+	print "iphoto.db: Retrieving media with Keyword ID %s" % (to_str(keywordid))
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -554,7 +554,7 @@ class IPhotoDB:
 	return media
 
     def GetMediaWithRating(self, rating, sort_col="NULL"):
-	print "iphoto.db: Retrieving media with Rating %d" % (rating)
+	print "iphoto.db: Retrieving media with Rating %s" % (to_str(rating))
 	media = []
 	try:
 	    if (sort_col != "NULL"):
