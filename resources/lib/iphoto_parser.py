@@ -949,7 +949,7 @@ class IPhotoParser:
 		 album_ign=[], enable_places=False, map_aspect=0.0,
 		 config_callback=None,
 		 album_callback=None, roll_callback=None, face_callback=None, keyword_callback=None, photo_callback=None,
-		 progress_callback=None, progress_dialog=None):
+		 progress_callback=None):
 	self.librarySource = library_source
 	self.libraryVersion = "0.0.0"
 	self.libraryPath = library_path
@@ -993,7 +993,6 @@ class IPhotoParser:
 	self.KeywordCallback = keyword_callback
 	self.PhotoCallback = photo_callback
 	self.ProgressCallback = progress_callback
-	self.ProgressDialog = progress_dialog
 	self.lastdata = False
 	self._reset_photo()
 	self._reset_album()
@@ -1047,7 +1046,7 @@ class IPhotoParser:
 	    return
 
 	state = self.state
-	ret = self.ProgressCallback(self.ProgressDialog, altinfo, state.nphotos, state.nphotostotal)
+	ret = self.ProgressCallback(altinfo, state.nphotos, state.nphotostotal)
 	if (ret is None):
 	    raise ParseCanceled("Parse canceled by user")
 
@@ -1332,7 +1331,7 @@ class IPhotoParser:
 	return
 
 
-def test_progress_callback(progress_dialog, altinfo, nphotos, ntotal):
+def test_progress_callback(altinfo, nphotos, ntotal):
     percent = int(float(nphotos * 100) / ntotal)
     print "%d/%d (%d%%)" % (nphotos, ntotal, percent)
     if (altinfo != ""):
