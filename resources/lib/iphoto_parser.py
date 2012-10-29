@@ -1,5 +1,5 @@
 """
-    Parser for iPhoto's AlbumData.xml
+    Parser for iPhoto's AlbumData.xml and Aperture's ApertureData.xml
 """
 
 __author__ = "jingai <jingai@floatingpenguins.com>"
@@ -62,11 +62,12 @@ class IPhotoDB:
     def __init__(self, dbfile):
 	self.placeList = {}
 	try:
+	    print "iphoto.db: Opening '%s'" % (dbfile)
 	    self.dbPath = os.path.dirname(dbfile)
 	    self.dbconn = sqlite.connect(dbfile)
 	    self.InitDB()
 	except Exception, e:
-	    print "iphoto.db: init: " + to_str(e)
+	    print "iphoto.db: __init__: " + to_str(e)
 	    raise e
 
 	return
@@ -77,6 +78,8 @@ class IPhotoDB:
 	self.dbconn.execute("PRAGMA journal_mode = OFF")
 	self.dbconn.execute("PRAGMA temp_store = MEMORY")
 	self.dbconn.execute("PRAGMA encoding = \"UTF-8\"")
+
+	print "iphoto.db: Initializing"
 
 	try:
 	    # config table
@@ -237,6 +240,7 @@ class IPhotoDB:
 	    pass
 
     def ResetDB(self):
+	print "iphoto.db: Resetting"
 	for table in ['media', 'mediatypes', 'rolls', 'rollmedia', 'albums', 'albummedia', 'faces', 'facesmedia', 'places', 'placesmedia', 'keywords', 'keywordmedia']:
 	    try:
 		self.dbconn.execute("DROP TABLE %s" % table)
@@ -267,7 +271,7 @@ class IPhotoDB:
 	return None
 
     def SetConfig(self, key, value):
-	if (self.GetConfig(key) == None):
+	if (self.GetConfig(key) is None):
 	    self.dbconn.execute("""INSERT INTO config (key, value) VALUES (?, ?)""", (key, value))
 	else:
 	    self.dbconn.execute("""UPDATE config SET value = ?  WHERE key = ?""", (value, key))
@@ -319,6 +323,7 @@ class IPhotoDB:
 	return self.GetTableId('mediatypes', mediatype, 'name', autoadd)
 
     def GetAlbums(self):
+	print "iphoto.db: Retrieving list of Albums"
 	albums = []
 	try:
 	    cur = self.dbconn.cursor()
@@ -333,6 +338,7 @@ class IPhotoDB:
 	return albums
 
     def GetMediaInAlbum(self, albumid, sort_col="NULL"):
+	print "iphoto.db: Retrieving media from Album ID %d" % (albumid)
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -351,6 +357,7 @@ class IPhotoDB:
 	return media
 
     def GetRolls(self):
+	print "iphoto.db: Retrieving list of Events"
 	rolls = []
 	try:
 	    cur = self.dbconn.cursor()
@@ -362,9 +369,11 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: GetRolls: " + to_str(e)
 	    pass
+
 	return rolls
 
     def GetMediaInRoll(self, rollid, sort_col="NULL"):
+	print "iphoto.db: Retrieving media from Event ID %d" % (rollid)
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -382,6 +391,7 @@ class IPhotoDB:
 	return media
 
     def GetFaces(self):
+	print "iphoto.db: Retrieving list of Faces"
 	faces = []
 	try:
 	    cur = self.dbconn.cursor()
@@ -406,6 +416,7 @@ class IPhotoDB:
 	return faces
 
     def GetMediaWithFace(self, faceid, sort_col="NULL"):
+	print "iphoto.db: Retrieving media with Face ID %d" % (faceid)
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -424,6 +435,7 @@ class IPhotoDB:
 	return media
 
     def GetPlaces(self):
+	print "iphoto.db: Retrieving list of Places"
 	places = []
 	try:
 	    cur = self.dbconn.cursor()
@@ -438,6 +450,7 @@ class IPhotoDB:
 	return places
 
     def GetMediaWithPlace(self, placeid, sort_col="NULL"):
+	print "iphoto.db: Retrieving media with Place ID %d" % (placeid)
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -456,6 +469,7 @@ class IPhotoDB:
 	return media
 
     def GetKeywords(self):
+	print "iphoto.db: Retrieving list of Keywords"
 	keywords = []
 	try:
 	    cur = self.dbconn.cursor()
@@ -470,6 +484,7 @@ class IPhotoDB:
 	return keywords
 
     def GetMediaWithKeyword(self, keywordid, sort_col="NULL"):
+	print "iphoto.db: Retrieving media with Keyword ID %d" % (keywordid)
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -488,6 +503,7 @@ class IPhotoDB:
 	return media
 
     def GetMediaWithRating(self, rating, sort_col="NULL"):
+	print "iphoto.db: Retrieving media with Rating %d" % (rating)
 	media = []
 	try:
 	    if (sort_col != "NULL"):
@@ -574,7 +590,7 @@ class IPhotoDB:
 
 	if (photocount == 0):
 	    try:
-		print "iphoto.db: Ignoring event/project '%s'" % (rollname)
+		print "iphoto.db: Ignoring empty Event '%s'" % (rollname)
 	    except:
 		pass
 	    return
@@ -615,7 +631,7 @@ class IPhotoDB:
 
 	if (photocount == 0):
 	    try:
-		print "iphoto.db: Ignoring face '%s'" % (face['name'])
+		print "iphoto.db: Ignoring empty Face '%s'" % (face['name'])
 	    except:
 		pass
 	    return
@@ -889,10 +905,14 @@ class IPhotoParser:
 	self.xmlfile = xmlfile
 	self.mastersPath = masters_path
 	self.mastersRealPath = masters_real_path
+	try:
+	    print "iphoto.parser: Reading '%s'" % (to_str(self.xmlfile))
+	except:
+	    pass
 	if (self.mastersPath and self.mastersRealPath):
 	    try:
-		print "iphoto.db: Rewriting referenced masters path '%s'" % (to_str(self.mastersPath))
-		print "iphoto.db: as '%s'" % (to_str(self.mastersRealPath))
+		print "iphoto.parser: Rewriting referenced masters path '%s'" % (to_str(self.mastersPath))
+		print "iphoto.parser: as '%s'" % (to_str(self.mastersRealPath))
 	    except:
 		pass
 	self.imagePath = ""
@@ -977,8 +997,8 @@ class IPhotoParser:
 
 	state = self.state
 	ret = self.ProgressCallback(self.ProgressDialog, altinfo, state.nphotos, state.nphotostotal)
-	if (ret == None):
-	    raise ParseCanceled("iPhoto library parse canceled by user.")
+	if (ret is None):
+	    raise ParseCanceled("Parse canceled by user")
 
     def commitAll(self):
 	state = self.state
@@ -1017,7 +1037,7 @@ class IPhotoParser:
 		    self.updateProgress()
 
 	    if (self.ConfigCallback):
-		print "iphoto.db: Writing configuration"
+		print "iphoto.parser: Writing configuration"
 		if (self.libraryVersion != "0.0.0"):
 		    self.ConfigCallback('version', self.libraryVersion)
 		try:
@@ -1028,7 +1048,7 @@ class IPhotoParser:
 	except ParseCanceled:
 	    raise
 	except Exception, e:
-	    print "iphoto.db: commitAll: " + to_str(e)
+	    print "iphoto.parser: commitAll: " + to_str(e)
 	    raise e
 
     def Parse(self):
@@ -1042,14 +1062,18 @@ class IPhotoParser:
 	    self.parser.Parse(buf, True)
 	    f.close()
 	except Exception, e:
-	    print "iphoto.db: Parse: " + to_str(e)
+	    print "iphoto.parser: Parse: " + to_str(e)
+	    print "iphoto.parser: Parse failed"
 	    raise e
 
 	try:
 	    self.commitAll()
 	except Exception, e:
-	    print "iphoto.db: Parse: " + to_str(e)
+	    print "iphoto.parser: Parse: " + to_str(e)
+	    print "iphoto.parser: Parse failed"
 	    raise e
+
+	print "iphoto.parser: Parse successful"
 
     def StartElement(self, name, attrs):
 	state = self.state
@@ -1098,7 +1122,7 @@ class IPhotoParser:
 	if (state.libversion):
 	    if (not state.key):
 		self.libraryVersion = state.value
-		print "iphoto.db: Detected %s Version %s" % (self.librarySource, self.libraryVersion)
+		print "iphoto.parser: Detected %s Version %s" % (self.librarySource, self.libraryVersion)
 		state.libversion = False
 	    state.inlibversion -= 1
 
@@ -1109,8 +1133,8 @@ class IPhotoParser:
 		state.archivepath = False
 		if (self.imagePath != self.libraryPath):
 		    try:
-			print "iPhoto.db: Rewriting iPhoto archive path '%s'" % (to_str(self.imagePath))
-			print "iPhoto.db: as '%s'" % (to_str(self.libraryPath))
+			print "iphoto.parser: Rewriting archive path '%s'" % (to_str(self.imagePath))
+			print "iphoto.parser: as '%s'" % (to_str(self.libraryPath))
 		    except:
 			pass
 	    state.inarchivepath -= 1
