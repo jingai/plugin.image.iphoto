@@ -69,6 +69,8 @@ class IPhotoDB:
 	    print "iphoto.db: __init__: " + to_str(e)
 	    raise e
 
+    def __del__(self):
+	self.CloseDB()
 
     def InitDB(self):
 	self.dbconn.execute("PRAGMA synchronous = OFF")
@@ -246,6 +248,14 @@ class IPhotoDB:
 		print "iphoto.db: ResetDB: " + to_str(e)
 		raise e
 
+    def CloseDB(self):
+	print "iphoto.db: Closing"
+	self.Commit()
+	try:
+	    self.dbconn.close()
+	except Exception, e:
+	    print "iphoto.db: CloseDB: " + to_str(e)
+	    raise e
 
     def Commit(self):
 	try:
