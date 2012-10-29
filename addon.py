@@ -171,7 +171,7 @@ class IPhotoGUI:
 	self.origxml = os.path.join(self.xmlpath, IPHOTO_ALBUM_DATA_XML)
 	if (not os.path.isfile(self.origxml)):
 	    self.xmlsrc = "Aperture"
-	    origxml = os.path.join(self.xmlpath, APERTURE_ALBUM_DATA_XML)
+	    self.origxml = os.path.join(self.xmlpath, APERTURE_ALBUM_DATA_XML)
 	else:
 	    self.xmlsrc = "iPhoto"
 	self.xmlfile = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.xml"))
