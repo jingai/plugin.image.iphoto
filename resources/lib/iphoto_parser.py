@@ -1346,15 +1346,18 @@ def profile_main():
 
 def main():
     try:
-	xmlfile = sys.argv[1]
-	dbfile = sys.argv[2]
+	xmltype = sys.argv[1]
+	xmlpath = os.path.dirname(sys.argv[2])
+	xmlfile = sys.argv[2]
+	dbfile = sys.argv[3]
     except:
-	print "Usage iphoto_parser.py <xmlfile> <db>"
+	print "Usage iphoto_parser.py <iPhoto|Aperture> <xmlfile> <db>"
 	sys.exit(1)
 
     db = IPhotoDB(dbfile)
     db.ResetDB()
-    iparser = IPhotoParser("", xmlfile, "", "", "", False, 0.0, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, test_progress_callback)
+    db.InitDB()
+    iparser = IPhotoParser(xmltype, xmlpath, xmlfile, "", "", [], False, 0.0, db.SetConfig, db.AddAlbumNew, db.AddRollNew, db.AddFaceNew, db.AddKeywordNew, db.AddMediaNew, test_progress_callback)
     try:
 	iparser.Parse()
     except:
