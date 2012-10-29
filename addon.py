@@ -278,7 +278,7 @@ class IPhotoGUI:
 
 	if (confirmed):
 	    if (xbmc.getInfoLabel("Window(10000).Property(iphoto_scanning)") == "True"):
-		return "Library import in progress"
+		return addon.getLocalizedString(30300)
 
 	    remove_tries = 10
 	    while (remove_tries and os.path.isfile(DB_FILE)):
@@ -288,16 +288,16 @@ class IPhotoGUI:
 		    remove_tries -= 1
 		    xbmc.sleep(100)
 		else:
-		    return "Database reset"
+		    return addon.getLocalizedString(30320)
 
-	    return "Failed to reset database"
+	    return addon.getLocalizedString(30321)
 
     def import_library(self):
 	global import_progress_dialog
 
 	# crude locking to prevent multiple simultaneous library imports
 	if (xbmc.getInfoLabel("Window(10000).Property(iphoto_scanning)") == "True"):
-	    return "Library import already in progress"
+	    return addon.getLocalizedString(30300)
 	else:
 	    gui.Window(10000).setProperty("iphoto_scanning", "True")
 
@@ -348,7 +348,7 @@ class IPhotoGUI:
 	    if (import_progress_dialog):
 		import_progress_dialog.close()
 	    gui.Window(10000).setProperty("iphoto_scanning", "False")
-	    return "Library import successful"
+	    return addon.getLocalizedString(30301)
 
     def generic_context_menu_items(self):
 	self.context_menu_items.append((addon.getLocalizedString(30217), "XBMC.RunPlugin(\""+BASE_URL+"?action=textview&file=README.txt\")",))
@@ -819,10 +819,8 @@ if (__name__ == "__main__"):
 		    action_result = iphoto.import_library()
 		except:
 		    print traceback.print_exc()
-		    action_result = "Library import failed"
+		    action_result = addon.getLocalizedString(30302)
 		    iphoto.close_db()
-		    dialog = gui.Dialog()
-		    dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 		    xbmc.executebuiltin('XBMC.RunPlugin(%s?action=resetdb&noconfirm=1)' % BASE_URL)
 		else:
 		    refresh = True
@@ -847,11 +845,11 @@ if (__name__ == "__main__"):
 			break
 		    nfiles += 1
 		    percent = int(float(nfiles * 100) / ntotal)
-		    progress_dialog.update(percent, addon.getLocalizedString(30251) % (nfiles), os.path.basename(f))
+		    progress_dialog.update(percent, addon.getLocalizedString(30322) % (nfiles), os.path.basename(f))
 		    os.remove(f)
 		progress_dialog.close()
 		dialog = gui.Dialog()
-		action_result = addon.getLocalizedString(30251) % (nfiles)
+		action_result = addon.getLocalizedString(30322) % (nfiles)
 	elif (action == "textview"):
 	    try:
 		file = iphoto.params['file']
@@ -870,7 +868,7 @@ if (__name__ == "__main__"):
 		    hidden_keywords += " "
 		hidden_keywords += keyword
 		addon.setSetting('hidden_keywords', hidden_keywords)
-		action_result = "Keyword '%s' hidden" % (keyword)
+		action_result = addon.getLocalizedString(30330) % (keyword)
 		refresh = True
 	    except Exception, e:
 		print to_str(e)
@@ -885,10 +883,8 @@ if (__name__ == "__main__"):
 		except:
 # XXX: don't like the way I'm handling this (and it's duplicated above)
 		    print traceback.print_exc()
-		    action_result = "Library import failed"
+		    action_result = addon.getLocalizedString(30302)
 		    iphoto.close_db()
-		    dialog = gui.Dialog()
-		    dialog.ok(addon.getLocalizedString(30240), addon.getLocalizedString(30241))
 		    xbmc.executebuiltin('XBMC.RunPlugin(%s?action=resetdb&noconfirm=1)' % BASE_URL)
 		else:
 		    refresh = True
@@ -921,13 +917,13 @@ if (__name__ == "__main__"):
 		xbmc.sleep(300)
 		xbmc.executebuiltin("Container.SetViewMode(%d)" % (iphoto.view_mode))
 	elif (items == 0):
-	    action_result = "No items"
+	    action_result = addon.getLocalizedString(30310)
 
 	if (refresh):
 	    xbmc.executebuiltin("Container.Refresh")
 
 	if (action_result):
-# XXX: show in dialog on bottom of screen
+	    xbmc.executebuiltin('XBMC.Notification(%s,%s,3000)' % (__plugin__, action_result))
 	    print "iphoto.gui: " + action_result
 
 # vim: tabstop=8 softtabstop=4 shiftwidth=4 noexpandtab:

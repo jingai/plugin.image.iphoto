@@ -22,13 +22,21 @@
     <string id="30240">Failed to initialize addon database.</string>
     <string id="30241">Please reimport your Library.</string>
     <string id="30250">Deleting cached map images</string>
-    <string id="30251">Deleted %d cached maps</string>
     <string id="30252">Scanning...</string>
     <string id="30260">Library import in progress</string>
     <string id="30261">Unable to reset database.</string>
     <string id="30262">Currently unsupported</string>
     <string id="30263">This function is unsupported %s %s.</string>
 
+    <!-- Action Results (Notifications) -->
+    <string id="30300">Library import in progress</string>
+    <string id="30301">Library import successful</string>
+    <string id="30302">Library import failed</string>
+    <string id="30310">No items</string>
+    <string id="30320">Database reset</string>
+    <string id="30321">Failed to reset database</string>
+    <string id="30322">Deleted %d cached maps</string>
+    <string id="30330">Keyword '%s' hidden</string>
 
     <!-- Category strings -->
     <string id="30100">Events</string>
