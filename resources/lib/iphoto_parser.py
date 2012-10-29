@@ -65,12 +65,10 @@ class IPhotoDB:
 	    print "iphoto.db: Opening '%s'" % (dbfile)
 	    self.dbPath = os.path.dirname(dbfile)
 	    self.dbconn = sqlite.connect(dbfile)
-	    self.InitDB()
 	except Exception, e:
 	    print "iphoto.db: __init__: " + to_str(e)
 	    raise e
 
-	return
 
     def InitDB(self):
 	self.dbconn.execute("PRAGMA synchronous = OFF")
@@ -248,7 +246,6 @@ class IPhotoDB:
 		print "iphoto.db: ResetDB: " + to_str(e)
 		raise e
 
-	self.InitDB()
 
     def Commit(self):
 	try:
