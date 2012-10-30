@@ -174,6 +174,7 @@ class IPhotoGUI:
 	    self.origxml = os.path.join(self.xmlpath, APERTURE_ALBUM_DATA_XML)
 	else:
 	    self.xmlsrc = "iPhoto"
+	# our local copy of the XML
 	self.xmlfile = xbmc.translatePath(os.path.join(addon.getAddonInfo("Profile"), "iphoto.xml"))
 
 	# for referenced libraries, iPhoto finds images using the mount point as seen by the host OS.
@@ -214,6 +215,23 @@ class IPhotoGUI:
 	    addon.setSetting('places_enable', "true")
 	elif (e == "false"):
 	    self.enable_places = False
+
+	# how to display Places labels:
+	# 0 = Addresses
+	# 1 = Latitude/Longitude Pairs
+	self.places_labels = addon.getSetting('places_labels')
+	if (self.places_labels == ""):
+	    self.places_labels = "0"
+	    addon.setSetting('places_labels', self.places_labels)
+	self.places_labels = int(self.places_labels)
+
+	# show big map of Place as fanart for each item?
+	self.places_fanart = True
+	e = addon.getSetting('places_show_fanart')
+	if (e == ""):
+	    addon.setSetting('places_show_fanart', "true")
+	elif (e == "false"):
+	    self.places_fanart = False
 
 	# download maps from Google?
 	self.enable_maps = True
@@ -278,6 +296,7 @@ class IPhotoGUI:
 
 	if (confirmed):
 	    if (xbmc.getInfoLabel("Window(10000).Property(iphoto_scanning)") == "True"):
+		# refuse to delete database when import is in progress
 		return addon.getLocalizedString(30300)
 
 	    remove_tries = 10
@@ -561,28 +580,10 @@ class IPhotoGUI:
 	return self.render_media(media)
 
     def list_places(self):
-	# how to display Places labels:
-	# 0 = Addresses
-	# 1 = Latitude/Longitude Pairs
-	places_labels = addon.getSetting('places_labels')
-	if (places_labels == ""):
-	    places_labels = "0"
-	    addon.setSetting('places_labels', places_labels)
-	places_labels = int(places_labels)
-
-	# show big map of Place as fanart for each item?
-	show_fanart = True
-	e = addon.getSetting('places_show_fanart')
-	if (e == ""):
-	    addon.setSetting('places_show_fanart', "true")
-	elif (e == "false"):
-	    show_fanart = False
-
 	try:
 	    placeid = self.params['placeid']
 	    return self.list_photos_with_place(placeid)
-	except Exception, e:
-	    print to_str(e)
+	except:
 	    pass
 
 	places = self.db.GetPlaces()
