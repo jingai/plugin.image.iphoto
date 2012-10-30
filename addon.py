@@ -105,7 +105,7 @@ def md5sum(filename):
 	    m.update(chunk)
     return m.hexdigest()
 
-def import_progress_callback(altinfo, nphotos=0, ntotal=100):
+def import_progress_callback(altinfo="", nphotos=0, ntotal=100):
     global import_progress_dialog
 
     if (not import_progress_dialog):
@@ -722,76 +722,69 @@ class IPhotoGUI:
 	return n
 
     def main_menu(self):
-	try:
-	    self.generic_context_menu_items()
-	    self.maintenance_context_menu_items()
+	n = 0
+	self.generic_context_menu_items()
+	self.maintenance_context_menu_items()
 
-	    n = 0
+	if (self.dbSrc):
+	    if (self.dbSrc == "Aperture"):
+		item = gui.ListItem(addon.getLocalizedString(30108), iconImage=ICON_EVENTS, thumbnailImage=ICON_EVENTS)
+	    else:
+		item = gui.ListItem(addon.getLocalizedString(30100), iconImage=ICON_EVENTS, thumbnailImage=ICON_EVENTS)
+	    item.addContextMenuItems(self.context_menu_items, True)
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=events", item, True)
+	    n += 1
 
-	    if (self.dbSrc):
-		if (self.dbSrc == "Aperture"):
-		    item = gui.ListItem(addon.getLocalizedString(30108), iconImage=ICON_EVENTS, thumbnailImage=ICON_EVENTS)
-		else:
-		    item = gui.ListItem(addon.getLocalizedString(30100), iconImage=ICON_EVENTS, thumbnailImage=ICON_EVENTS)
+	    item = gui.ListItem(addon.getLocalizedString(30101), iconImage=ICON_ALBUMS, thumbnailImage=ICON_ALBUMS)
+	    item.addContextMenuItems(self.context_menu_items, True)
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
+	    n += 1
+
+	    item = gui.ListItem(addon.getLocalizedString(30105), iconImage=ICON_FACES, thumbnailImage=ICON_FACES)
+	    item.addContextMenuItems(self.context_menu_items, True)
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=faces", item, True)
+	    n += 1
+
+	    item = gui.ListItem(addon.getLocalizedString(30106), iconImage=ICON_PLACES, thumbnailImage=ICON_PLACES)
+	    item.addContextMenuItems(self.context_menu_items, True)
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
+	    n += 1
+
+	    # Keywords not yet supported in Aperture or iPhoto >= 9.4
+	    if (self.dbSrc == "iPhoto" and self.dbVer < 9.4):
+		item = gui.ListItem(addon.getLocalizedString(30104), iconImage=ICON_KEYWORDS, thumbnailImage=ICON_KEYWORDS)
 		item.addContextMenuItems(self.context_menu_items, True)
-		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=events", item, True)
+		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=keywords", item, True)
 		n += 1
 
-		item = gui.ListItem(addon.getLocalizedString(30101), iconImage=ICON_ALBUMS, thumbnailImage=ICON_ALBUMS)
+	    # Ratings not yet supported in Aperture
+	    if (self.dbSrc != "Aperture"):
+		item = gui.ListItem(addon.getLocalizedString(30102), iconImage=ICON_STARS, thumbnailImage=ICON_STARS)
 		item.addContextMenuItems(self.context_menu_items, True)
-		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=albums", item, True)
+		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
 		n += 1
 
-		item = gui.ListItem(addon.getLocalizedString(30105), iconImage=ICON_FACES, thumbnailImage=ICON_FACES)
-		item.addContextMenuItems(self.context_menu_items, True)
-		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=faces", item, True)
-		n += 1
+	hide_item = addon.getSetting('hide_import_lib')
+	if (hide_item == ""):
+	    hide_item = "false"
+	    addon.setSetting('hide_import_lib', hide_item)
+	if (hide_item == "false"):
+	    item = gui.ListItem(addon.getLocalizedString(30103), iconImage=ICON_UPDATE, thumbnailImage=ICON_UPDATE)
+	    item.addContextMenuItems(self.context_menu_items, True)
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
+	    n += 1
 
-		item = gui.ListItem(addon.getLocalizedString(30106), iconImage=ICON_PLACES, thumbnailImage=ICON_PLACES)
-		item.addContextMenuItems(self.context_menu_items, True)
-		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=places", item, True)
-		n += 1
+	hide_item = addon.getSetting('hide_view_readme')
+	if (hide_item == ""):
+	    hide_item = "false"
+	    addon.setSetting('hide_view_readme', hide_item)
+	if (hide_item == "false"):
+	    item = gui.ListItem(addon.getLocalizedString(30107), iconImage=ICON_HELP, thumbnailImage=ICON_HELP)
+	    item.addContextMenuItems(self.context_menu_items, True)
+	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=textview&file=README.txt", item, False)
+	    n += 1
 
-		# Keywords not yet supported in Aperture or iPhoto >= 9.4
-		if (self.dbSrc == "iPhoto" and self.dbVer < 9.4):
-		    item = gui.ListItem(addon.getLocalizedString(30104), iconImage=ICON_KEYWORDS, thumbnailImage=ICON_KEYWORDS)
-		    item.addContextMenuItems(self.context_menu_items, True)
-		    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=keywords", item, True)
-		    n += 1
-
-		# Ratings not yet supported in Aperture
-		if (self.dbSrc != "Aperture"):
-		    item = gui.ListItem(addon.getLocalizedString(30102), iconImage=ICON_STARS, thumbnailImage=ICON_STARS)
-		    item.addContextMenuItems(self.context_menu_items, True)
-		    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=ratings", item, True)
-		    n += 1
-
-	    hide_item = addon.getSetting('hide_import_lib')
-	    if (hide_item == ""):
-		hide_item = "false"
-		addon.setSetting('hide_import_lib', hide_item)
-	    if (hide_item == "false"):
-		item = gui.ListItem(addon.getLocalizedString(30103), iconImage=ICON_UPDATE, thumbnailImage=ICON_UPDATE)
-		item.addContextMenuItems(self.context_menu_items, True)
-		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=rescan", item, False)
-		n += 1
-
-	    hide_item = addon.getSetting('hide_view_readme')
-	    if (hide_item == ""):
-		hide_item = "false"
-		addon.setSetting('hide_view_readme', hide_item)
-	    if (hide_item == "false"):
-		item = gui.ListItem(addon.getLocalizedString(30107), iconImage=ICON_HELP, thumbnailImage=ICON_HELP)
-		item.addContextMenuItems(self.context_menu_items, True)
-		plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=textview&file=README.txt", item, False)
-		n += 1
-	except:
-# XXX: should do these outside this function
-	    plugin.endOfDirectory(int(sys.argv[1]), False)
-	else:
-	    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_NONE)
-	    plugin.endOfDirectory(int(sys.argv[1]), True)
-
+	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_NONE)
 	return n
 
 if (__name__ == "__main__"):
@@ -800,6 +793,7 @@ if (__name__ == "__main__"):
     items = None
     refresh = False
     action_result = None
+    update_lib = False
     try:
 	action = iphoto.params['action']
     except:
@@ -813,16 +807,7 @@ if (__name__ == "__main__"):
 		os.remove(tmpfile)
 	    else:
 		os.rename(tmpfile, iphoto.xmlfile)
-# XXX: don't like the way I'm handling this (and it's duplicated below)
-		try:
-		    action_result = iphoto.import_library()
-		except:
-		    print traceback.print_exc()
-		    action_result = addon.getLocalizedString(30302)
-		    iphoto.close_db()
-		    xbmc.executebuiltin('XBMC.RunPlugin(%s?action=resetdb&noconfirm=1)' % BASE_URL)
-		else:
-		    refresh = True
+		update_lib = True
     else:
 	# actions that don't require a database connection
 	if (action == "resetdb"):
@@ -877,16 +862,7 @@ if (__name__ == "__main__"):
 	    iphoto.open_db()
 	    if (action == "rescan"):
 		copyfile(iphoto.origxml, iphoto.xmlfile)
-		try:
-		    action_result = iphoto.import_library()
-		except:
-# XXX: don't like the way I'm handling this (and it's duplicated above)
-		    print traceback.print_exc()
-		    action_result = addon.getLocalizedString(30302)
-		    iphoto.close_db()
-		    xbmc.executebuiltin('XBMC.RunPlugin(%s?action=resetdb&noconfirm=1)' % BASE_URL)
-		else:
-		    refresh = True
+		update_lib = True
 	    elif (action == "events"):
 		items = iphoto.list_events()
 	    elif (action == "albums"):
@@ -907,22 +883,32 @@ if (__name__ == "__main__"):
 	    elif (action == "ratings"):
 		items = iphoto.list_ratings()
 
-	iphoto.close_db()
+    if (items > 0):
+	plugin.endOfDirectory(int(sys.argv[1]), True)
+	if (iphoto.view_mode):
+	    print "iphoto.gui: Trying to set view mode in %s to %d" % (SKIN_NAME, iphoto.view_mode)
+	    xbmc.sleep(300)
+	    xbmc.executebuiltin("Container.SetViewMode(%d)" % (iphoto.view_mode))
+    elif (items == 0):
+	action_result = addon.getLocalizedString(30310)
 
-	if (items > 0):
-	    plugin.endOfDirectory(int(sys.argv[1]), True)
-	    if (iphoto.view_mode):
-		print "iphoto.gui: Trying to set view mode in %s to %d" % (SKIN_NAME, iphoto.view_mode)
-		xbmc.sleep(300)
-		xbmc.executebuiltin("Container.SetViewMode(%d)" % (iphoto.view_mode))
-	elif (items == 0):
-	    action_result = addon.getLocalizedString(30310)
+    if (update_lib):
+	try:
+	    action_result = iphoto.import_library()
+	except:
+	    print traceback.print_exc()
+	    action_result = addon.getLocalizedString(30302)
+	    xbmc.executebuiltin('XBMC.RunPlugin(%s?action=resetdb&noconfirm=1)' % BASE_URL)
+	else:
+	    refresh = True
 
-	if (refresh):
-	    xbmc.executebuiltin("Container.Refresh")
+    iphoto.close_db()
 
-	if (action_result):
-	    xbmc.executebuiltin('XBMC.Notification(%s,%s,3000)' % (__plugin__, action_result))
-	    print "iphoto.gui: " + action_result
+    if (refresh):
+	xbmc.executebuiltin("Container.Refresh")
+
+    if (action_result):
+	xbmc.executebuiltin('XBMC.Notification(%s,%s,3000)' % (__plugin__, action_result))
+	print "iphoto.gui: " + action_result
 
 # vim: tabstop=8 softtabstop=4 shiftwidth=4 noexpandtab:
