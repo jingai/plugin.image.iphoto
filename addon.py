@@ -778,7 +778,7 @@ class IPhotoGUI:
 	if (hide_item == ""):
 	    hide_item = "false"
 	    addon.setSetting('hide_view_readme', hide_item)
-	if (hide_item == "false"):
+	if (hide_item == "false" or n == 0):
 	    item = gui.ListItem(addon.getLocalizedString(30107), iconImage=ICON_HELP, thumbnailImage=ICON_HELP)
 	    item.addContextMenuItems(self.context_menu_items, True)
 	    plugin.addDirectoryItem(int(sys.argv[1]), BASE_URL+"?action=textview&file=README.txt", item, False)
