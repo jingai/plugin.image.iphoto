@@ -823,7 +823,7 @@ class IPhotoDB:
 				placeid = i
 				break
 			if addr is None:
-			    updateProgress("Geocoding %s %s" % (lat, lon))
+			    updateProgress("Geocode: %s %s" % (lat, lon))
 			    addr = geocode("%s %s" % (lat, lon))[0]
 			    updateProgress()
 
@@ -849,7 +849,7 @@ class IPhotoDB:
 			fanartpath = ""
 			thumbpath = ""
 			if (mapAspect != 0.0):
-			    updateProgress("Fetching map...")
+			    updateProgress("Map Image: %s %s" % (lat, lon))
 			    try:
 				map_size_x = MAP_IMAGE_X_MAX
 				map_size_y = int(float(map_size_x) / mapAspect)
@@ -1044,7 +1044,7 @@ class IPhotoParser:
 	    self.currentKeyword[a] = ""
 	self.currentKeyword['PhotoCount'] = '0'
 
-    def updateProgress(self, altinfo=""):
+    def updateProgress(self, altinfo=" "):
 	if (not self.ProgressCallback):
 	    return
 
