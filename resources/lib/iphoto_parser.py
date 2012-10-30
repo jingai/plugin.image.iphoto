@@ -1070,6 +1070,16 @@ class IPhotoParser:
 	state.nphotostotal = len(self.albumList) + len(self.rollList) + len(self.faceList) + len(self.keywordList) + len(self.photoList)
 
 	try:
+	    if (self.ConfigCallback):
+		print "iphoto.parser: Writing configuration"
+		self.ConfigCallback('source', self.librarySource)
+		if (self.libraryVersion != "0.0.0"):
+		    self.ConfigCallback('version', self.libraryVersion)
+		try:
+		    self.ConfigCallback('lastimport', to_str(time.time()))
+		except:
+		    pass
+
 	    if (self.AlbumCallback and len(self.albumList) > 0):
 		for a in self.albumList:
 		    self.AlbumCallback(a, self.albumIgn)
@@ -1099,16 +1109,6 @@ class IPhotoParser:
 		    self.PhotoCallback(a, self.imagePath, self.libraryPath, self.mastersPath, self.mastersRealPath, self.enablePlaces, self.mapAspect, self.updateProgress)
 		    state.nphotos += 1
 		    self.updateProgress()
-
-	    if (self.ConfigCallback):
-		print "iphoto.parser: Writing configuration"
-		if (self.libraryVersion != "0.0.0"):
-		    self.ConfigCallback('version', self.libraryVersion)
-		try:
-		    self.ConfigCallback('source', self.librarySource)
-		    self.ConfigCallback('lastimport', to_str(time.time()))
-		except:
-		    pass
 	except ParseCanceled:
 	    raise
 	except Exception, e:
