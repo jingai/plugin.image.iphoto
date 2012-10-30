@@ -151,7 +151,7 @@ class IPhotoGUI:
 	if (e == ""):
 	    addon.setSetting('managed_lib_enable', "true")
 	elif (e == "false"):
-	    enable_managed_lib = False
+	    self.enable_managed_lib = False
 
 	self.xmlpath = addon.getSetting('albumdata_xml_path')
 	if (self.xmlpath == ""):
@@ -326,7 +326,7 @@ class IPhotoGUI:
 	album_ign.append("Book")
 	album_ign.append("Selected Event Album")
 	album_ign.append("Event")
-	if (self.dbSrc == "Aperture"):
+	if (self.xmlsrc == "Aperture"):
 	    # Aperture albums (by AlbumType)
 	    album_ign.append("5")
 	    album_ign.append("97")
@@ -335,11 +335,13 @@ class IPhotoGUI:
 	    # Aperture albums (by uuid)
 	    album_ign.append("fiveStarAlbum")
 	    album_ign.append("oneStarAlbum")
+	# Published albums
 	if (self.album_ign_publ == "true"):
 	    album_ign.append("Published")
+	# Flagged albums
 	if (self.album_ign_flagged == "true"):
 	    album_ign.append("Shelf")
-	    if (self.dbSrc == "Aperture"):
+	    if (self.xmlsrc == "Aperture"):
 		album_ign.append("95")
 
 	if (self.enable_maps == True):
@@ -412,7 +414,6 @@ class IPhotoGUI:
 
 		try:
 		    item.setProperty('Fanart_Image', mediapath)
-
 		    item_date = time.strftime("%d.%m.%Y", time.localtime(APPLE_EPOCH + float(mediadate)))
 		    #JSL: setting the date here to enable sorting prevents XBMC
 		    #JSL: from scanning the EXIF/IPTC info
@@ -439,8 +440,7 @@ class IPhotoGUI:
 	try:
 	    albumid = self.params['albumid']
 	    return self.list_photos_in_album(albumid)
-	except Exception, e:
-	    print to_str(e)
+	except:
 	    pass
 
 	albums = self.db.GetAlbums()
@@ -488,8 +488,7 @@ class IPhotoGUI:
 	try:
 	    rollid = self.params['rollid']
 	    return self.list_photos_in_event(rollid)
-	except Exception, e:
-	    print to_str(e)
+	except:
 	    pass
 
 	rolls = self.db.GetRolls()
@@ -541,8 +540,7 @@ class IPhotoGUI:
 	try:
 	    faceid = self.params['faceid']
 	    return self.list_photos_with_face(faceid)
-	except Exception, e:
-	    print to_str(e)
+	except:
 	    pass
 
 	faces = self.db.GetFaces()
@@ -599,15 +597,16 @@ class IPhotoGUI:
 
 	    latlon = latlon.replace("+", " ")
 
-	    if (places_labels == 1):
+	    if (self.places_labels == 1):
 		item = gui.ListItem(latlon, address)
 	    else:
 		item = gui.ListItem(address, latlon)
 	    item.addContextMenuItems(self.context_menu_items, True)
 
 	    if (thumbpath):
+		item.setIconImage(thumbpath)
 		item.setThumbnailImage(thumbpath)
-	    if (show_fanart == True and fanartpath):
+	    if (self.places_fanart == True and fanartpath):
 		item.setProperty("Fanart_Image", fanartpath)
 
 	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=places&placeid=%s" % (placeid), listitem = item, isFolder = True, totalItems = count)
