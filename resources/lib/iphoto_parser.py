@@ -62,7 +62,8 @@ class IPhotoDB:
     def __init__(self, dbfile):
 	self.placeList = {}
 	try:
-	    print "iphoto.db: Opening '%s'" % (dbfile)
+	    print "iphoto.db: Opening database: %s" % (dbfile)
+	    self.dbFile = os.path.basename(dbfile)
 	    self.dbPath = os.path.dirname(dbfile)
 	    self.dbconn = sqlite.connect(dbfile)
 	except Exception, e:
@@ -82,7 +83,7 @@ class IPhotoDB:
 	self.dbconn.execute("PRAGMA temp_store = MEMORY")
 	self.dbconn.execute("PRAGMA encoding = \"UTF-8\"")
 
-	print "iphoto.db: Initializing"
+	print "iphoto.db: Initializing database"
 
 	try:
 	    # config table
@@ -96,6 +97,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: config"
 
 	try:
 	    # media table
@@ -121,6 +124,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: media"
 
 	try:
 	    # mediatypes table
@@ -134,6 +139,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: mediatypes"
 
 	try:
 	    # rolls (events) table
@@ -150,6 +157,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: rolls"
 
 	try:
 	    # rollmedia table
@@ -163,6 +172,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: rollmedia"
 
 	try:
 	    # albums table
@@ -179,6 +190,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: albums"
 
 	try:
 	    # albummedia table
@@ -192,6 +205,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: albummedia"
 
 	try:
 	    # faces table
@@ -210,6 +225,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: faces"
 
 	try:
 	    # facesmedia table
@@ -223,6 +240,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: facesmedia"
 
 	try:
 	    # places table
@@ -240,6 +259,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: places"
 
 	try:
 	    # placesmedia table
@@ -253,6 +274,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: placesmedia"
 
 	try:
 	    # keywords table
@@ -267,6 +290,8 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: keywords"
 
 	try:
 	    # keywordmedia table
@@ -280,11 +305,13 @@ class IPhotoDB:
 	except Exception, e:
 	    print "iphoto.db: InitDB: " + to_str(e)
 	    raise e
+	else:
+	    print "iphoto.db: InitDB: Created table: keywordmedia"
 
 	self.Commit()
 
     def ResetDB(self):
-	print "iphoto.db: Resetting"
+	print "iphoto.db: Resetting database"
 	for table in ['media', 'mediatypes', 'rolls', 'rollmedia', 'albums', 'albummedia', 'faces', 'facesmedia', 'places', 'placesmedia', 'keywords', 'keywordmedia']:
 	    try:
 		self.dbconn.execute("DROP TABLE %s" % table)
@@ -293,16 +320,14 @@ class IPhotoDB:
 	    except Exception, e:
 		print "iphoto.db: ResetDB: " + to_str(e)
 		raise e
+	    else:
+		print "iphoto.db: ResetDB: Dropped table: " + table
 	self.Commit()
 
     def CloseDB(self):
-	print "iphoto.db: Closing"
-	try:
-	    self.Commit()
-	    self.dbconn.close()
-	except Exception, e:
-	    print "iphoto.db: CloseDB: " + to_str(e)
-	    raise e
+	print "iphoto.db: Closing database"
+	self.dbconn.commit()
+	self.dbconn.close()
 
     def Commit(self):
 	try:
@@ -959,10 +984,8 @@ class IPhotoParser:
 	self.xmlfile = xmlfile
 	self.mastersPath = masters_path
 	self.mastersRealPath = masters_real_path
-	try:
-	    print "iphoto.parser: Reading '%s'" % (to_str(self.xmlfile))
-	except:
-	    pass
+	print "iphoto.parser: Library source is %s" % (self.librarySource)
+	print "iphoto.parser: Reading '%s'" % (self.xmlfile)
 	if (self.mastersPath and self.mastersRealPath):
 	    try:
 		print "iphoto.parser: Rewriting referenced masters path '%s'" % (to_str(self.mastersPath))
