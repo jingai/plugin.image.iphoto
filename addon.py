@@ -269,9 +269,10 @@ class IPhotoGUI:
 	self.dbVer = self.db.GetLibraryVersion()
 
     def close_db(self):
-	if (self.db):
+	try:
 	    self.db.CloseDB()
-	    self.db = None
+	except:
+	    pass
 
     def reset_db(self):
 	try:
@@ -635,13 +636,12 @@ class IPhotoGUI:
 	if (self.dbSrc == "Aperture" or self.dbVer >= 9.4):
 	    dialog = gui.Dialog()
 	    dialog.ok(addon.getLocalizedString(30262), addon.getLocalizedString(30263) % ("in this version of", self.dbSrc))
-	    return
+	    return 0
 
 	try:
 	    keywordid = self.params['keywordid']
 	    return self.list_photos_with_keyword(keywordid)
-	except Exception, e:
-	    print to_str(e)
+	except:
 	    pass
 
 	keywords = self.db.GetKeywords()
@@ -689,13 +689,12 @@ class IPhotoGUI:
 	if (self.dbSrc == "Aperture"):
 	    dialog = gui.Dialog()
 	    dialog.ok(addon.getLocalizedString(30262), addon.getLocalizedString(30263) % ("in", self.dbSrc))
-	    return
+	    return 0
 
 	try:
 	    rating = self.params['rating']
 	    return self.list_photos_with_rating(rating)
-	except Exception, e:
-	    print to_str(e)
+	except:
 	    pass
 
 	self.generic_context_menu_items()
