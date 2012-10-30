@@ -337,24 +337,23 @@ class IPhotoDB:
 	    raise e
 
     def GetConfig(self, key):
+	rv = None
+	cur = self.dbconn.cursor()
 	try:
-	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT value FROM config WHERE key = ? LIMIT 1""", (key,))
 	    row = cur.fetchone()
-	    cur.close()
 	    if (row):
-		return row[0]
+		rv = row[0]
 	except:
 	    pass
-
-	return None
+	cur.close()
+	return rv
 
     def SetConfig(self, key, value):
 	if (self.GetConfig(key) is None):
 	    self.dbconn.execute("""INSERT INTO config (key, value) VALUES (?, ?)""", (key, value))
 	else:
 	    self.dbconn.execute("""UPDATE config SET value = ?  WHERE key = ?""", (value, key))
-
 	self.Commit()
 
     def GetLibrarySource(self):
@@ -370,19 +369,18 @@ class IPhotoDB:
 	return ver
 
     def GetTableId(self, table, value, column='name', autoadd=False, autoclean=True):
+	rv = None
+	cur = self.dbconn.cursor()
 	try:
 	    if (autoclean and not value):
 		value = "Unknown"
-
-	    cur = self.dbconn.cursor()
 
 	    # query db for column with specified name
 	    cur.execute("SELECT id FROM %s WHERE %s = ?" % (table, column),
 			(value,))
 	    row = cur.fetchone()
 
-	    # create named ID if requested
-	    if not row and autoadd and value and len(value) > 0:
+	    if (not row and autoadd and value and len(value) > 0):
 		nextid = cur.execute("SELECT MAX(id) FROM %s" % table).fetchone()[0]
 		if not nextid:
 		    nextid = 1
@@ -390,13 +388,14 @@ class IPhotoDB:
 		    nextid += 1
 		cur.execute("INSERT INTO %s (id, %s) VALUES (?, ?)" % (table, column),
 			    (nextid, value))
-		cur.close()
-		return nextid # return new id
-	    cur.close()
-	    return row[0] # return id
+		rv = nextid # new id
+	    else:
+		rv = row[0] # existing id
 	except Exception, e:
 	    print "iphoto.db: GetTableId: " + to_str(e)
 	    raise e
+	cur.close()
+	return rv
 
     def GetMediaTypeId(self, mediatype, autoadd=False):
 	return self.GetTableId('mediatypes', mediatype, 'name', autoadd)
@@ -404,77 +403,72 @@ class IPhotoDB:
     def GetAlbums(self):
 	print "iphoto.db: Retrieving list of Albums"
 	albums = []
+	cur = self.dbconn.cursor()
 	try:
-	    cur = self.dbconn.cursor()
 	    cur.execute("SELECT id, name, photocount FROM albums")
 	    for tuple in cur:
 		albums.append(tuple)
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetAlbums: " + to_str(e)
 	    pass
-
+	cur.close()
 	return albums
 
     def GetMediaInAlbum(self, albumid, sort_col="NULL"):
 	print "iphoto.db: Retrieving media from Album ID %s" % (to_str(albumid))
 	media = []
+	cur = self.dbconn.cursor()
 	try:
 	    if (sort_col != "NULL"):
 		sort_col = "M." + sort_col
-	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM albummedia A LEFT JOIN media M ON A.mediaid = M.id
 			WHERE A.albumid = ? ORDER BY %s ASC""" % (sort_col), (albumid,))
 	    for tuple in cur:
 		media.append(tuple)
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetMediaInAlbum: " + to_str(e)
 	    pass
-
+	cur.close()
 	return media
 
     def GetRolls(self):
 	print "iphoto.db: Retrieving list of Events"
 	rolls = []
+	cur = self.dbconn.cursor()
 	try:
-	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT R.id, R.name, M.thumbpath, R.rolldate, R.photocount 
 			 FROM rolls R LEFT JOIN media M ON R.keyphotoid = M.id WHERE R.keyphotoid != 0""")
 	    for tuple in cur:
 		rolls.append(tuple)
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetRolls: " + to_str(e)
 	    pass
-
+	cur.close()
 	return rolls
 
     def GetMediaInRoll(self, rollid, sort_col="NULL"):
 	print "iphoto.db: Retrieving media from Event ID %s" % (to_str(rollid))
 	media = []
+	cur = self.dbconn.cursor()
 	try:
 	    if (sort_col != "NULL"):
 		sort_col = "M." + sort_col
-	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM media M WHERE M.rollid = ? ORDER BY %s ASC""" % (sort_col), (rollid,))
 	    for tuple in cur:
 		media.append(tuple)
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetMediaInRoll: " + to_str(e)
 	    pass
-
+	cur.close()
 	return media
 
     def GetFaces(self):
 	print "iphoto.db: Retrieving list of Faces"
 	faces = []
+	cur = self.dbconn.cursor()
 	try:
-	    cur = self.dbconn.cursor()
-
 	    if (self.GetLibrarySource() == "iPhoto" and self.GetLibraryVersion() < 9.4):
 		idtype = "M.id"
 	    else:
@@ -486,117 +480,109 @@ class IPhotoDB:
 
 	    for tuple in cur:
 		faces.append(tuple)
-
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetFaces: " + to_str(e)
 	    pass
-
+	cur.close()
 	return faces
 
     def GetMediaWithFace(self, faceid, sort_col="NULL"):
 	print "iphoto.db: Retrieving media with Face ID %s" % (to_str(faceid))
 	media = []
+	cur = self.dbconn.cursor()
 	try:
 	    if (sort_col != "NULL"):
 		sort_col = "M." + sort_col
-	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM facesmedia A LEFT JOIN media M ON A.mediaid = M.id
 			WHERE A.faceid = ? ORDER BY %s ASC""" % (sort_col), (faceid,))
 	    for tuple in cur:
 		media.append(tuple)
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetMediaWithFace: " + to_str(e)
 	    pass
-
+	cur.close()
 	return media
 
     def GetPlaces(self):
 	print "iphoto.db: Retrieving list of Places"
 	places = []
+	cur = self.dbconn.cursor()
 	try:
-	    cur = self.dbconn.cursor()
 	    cur.execute("SELECT id, latlon, address, thumbpath, fanartpath, photocount FROM places")
 	    for tuple in cur:
 		places.append(tuple)
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetPlaces: " + to_str(e)
 	    pass
-
+	cur.close()
 	return places
 
     def GetMediaWithPlace(self, placeid, sort_col="NULL"):
 	print "iphoto.db: Retrieving media with Place ID %s" % (to_str(placeid))
 	media = []
+	cur = self.dbconn.cursor()
 	try:
 	    if (sort_col != "NULL"):
 		sort_col = "M." + sort_col
-	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM placesmedia A LEFT JOIN media M ON A.mediaid = M.id
 			WHERE A.placeid = ? ORDER BY %s ASC""" % (sort_col), (placeid,))
 	    for tuple in cur:
 		media.append(tuple)
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetMediaWithPlace: " + to_str(e)
 	    pass
-
+	cur.close()
 	return media
 
     def GetKeywords(self):
 	print "iphoto.db: Retrieving list of Keywords"
 	keywords = []
+	cur = self.dbconn.cursor()
 	try:
-	    cur = self.dbconn.cursor()
 	    cur.execute("SELECT id, name, photocount FROM keywords ORDER BY name")
 	    for tuple in cur:
 		keywords.append(tuple)
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetKeywords: " + to_str(e)
 	    pass
-
+	cur.close()
 	return keywords
 
     def GetMediaWithKeyword(self, keywordid, sort_col="NULL"):
 	print "iphoto.db: Retrieving media with Keyword ID %s" % (to_str(keywordid))
 	media = []
+	cur = self.dbconn.cursor()
 	try:
 	    if (sort_col != "NULL"):
 		sort_col = "M." + sort_col
-	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM keywordmedia A LEFT JOIN media M ON A.mediaid = M.id
 			WHERE A.keywordid = ? ORDER BY %s ASC""" % (sort_col), (keywordid,))
 	    for tuple in cur:
 		media.append(tuple)
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetMediaWithKeyword: " + to_str(e)
 	    pass
-
+	cur.close()
 	return media
 
     def GetMediaWithRating(self, rating, sort_col="NULL"):
 	print "iphoto.db: Retrieving media with Rating %s" % (to_str(rating))
 	media = []
+	cur = self.dbconn.cursor()
 	try:
 	    if (sort_col != "NULL"):
 		sort_col = "M." + sort_col
-	    cur = self.dbconn.cursor()
 	    cur.execute("""SELECT M.caption, M.mediapath, M.thumbpath, M.originalpath, M.rating, M.mediadate, M.mediasize
 			FROM media M WHERE M.rating = ? ORDER BY %s ASC""" % (sort_col), (rating,))
 	    for tuple in cur:
 		media.append(tuple)
-	    cur.close()
 	except Exception, e:
 	    print "iphoto.db: GetMediaWithRating: " + to_str(e)
 	    pass
-
+	cur.close()
 	return media
 
     def AddAlbumNew(self, album, album_ign):
@@ -786,9 +772,8 @@ class IPhotoDB:
 	    mediasize = 0
 	    pass
 
+	cur = self.dbconn.cursor()
 	try:
-	    cur = self.dbconn.cursor()
-
 	    if (self.GetLibrarySource() == "iPhoto" and self.GetLibraryVersion() < 9.4):
 		cmpkey = 'MediaID'
 	    else:
@@ -804,7 +789,7 @@ class IPhotoDB:
 		INSERT INTO facesmedia (faceid, mediaid)
 		VALUES (?, ?)""", (faceid, mediaid))
 
-		for fid, fkey, fkeyidx in faces:
+		for (fid, fkey, fkeyidx) in faces:
 		    if (fkey == media[cmpkey]):
 			fthumb = os.path.splitext(thumbpath)[0] + "_face%s.jpg" % (fkeyidx)
 			self.dbconn.execute("""
@@ -829,12 +814,13 @@ class IPhotoDB:
 				 thumbpath,
 				 originalpath))
 
-	    if enablePlaces == True:
+	    if (enablePlaces == True):
 		# convert lat/lon pair to an address
 		try:
 		    lat = float(media['latitude'])
 		    lon = float(media['longitude'])
 		    if (lat == 0.0 and lon == 0.0):
+			# force exception for ungeotagged photos
 			del lat, lon
 		    lat = to_str(lat)
 		    lon = to_str(lon)
@@ -847,7 +833,7 @@ class IPhotoDB:
 				addr = self.placeList[i][0]
 				placeid = i
 				break
-			if addr is None:
+			if (addr is None):
 			    updateProgress("Geocode: %s %s" % (lat, lon))
 			    addr = geocode("%s %s" % (lat, lon))[0]
 			    updateProgress()
@@ -856,7 +842,7 @@ class IPhotoDB:
 				if (self.placeList[i][0] == addr):
 				    placeid = i
 				    break
-			    if placeid is None:
+			    if (placeid is None):
 				placeid = len(self.placeList)
 				self.placeList[placeid] = []
 				#print "new placeid %d for addr '%s'" % (placeid, addr)
@@ -867,6 +853,7 @@ class IPhotoDB:
 			raise e
 		except:
 		    #print "No location information for photo id %d" % (mediaid)
+		    updateProgress("Geocode: Error")
 		    pass
 		else:
 		    if (addr not in self.placeList[placeid]):
@@ -888,8 +875,10 @@ class IPhotoDB:
 				thumbpath = map.fetch("map_", "_thumb")
 			    except Exception, e:
 				print "iphoto.db: AddMediaNew: map: " + to_str(e)
+				updateProgress("Map Image: Error downloading")
 				pass
-			updateProgress()
+			    else:
+				updateProgress()
 
 			# add new Place
 			self.placeList[placeid].append(addr)
@@ -933,12 +922,11 @@ class IPhotoDB:
 		    self.dbconn.execute("""
 		    UPDATE keywords SET photocount = ?
 		    WHERE id = ?""", (photocount, keywordid))
-
-	    cur.close()
 	except sqlite.IntegrityError:
 	    pass
 	except Exception, e:
 	    raise e
+	cur.close()
 
 
 class ParseCanceled(Exception):
