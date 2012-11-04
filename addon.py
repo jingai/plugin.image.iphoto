@@ -21,9 +21,11 @@ try:
     import xbmcvfs
 except ImportError:
     import shutil
-    copyfile = shutil.copyfile
+    file_copy = shutil.copyfile
+    file_exists = os.path.exists
 else:
-    copyfile = xbmcvfs.copy
+    file_copy = xbmcvfs.copy
+    file_exists = xbmcvfs.exists
 
 try:
     from hashlib import md5
@@ -169,7 +171,7 @@ class IPhotoGUI:
 
 	# is this an iPhoto or Aperture library?
 	self.origxml = os.path.join(self.xmlpath, IPHOTO_ALBUM_DATA_XML)
-	if (not os.path.isfile(self.origxml)):
+	if (not file_exists(self.origxml)):
 	    self.xmlsrc = "Aperture"
 	    self.origxml = os.path.join(self.xmlpath, APERTURE_ALBUM_DATA_XML)
 	else:
@@ -803,8 +805,8 @@ if (__name__ == "__main__"):
 	if (iphoto.auto_update_lib == "true"):
 	    try:
 		tmpfile = iphoto.xmlfile + ".new"
-		copyfile(iphoto.origxml, tmpfile)
-		if (os.path.isfile(iphoto.xmlfile) and md5sum(tmpfile) == md5sum(iphoto.xmlfile)):
+		file_copy(iphoto.origxml, tmpfile)
+		if (file_exists(iphoto.xmlfile) and md5sum(tmpfile) == md5sum(iphoto.xmlfile)):
 		    os.remove(tmpfile)
 		else:
 		    os.rename(tmpfile, iphoto.xmlfile)
@@ -864,7 +866,7 @@ if (__name__ == "__main__"):
 	    # actions that do require a database connection
 	    iphoto.open_db()
 	    if (action == "rescan"):
-		copyfile(iphoto.origxml, iphoto.xmlfile)
+		file_copy(iphoto.origxml, iphoto.xmlfile)
 		update_lib = True
 	    elif (action == "events"):
 		items = iphoto.list_events()
