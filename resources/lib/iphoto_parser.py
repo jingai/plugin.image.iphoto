@@ -1032,7 +1032,6 @@ class IPhotoParser:
 	    self.currentAlbum[a] = ""
 	for a in self.currentAlbum.keys():
 	    self.currentAlbum[a] = ""
-	self.currentAlbum['PhotoCount'] = '0'
 	self.currentAlbum['medialist'] = []
 
     def _reset_roll(self):
@@ -1047,13 +1046,11 @@ class IPhotoParser:
 	self.currentFace = {}
 	for a in self.currentFace.keys():
 	    self.currentFace[a] = ""
-	self.currentFace['PhotoCount'] = '0'
 
     def _reset_keyword(self):
 	self.currentKeyword = {}
 	for a in self.currentKeyword.keys():
 	    self.currentKeyword[a] = ""
-	self.currentKeyword['PhotoCount'] = '0'
 
     def updateProgress(self, altinfo=" "):
 	if (not self.ProgressCallback):
