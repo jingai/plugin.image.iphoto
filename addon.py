@@ -801,13 +801,16 @@ if (__name__ == "__main__"):
 	items = iphoto.main_menu()
 
 	if (iphoto.auto_update_lib == "true"):
-	    tmpfile = iphoto.xmlfile + ".new"
-	    copyfile(iphoto.origxml, tmpfile)
-	    if (os.path.isfile(iphoto.xmlfile) and md5sum(tmpfile) == md5sum(iphoto.xmlfile)):
-		os.remove(tmpfile)
-	    else:
-		os.rename(tmpfile, iphoto.xmlfile)
-		update_lib = True
+	    try:
+		tmpfile = iphoto.xmlfile + ".new"
+		copyfile(iphoto.origxml, tmpfile)
+		if (os.path.isfile(iphoto.xmlfile) and md5sum(tmpfile) == md5sum(iphoto.xmlfile)):
+		    os.remove(tmpfile)
+		else:
+		    os.rename(tmpfile, iphoto.xmlfile)
+		    update_lib = True
+	    except:
+		pass
     else:
 	# actions that don't require a database connection
 	if (action == "resetdb"):
