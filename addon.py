@@ -404,6 +404,7 @@ class IPhotoGUI:
 
 	sort_date = False
 	n = 0
+	ntotal = len(media)
 	for (caption, mediapath, thumbpath, originalpath, rating, mediadate, mediasize) in media:
 	    if (not mediapath):
 		mediapath = originalpath
@@ -425,7 +426,7 @@ class IPhotoGUI:
 		except:
 		    pass
 
-		plugin.addDirectoryItem(handle=int(sys.argv[1]), url=mediapath, listitem=item, isFolder=False)
+		plugin.addDirectoryItem(handle=int(sys.argv[1]), url=mediapath, listitem=item, isFolder=False, totalItems=ntotal)
 		n += 1
 
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
@@ -433,6 +434,7 @@ class IPhotoGUI:
 	if (sort_date == True):
 	    plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_DATE)
 
+	print "iphoto.gui: Displaying %d of %d media items" % (n, ntotal)
 	return n
 
     def list_photos_in_album(self, albumid):
@@ -448,11 +450,13 @@ class IPhotoGUI:
 
 	albums = self.db.GetAlbums()
 	if (not albums):
+	    print "iphoto.gui: No albums to display"
 	    return 0
 
 	self.generic_context_menu_items()
 
 	n = 0
+	ntotal = len(albums)
 	for (albumid, name, count) in albums:
 	    if (name == "Photos"):
 		continue
@@ -462,7 +466,7 @@ class IPhotoGUI:
 
 	    item = gui.ListItem(name, iconImage=ICON_FOLDER, thumbnailImage=ICON_FOLDER)
 	    item.addContextMenuItems(self.context_menu_items, True)
-	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem = item, isFolder = True, totalItems = count)
+	    plugin.addDirectoryItem(handle=int(sys.argv[1]), url=BASE_URL+"?action=albums&albumid=%s" % (albumid), listitem=item, isFolder=True, totalItems=ntotal)
 	    n += 1
 
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
@@ -477,6 +481,7 @@ class IPhotoGUI:
 		    self.view_mode = 0
 		addon.setSetting(SKIN_NAME + '_view_albums', str(self.view_mode))
 
+	print "iphoto.gui: Displaying %d of %d albums" % (n, ntotal)
 	return n
 
     def list_photos_in_event(self, rollid):
@@ -496,12 +501,14 @@ class IPhotoGUI:
 
 	rolls = self.db.GetRolls()
 	if (not rolls):
+	    print "iphoto.gui: No events to display"
 	    return 0
 
 	self.generic_context_menu_items()
 
 	sort_date = False
 	n = 0
+	ntotal = len(rolls)
 	for (rollid, name, thumbpath, rolldate, count) in rolls:
 	    if (not count and self.album_ign_empty == "true"):
 		continue
@@ -516,7 +523,7 @@ class IPhotoGUI:
 	    except:
 		pass
 
-	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=events&rollid=%s" % (rollid), listitem = item, isFolder = True, totalItems = count)
+	    plugin.addDirectoryItem(handle=int(sys.argv[1]), url=BASE_URL+"?action=events&rollid=%s" % (rollid), listitem=item, isFolder=True, totalItems=ntotal)
 	    n += 1
 
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
@@ -533,6 +540,7 @@ class IPhotoGUI:
 		    self.view_mode = 0
 		addon.setSetting(SKIN_NAME + '_view_events', str(self.view_mode))
 
+	print "iphoto.gui: Displaying %d of %d events" % (n, ntotal)
 	return n
 
     def list_photos_with_face(self, faceid):
@@ -548,18 +556,20 @@ class IPhotoGUI:
 
 	faces = self.db.GetFaces()
 	if (not faces):
+	    print "iphoto.gui: No faces to display"
 	    return 0
 
 	self.generic_context_menu_items()
 
 	n = 0
+	ntotal = len(faces)
 	for (faceid, name, thumbpath, count) in faces:
 	    if (not count and self.album_ign_empty == "true"):
 		continue
 
 	    item = gui.ListItem(name, iconImage=thumbpath, thumbnailImage=thumbpath)
 	    item.addContextMenuItems(self.context_menu_items, True)
-	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=faces&faceid=%s" % (faceid), listitem = item, isFolder = True, totalItems = count)
+	    plugin.addDirectoryItem(handle=int(sys.argv[1]), url=BASE_URL+"?action=faces&faceid=%s" % (faceid), listitem=item, isFolder=True, totalItems=ntotal)
 	    n += 1
 
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
@@ -574,6 +584,7 @@ class IPhotoGUI:
 		    self.view_mode = 59			# Gallary Fanart
 		addon.setSetting(SKIN_NAME + '_view_faces', str(self.view_mode))
 
+	print "iphoto.gui: Displaying %d of %d faces" % (n, ntotal)
 	return n
 
     def list_photos_with_place(self, placeid):
@@ -589,11 +600,13 @@ class IPhotoGUI:
 
 	places = self.db.GetPlaces()
 	if (not places):
+	    print "iphoto.gui: No places to display"
 	    return 0
 
 	self.generic_context_menu_items()
 
 	n = 0
+	ntotal = len(places)
 	for (placeid, latlon, address, thumbpath, fanartpath, count) in places:
 	    if (not count and self.album_ign_empty == "true"):
 		continue
@@ -612,7 +625,7 @@ class IPhotoGUI:
 	    if (self.places_fanart == True and fanartpath):
 		item.setProperty("Fanart_Image", fanartpath)
 
-	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=places&placeid=%s" % (placeid), listitem = item, isFolder = True, totalItems = count)
+	    plugin.addDirectoryItem(handle=int(sys.argv[1]), url=BASE_URL+"?action=places&placeid=%s" % (placeid), listitem=item, isFolder=True, totalItems=ntotal)
 	    n += 1
 
 	if (n > 0):
@@ -628,6 +641,7 @@ class IPhotoGUI:
 		    self.view_mode = 59			# Gallary Fanart
 		addon.setSetting(SKIN_NAME + '_view_places', str(self.view_mode))
 
+	print "iphoto.gui: Displaying %d of %d places" % (n, ntotal)
 	return n
 
     def list_photos_with_keyword(self, keywordid):
@@ -648,6 +662,7 @@ class IPhotoGUI:
 
 	keywords = self.db.GetKeywords()
 	if (not keywords):
+	    print "iphoto.gui: No keywords to display"
 	    return 0
 
 	hidden_keywords = addon.getSetting('hidden_keywords')
@@ -655,6 +670,7 @@ class IPhotoGUI:
 	self.generic_context_menu_items()
 
 	n = 0
+	ntotal = len(keywords)
 	for (keywordid, name, count) in keywords:
 	    if (name in hidden_keywords):
 		continue
@@ -665,7 +681,7 @@ class IPhotoGUI:
 	    item = gui.ListItem(name, iconImage=ICON_FOLDER, thumbnailImage=ICON_FOLDER)
 	    self.context_menu_items.append((addon.getLocalizedString(30214), "XBMC.RunPlugin(\""+BASE_URL+"?action=hidekeyword&keyword=%s\")" % (name),))
 	    item.addContextMenuItems(self.context_menu_items, True)
-	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem = item, isFolder = True, totalItems = count)
+	    plugin.addDirectoryItem(handle=int(sys.argv[1]), url=BASE_URL+"?action=keywords&keywordid=%s" % (keywordid), listitem=item, isFolder=True, totalItems=ntotal)
 	    n += 1
 
 	if (n > 0):
@@ -681,6 +697,7 @@ class IPhotoGUI:
 		    self.view_mode = 0
 		addon.setSetting(SKIN_NAME + '_view_keywords', str(self.view_mode))
 
+	print "iphoto.gui: Displaying %d of %d keywords" % (n, ntotal)
 	return n
 
     def list_photos_with_rating(self, rating):
@@ -706,7 +723,7 @@ class IPhotoGUI:
 	    rating = addon.getLocalizedString(30200) % (a)
 	    item = gui.ListItem(rating, iconImage=ICON_STAR % (a), thumbnailImage=ICON_STAR % (a))
 	    item.addContextMenuItems(self.context_menu_items, True)
-	    plugin.addDirectoryItem(handle = int(sys.argv[1]), url=BASE_URL+"?action=ratings&rating=%d" % (a), listitem = item, isFolder = True)
+	    plugin.addDirectoryItem(handle=int(sys.argv[1]), url=BASE_URL+"?action=ratings&rating=%d" % (a), listitem=item, isFolder=True, totalItems=5)
 	    n += 1
 
 	plugin.addSortMethod(int(sys.argv[1]), plugin.SORT_METHOD_UNSORTED)
