@@ -62,9 +62,6 @@
     <string id="30016">Show Places as</string>
     <string id="30017">Addresses</string>
     <string id="30018">Lat/Lon Pairs</string>
-    <string id="30020">Default photo sort method</string>
-    <string id="30021">None</string>
-    <string id="30022">XML Date</string>
     <string id="30025">Download maps from Google</string>
     <string id="30026">Show map as fanart</string>
     <string id="30027">Managed Library (change requires rescan)</string>
@@ -74,15 +71,22 @@
 
 
     <!-- Plugin settings Skin strings -->
+    <string id="30020">Default photo sort method</string>
+    <string id="30021">None</string>
+    <string id="30022">XML Date</string>
+    <string id="30023">Label</string>
+    <string id="30024">Size</string>
     <string id="30060">View mode in Confluence</string>
     <string id="30061">Default</string>
     <string id="30062">Pic Thumbs</string>
     <string id="30063">Image Wrap</string>
-
     <string id="30066">View mode in Metropolis</string>
     <string id="30067">Default</string>
     <string id="30068">Picture Grid</string>
     <string id="30069">Galary Fanart</string>
+    <string id="30080">Default photo sort direction</string>
+    <string id="30081">Ascending</string>
+    <string id="30082">Descending</string>
 
 
     <!-- Plugin settings Categories strings -->
