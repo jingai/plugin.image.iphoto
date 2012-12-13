@@ -16,6 +16,8 @@
     <string id="30016">Zobraziť Miesta ako</string>
     <string id="30017">Adresy</string>
     <string id="30018">Zemepisná šírka/dľžka</string>
+
+    <!-- Plugin settings Skin strings -->
     <string id="30020">Predvolené zoradenie fotiek</string>
     <string id="30021">Žiadne</string>
     <string id="30022">XML Dátum</string>
@@ -25,8 +27,6 @@
     <string id="30028">Lokálna koreňová cesta k Masters</string>
     <string id="30029">Prepísať koreňovú cestu na</string>
     <string id="30030">Skryť položku 'Zobraziť Dokumentáciu' v hlavnom menu</string>
-
-    <!-- Plugin settings Skin strings -->
     <string id="30060">Režim zobrazenia v Confluence</string>
     <string id="30061">Predvolené</string>
     <string id="30062">Náhľady obrázku</string>
