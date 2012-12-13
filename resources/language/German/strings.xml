@@ -7,21 +7,26 @@
     <!-- Plugin settings strings -->
     <string id="30000">Pfad zu iPhoto- oder Aperture-Bibliothek</string>
     <string id="30001">Ignoriere veröffentlichte (MobileMe-) Alben</string>
+    <string id="30002">Ignorierte 'geflaggte' Alben</string>
     <string id="30003">Bibliothek automatisch aktualisieren</string>
+    <string id="30004">Verstecke Aktualisiere Datenbank Punkt im Hauptmenü</string>
     <string id="30005">Ignoriere leere Alben</string>
     <string id="30006">Ignoriere Schlüsselwörter</string>
     <string id="30015">Aktiviere Plätze-Unterstützung</string>
     <string id="30016">Zeige Plätze als</string>
     <string id="30017">Adressen</string>
     <string id="30018">Längen-/Breitengradpaare</string>
+
+    <!-- Plugin settings Skin strings -->
     <string id="30020">Standard-Fotosortiermethode</string>
     <string id="30021">Keine</string>
     <string id="30022">XML-Datum</string>
     <string id="30025">Karte von Google laden</string>
+    <string id="30026">Zeige Karte als Fanart</string>
     <string id="30027">Verwaltete Bibliothek (benötigt erneuten Suchlauf)</string>
+    <string id="30028">Lokaler Stammpfad</string>
+    <string id="30029">Schreibe Stammpfad als</string>
     <string id="30030">Verstecke "Zeige Handbuch" im Hauptmenü</string>
-
-    <!-- Plugin settings Skin strings -->
     <string id="30060">Zeige Modus in Confluence</string>
     <string id="30061">Standard</string>
     <string id="30062">Foto-Vorschaubilder</string>
