@@ -9,12 +9,29 @@
     <string id="30001">Publikált (MobileMe) albumok figyelmen kívül hagyása</string>
     <string id="30002">A 'Flagged' albumok figyelmen kívül hagyása</string>
     <string id="30003">A könyvtár auto-frissítése</string>
+    <string id="30021">Nincs</string>
+    <string id="30023">Kiadó</string>
+    <string id="30024">Méret</string>
+    <string id="30060">Nézetmód a Confluence felszínnel</string>
+    <string id="30061">Alapérték</string>
+    <string id="30062">Miniképek</string>
+    <string id="30063">Képborító</string>
+    <string id="30067">Alapérték</string>
+    <string id="30081">Növekvő</string>
+    <string id="30082">Csökkenő</string>
+
+    <!-- Plugin settings Categories strings -->
+    <string id="30090">Menük</string>
+    <string id="30091">Nézet</string>
+    <string id="30092">Felszín</string>
+    <string id="30099">Haladó</string>
 
     <!-- Category strings -->
     <string id="30100">Események</string>
     <string id="30101">Albumok</string>
     <string id="30102">Besorolások</string>
     <string id="30103">&lt;&lt; iPhoto könyvtár importálása &gt;&gt;</string>
+    <string id="30104">Kulcsszavak</string>
 
     <!-- Plugin strings -->
     <string id="30200">%d csillag</string>

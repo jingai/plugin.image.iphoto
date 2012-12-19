@@ -21,6 +21,8 @@
     <string id="30020">Domyśłna metoda sortowania zdjęć</string>
     <string id="30021">Żaden</string>
     <string id="30022">Data XML</string>
+    <string id="30023">Wytwórnia</string>
+    <string id="30024">Size</string>
     <string id="30025">Pobierz mapy z Google</string>
     <string id="30026">Pokaż mapę jako fanart</string>
     <string id="30027">Zarządzaj biblioteką (zmiana wymaga przeskanowania)</string>
@@ -35,6 +37,9 @@
     <string id="30067">Domyśłny</string>
     <string id="30068">Kratowanie zdjęcia</string>
     <string id="30069">Galeria Fanart</string>
+    <string id="30080">Domyślny kierunek sortownia zdjęć</string>
+    <string id="30081">Rosnąco</string>
+    <string id="30082">Malejąco</string>
 
     <!-- Plugin settings Categories strings -->
     <string id="30090">Ogólny</string>

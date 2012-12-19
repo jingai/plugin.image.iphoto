@@ -10,6 +10,7 @@
     <extension point="xbmc.addon.metadata">
 	<summary lang="be">Imports iPhoto library into XBMC.</summary>
 	<summary lang="bg">Внася iPhoto библиотека в XBMC</summary>
+	<summary lang="da">Importerer iPhoto-bibliotek til XBMC</summary>
 	<summary lang="de">Import Ihre iPhoto-Bibliothek in XBMC</summary>
 	<summary lang="el">Εισάγει συλλογές iPhoto στο XBMC.</summary>
 	<summary lang="en">Imports iPhoto library into XBMC.</summary>
@@ -19,13 +20,16 @@
 	<summary lang="ja">iPhoto ライブラリを XBMC に読み込む</summary>
 	<summary lang="lt">Importuoti iPhoto biblioteka i XBMC.</summary>
 	<summary lang="nl">Imports iPhoto library into XBMC.</summary>
+	<summary lang="no">Importer iPhoto bibloteket til XBMC</summary>
 	<summary lang="pl">Importuj bibliotekę iPhoto prosto do XBMC</summary>
 	<summary lang="pt">Importa bibliotecas iPhoto para o XBMC.</summary>
 	<summary lang="pt_BR">Importar Coleção iPhoto para o XBMC</summary>
+	<summary lang="ru">Импортировать iPhoto библиотеку в XBMC</summary>
 	<summary lang="sk">Importuje iPhoto knižnicu do XBMC</summary>
 	<summary lang="sv">Importerar iPhoto-bibliotek till XBMC.</summary>
 	<description lang="be">Imports iPhoto library into Events, Albums, Faces, Places, Keywords, and Ratings categories.[CR][CR]For more information, see the README at http://github.com/jingai/plugin.image.iphoto</description>
 	<description lang="bg">Внася iPhoto библиотека в следните категории: Събития, Албуми, Лица, Места, Ключови думи и Оценки.[CR][CR]За повече информация прочетете файла README на адрес http://github.com/jingai/plugin.image.iphoto</description>
+	<description lang="da">Importerer iPhoto-bibliotek til kategorierne Begivenheder, Albummer, Ansigter, Steder, Nøgleord og Ratings.[CR][CR]For mere information, se README-filen på http://github.com/jingai/plugin.image.iphoto</description>
 	<description lang="de">Importiert die iPhoto Datenbank in Veranstaltungen, Alben, Gesichter, Orte, Stichwörter und Bewertungskategorien. [CR][CR]Für mehr Informationen, siehe README unter http://github.com/jingai/plugin.image.iphoto</description>
 	<description lang="el">Εισάγει συλλογές iPhoto στις κατηγορίες Γεγονότα, Άλμπουμ, Πρόσωπα, Τοποθεσίες, Λέξεις Κλειδιά και Αξιολογήσεις.[CR][CR]Για περισσότερες πληροφορίες, δείτε το README στην ιστοσελίδα http://github.com/jingai/plugin.image.iphoto</description>
 	<description lang="en">Imports iPhoto library into Events, Albums, Faces, Places, Keywords, and Ratings categories.[CR][CR]For more information, see the README at http://github.com/jingai/plugin.image.iphoto</description>
