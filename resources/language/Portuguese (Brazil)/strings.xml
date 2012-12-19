@@ -21,6 +21,8 @@
     <string id="30020">Método ordenar foto padrão</string>
     <string id="30021">Nenhum</string>
     <string id="30022">Dados XML</string>
+    <string id="30023">Gravadora/marca</string>
+    <string id="30024">Tamanho</string>
     <string id="30025">Download Mapas do Google</string>
     <string id="30026">Mostrar mapa como fanart</string>
     <string id="30027">Coleção Administrada (alterar  vai requerer reescanear)</string>
@@ -35,6 +37,9 @@
     <string id="30067">Default</string>
     <string id="30068">Grade Imagem</string>
     <string id="30069">Galeria Fanart</string>
+    <string id="30080">Direção de ordenamento padrão para fotos.</string>
+    <string id="30081">Crescente</string>
+    <string id="30082">Decrescente</string>
 
     <!-- Plugin settings Categories strings -->
     <string id="30090">Geral</string>
