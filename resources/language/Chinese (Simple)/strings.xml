@@ -4,6 +4,15 @@
 <!-- Report language file syntax bugs at: alanwww1@xbmc.org -->
 
 <strings>
+    <!-- Plugin settings strings -->
+    <string id="30000">iPhoto或Aperture照片库路径</string>
+    <string id="30001">忽略已发布相册(MobileMe)</string>
+    <string id="30002">忽略有标记的相册</string>
+    <string id="30003">自动更新照片库</string>
+    <string id="30004">主菜单中隐藏“更新照片库项目”</string>
+    <string id="30005">忽略空相册</string>
+    <string id="30006">忽略关键字</string>
+    <string id="30015">启用Places支持</string>
     <string id="30021">无</string>
     <string id="30023">标签</string>
     <string id="30024">大小</string>
