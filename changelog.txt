@@ -1,3 +1,6 @@
+2.1.0 - 20130109
+- Frodo release.
+
 2.0.3 - 20130108
 - Update language files from Transifex.
 
