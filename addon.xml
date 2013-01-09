@@ -27,6 +27,7 @@
 	<summary lang="ru">Импортировать iPhoto библиотеку в XBMC</summary>
 	<summary lang="sk">Importuje iPhoto knižnicu do XBMC</summary>
 	<summary lang="sv">Importerar iPhoto-bibliotek till XBMC.</summary>
+	<summary lang="zh">导入iPhoto照片库到XBMC</summary>
 	<description lang="be">Imports iPhoto library into Events, Albums, Faces, Places, Keywords, and Ratings categories.[CR][CR]For more information, see the README at http://github.com/jingai/plugin.image.iphoto</description>
 	<description lang="bg">Внася iPhoto библиотека в следните категории: Събития, Албуми, Лица, Места, Ключови думи и Оценки.[CR][CR]За повече информация прочетете файла README на адрес http://github.com/jingai/plugin.image.iphoto</description>
 	<description lang="da">Importerer iPhoto-bibliotek til kategorierne Begivenheder, Albummer, Ansigter, Steder, Nøgleord og Ratings.[CR][CR]For mere information, se README-filen på http://github.com/jingai/plugin.image.iphoto</description>
