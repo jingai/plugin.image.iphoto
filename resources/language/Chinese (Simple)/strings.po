@@ -1,0 +1,117 @@
+# XBMC Media Center language file
+# Addon Name: iPhoto
+# Addon id: plugin.image.iphoto
+# Addon Provider: jingai
+msgid ""
+msgstr ""
+"Project-Id-Version: XBMC Addons\n"
+"Report-Msgid-Bugs-To: alanwww1@xbmc.org\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: XBMC Translation Team\n"
+"Language-Team: Chinese (Simple) (http://www.transifex.com/projects/p/xbmc-addons/language/zh/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgctxt "#30000"
+msgid "Path to iPhoto or Aperture Library"
+msgstr "iPhoto或Aperture照片库路径"
+
+msgctxt "#30001"
+msgid "Ignore published (MobileMe) albums"
+msgstr "忽略已发布相册(MobileMe)"
+
+msgctxt "#30002"
+msgid "Ignore 'Flagged' album"
+msgstr "忽略有标记的相册"
+
+msgctxt "#30003"
+msgid "Auto update library"
+msgstr "自动更新照片库"
+
+msgctxt "#30004"
+msgid "Hide Update Library item in main menu"
+msgstr "主菜单中隐藏“更新照片库项目”"
+
+msgctxt "#30005"
+msgid "Ignore empty albums"
+msgstr "忽略空相册"
+
+msgctxt "#30006"
+msgid "Ignore keywords"
+msgstr "忽略关键字"
+
+msgctxt "#30015"
+msgid "Enable Places support"
+msgstr "启用Places支持"
+
+msgctxt "#30021"
+msgid "None"
+msgstr "无"
+
+msgctxt "#30023"
+msgid "Label"
+msgstr "标签"
+
+msgctxt "#30024"
+msgid "Size"
+msgstr "大小"
+
+msgctxt "#30060"
+msgid "View mode in Confluence"
+msgstr "Confluence下浏览模式"
+
+msgctxt "#30061"
+msgid "Default"
+msgstr "Default"
+
+msgctxt "#30062"
+msgid "Pic Thumbs"
+msgstr "图片缩略图"
+
+msgctxt "#30063"
+msgid "Image Wrap"
+msgstr "图片卷动"
+
+msgctxt "#30067"
+msgid "Default"
+msgstr "Default"
+
+msgctxt "#30081"
+msgid "Ascending"
+msgstr "升序"
+
+msgctxt "#30082"
+msgid "Descending"
+msgstr "降序"
+
+msgctxt "#30090"
+msgid "General"
+msgstr "菜单选项"
+
+msgctxt "#30091"
+msgid "View"
+msgstr "视图"
+
+msgctxt "#30092"
+msgid "Skin"
+msgstr "皮肤"
+
+msgctxt "#30099"
+msgid "Advanced"
+msgstr "高级"
+
+msgctxt "#30101"
+msgid "Albums"
+msgstr "专辑"
+
+msgctxt "#30104"
+msgid "Keywords"
+msgstr "关键字"
+
+msgctxt "#30213"
+msgid "Update library"
+msgstr "更新资料库"
