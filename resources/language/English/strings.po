@@ -254,17 +254,17 @@ msgid "Remove cached maps"
 msgstr ""
 
 msgctxt "#30216"
-msgid "Reset addon database"
+msgid "Reset add-on database"
 msgstr ""
 
 msgctxt "#30217"
-msgid "Addon documentation"
+msgid "Add-on documentation"
 msgstr ""
 
 #empty string with id 30218
 
 msgctxt "#30219"
-msgid "Resetting addon database..."
+msgid "Resetting add-on database..."
 msgstr ""
 
 msgctxt "#30220"
@@ -286,11 +286,11 @@ msgstr ""
 #empty strings from id 30224 to 30229
 
 msgctxt "#30230"
-msgid "Delete addon database?"
+msgid "Delete add-on database?"
 msgstr ""
 
 msgctxt "#30231"
-msgid "Addon database is corrupt."
+msgid "Add-on database is corrupt."
 msgstr ""
 
 msgctxt "#30232"
@@ -304,7 +304,7 @@ msgstr ""
 #empty strings from id 30234 to 30239
 
 msgctxt "#30240"
-msgid "Failed to initialize addon database."
+msgid "Failed to initialize add-on database."
 msgstr ""
 
 msgctxt "#30241"
