@@ -192,29 +192,9 @@ msgctxt "#30215"
 msgid "Remove cached maps"
 msgstr "캐시된 지도 제거"
 
-msgctxt "#30216"
-msgid "Reset addon database"
-msgstr "추가기능 데이터베이스 초기화"
-
-msgctxt "#30219"
-msgid "Resetting addon database..."
-msgstr "추가기능 데이터베이스 초기화 중..."
-
 msgctxt "#30220"
 msgid "Enable Support for Places?"
 msgstr "장소 지원을 사용하겠습니까?"
-
-msgctxt "#30230"
-msgid "Delete addon database?"
-msgstr "추가기능 데이터베이스를 삭제하겠습니까?"
-
-msgctxt "#30231"
-msgid "Addon database is corrupt."
-msgstr "추가기능 데이터베이스가 손상되었습니다."
-
-msgctxt "#30240"
-msgid "Failed to initialize addon database."
-msgstr "추가기능 데이터베이스 초기화 실패."
 
 msgctxt "#30241"
 msgid "Please reimport your Library."

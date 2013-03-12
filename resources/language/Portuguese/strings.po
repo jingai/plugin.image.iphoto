@@ -228,18 +228,6 @@ msgctxt "#30215"
 msgid "Remove cached maps"
 msgstr "Remover mapas em cache"
 
-msgctxt "#30216"
-msgid "Reset addon database"
-msgstr "Reinicializar a base de dados do addon"
-
-msgctxt "#30217"
-msgid "Addon documentation"
-msgstr "Documentação do addon"
-
-msgctxt "#30219"
-msgid "Resetting addon database..."
-msgstr "Reinicializando a base de dados do addon..."
-
 msgctxt "#30220"
 msgid "Enable Support for Places?"
 msgstr "Activar Suporte para Lugares?"
@@ -256,14 +244,6 @@ msgctxt "#30223"
 msgid "You will also need to reimport your library."
 msgstr "Também necessitará de reimportar a sua biblioteca."
 
-msgctxt "#30230"
-msgid "Delete addon database?"
-msgstr "Apagar a base de dados do addon?"
-
-msgctxt "#30231"
-msgid "Addon database is corrupt."
-msgstr "A base de dados do addon está corrupta."
-
 msgctxt "#30232"
 msgid "Deleting it will not harm your Photo Library."
 msgstr "Apagá-la não irá afectar a sua Biblioteca de Fotos."
@@ -271,10 +251,6 @@ msgstr "Apagá-la não irá afectar a sua Biblioteca de Fotos."
 msgctxt "#30233"
 msgid "You will need to rescan after this."
 msgstr "Será necessária uma reanálise depois disto."
-
-msgctxt "#30240"
-msgid "Failed to initialize addon database."
-msgstr "A inicialização da base de dados do addon falhou."
 
 msgctxt "#30241"
 msgid "Please reimport your Library."

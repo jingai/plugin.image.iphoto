@@ -229,15 +229,15 @@ msgid "Remove cached maps"
 msgstr "Ta bort buffrade kartor"
 
 msgctxt "#30216"
-msgid "Reset addon database"
+msgid "Reset add-on database"
 msgstr "Återställ tilläggsdatabas"
 
 msgctxt "#30217"
-msgid "Addon documentation"
+msgid "Add-on documentation"
 msgstr "Tilläggsdokumentation"
 
 msgctxt "#30219"
-msgid "Resetting addon database..."
+msgid "Resetting add-on database..."
 msgstr "Återställer tilläggsdatabas..."
 
 msgctxt "#30220"
@@ -257,12 +257,12 @@ msgid "You will also need to reimport your library."
 msgstr "Du behöver också återimportera ditt bibliotek."
 
 msgctxt "#30230"
-msgid "Delete addon database?"
+msgid "Delete add-on database?"
 msgstr "Ta bort tilläggsdatabas?"
 
 msgctxt "#30231"
-msgid "Addon database is corrupt."
-msgstr "Tilläggsdatabasen är korrupt."
+msgid "Add-on database is corrupt."
+msgstr "Tilläggsdatabas är korrupt."
 
 msgctxt "#30232"
 msgid "Deleting it will not harm your Photo Library."
@@ -273,8 +273,8 @@ msgid "You will need to rescan after this."
 msgstr "Du behöver skanna om igen efter detta."
 
 msgctxt "#30240"
-msgid "Failed to initialize addon database."
-msgstr "Misslyckades initiera tilläggsdatabasen."
+msgid "Failed to initialize add-on database."
+msgstr "Kunde inte initiera tilläggsdatabas."
 
 msgctxt "#30241"
 msgid "Please reimport your Library."

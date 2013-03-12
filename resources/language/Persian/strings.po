@@ -76,10 +76,6 @@ msgctxt "#30213"
 msgid "Update library"
 msgstr "بروزرسانی کتابخانه"
 
-msgctxt "#30230"
-msgid "Delete addon database?"
-msgstr "داده های افزونه ها حذف شود؟"
-
 msgctxt "#30302"
 msgid "Library import failed"
 msgstr "خطا در وارد کردن کتابخانه"

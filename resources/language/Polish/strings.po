@@ -229,16 +229,16 @@ msgid "Remove cached maps"
 msgstr "Usuń z pamięci podręcznej mapy"
 
 msgctxt "#30216"
-msgid "Reset addon database"
-msgstr "Resetuj bazę wtyczki"
+msgid "Reset add-on database"
+msgstr "Zerowanie bazy danych wtyczki"
 
 msgctxt "#30217"
-msgid "Addon documentation"
+msgid "Add-on documentation"
 msgstr "Dokumentacja wtyczki"
 
 msgctxt "#30219"
-msgid "Resetting addon database..."
-msgstr "Resetowanie bazy wtyczki..."
+msgid "Resetting add-on database..."
+msgstr "Trwa zerowanie bazy danych wtyczki..."
 
 msgctxt "#30220"
 msgid "Enable Support for Places?"
@@ -257,12 +257,12 @@ msgid "You will also need to reimport your library."
 msgstr "Dodatkowo potrzebne będzie przeimportowanie bazy."
 
 msgctxt "#30230"
-msgid "Delete addon database?"
-msgstr "Usunąc bazę wtyczki?"
+msgid "Delete add-on database?"
+msgstr "Usunąć bazę danych wtyczki?"
 
 msgctxt "#30231"
-msgid "Addon database is corrupt."
-msgstr "Baza wtyczki jest uszkodzona."
+msgid "Add-on database is corrupt."
+msgstr "Baza danych wtyczki jest zepsuta."
 
 msgctxt "#30232"
 msgid "Deleting it will not harm your Photo Library."
@@ -273,8 +273,8 @@ msgid "You will need to rescan after this."
 msgstr "Konieczne będzie ponowne skanowanie po tym."
 
 msgctxt "#30240"
-msgid "Failed to initialize addon database."
-msgstr "Nie udało się zainicjować bazę wtyczki"
+msgid "Failed to initialize add-on database."
+msgstr "Nieudana inicjacja bazy danych wtyczki."
 
 msgctxt "#30241"
 msgid "Please reimport your Library."
@@ -294,7 +294,7 @@ msgstr "Import biblioteki w toku"
 
 msgctxt "#30261"
 msgid "Unable to reset database."
-msgstr "Niemożna zresetować bazy"
+msgstr "Nie można wyzerować bazy danych."
 
 msgctxt "#30262"
 msgid "Currently unsupported"
@@ -322,11 +322,11 @@ msgstr "Brak pozycji"
 
 msgctxt "#30320"
 msgid "Database reset"
-msgstr "Reset bazy"
+msgstr "Zerowanie bazy danych"
 
 msgctxt "#30321"
 msgid "Failed to reset database"
-msgstr "Niepowodzenie restartu bazy"
+msgstr "Niepowodzenie zerowania bazy danych"
 
 msgctxt "#30322"
 msgid "Deleted %d cached maps"

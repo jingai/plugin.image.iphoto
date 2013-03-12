@@ -20,6 +20,10 @@ msgctxt "#30021"
 msgid "None"
 msgstr "Asnjë"
 
+msgctxt "#30023"
+msgid "Label"
+msgstr "Etiketë"
+
 msgctxt "#30024"
 msgid "Size"
 msgstr "Madhësija"
@@ -60,9 +64,17 @@ msgctxt "#30092"
 msgid "Skin"
 msgstr "Maska"
 
+msgctxt "#30099"
+msgid "Advanced"
+msgstr "Të shtuar"
+
 msgctxt "#30101"
 msgid "Albums"
 msgstr "Albumet"
+
+msgctxt "#30104"
+msgid "Keywords"
+msgstr "Keywords"
 
 msgctxt "#30213"
 msgid "Update library"

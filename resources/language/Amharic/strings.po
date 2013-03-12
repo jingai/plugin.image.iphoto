@@ -52,6 +52,10 @@ msgctxt "#30090"
 msgid "General"
 msgstr "ባጠቃላይ"
 
+msgctxt "#30091"
+msgid "View"
+msgstr "መመልከቻ"
+
 msgctxt "#30092"
 msgid "Skin"
 msgstr "ቆዳ"

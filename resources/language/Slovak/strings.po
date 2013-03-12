@@ -228,18 +228,6 @@ msgctxt "#30215"
 msgid "Remove cached maps"
 msgstr "Odstrániť načítané mapy"
 
-msgctxt "#30216"
-msgid "Reset addon database"
-msgstr "Resetovať databázu doplnkov"
-
-msgctxt "#30217"
-msgid "Addon documentation"
-msgstr "Dokumentácia doplnku"
-
-msgctxt "#30219"
-msgid "Resetting addon database..."
-msgstr "Resetovanie databázy doplnkov..."
-
 msgctxt "#30220"
 msgid "Enable Support for Places?"
 msgstr "Povoliť podporu pre Miesta?"
@@ -256,14 +244,6 @@ msgctxt "#30223"
 msgid "You will also need to reimport your library."
 msgstr "Budete musieť znovu importovať Vašu knižnicu."
 
-msgctxt "#30230"
-msgid "Delete addon database?"
-msgstr "Zmazať databázu doplnkov?"
-
-msgctxt "#30231"
-msgid "Addon database is corrupt."
-msgstr "Databáza doplnkov je poškodená."
-
 msgctxt "#30232"
 msgid "Deleting it will not harm your Photo Library."
 msgstr "Zmazanie nepoškodí Vašu Knižnicu Fotiek."
@@ -271,10 +251,6 @@ msgstr "Zmazanie nepoškodí Vašu Knižnicu Fotiek."
 msgctxt "#30233"
 msgid "You will need to rescan after this."
 msgstr "Budete musieť spustiť opätovné prehľadanie."
-
-msgctxt "#30240"
-msgid "Failed to initialize addon database."
-msgstr "Zlyhala inicializácia databázy doplnkov."
 
 msgctxt "#30241"
 msgid "Please reimport your Library."
