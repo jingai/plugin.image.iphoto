@@ -50,7 +50,7 @@ msgstr "Standaard"
 
 msgctxt "#30068"
 msgid "Picture Grid"
-msgstr "GRID"
+msgstr "Foto Raster"
 
 msgctxt "#30081"
 msgid "Ascending"
