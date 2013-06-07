@@ -513,7 +513,7 @@ class IPhotoGUI:
 	    if (not count and self.album_ign_empty == "true"):
 		continue
 
-            if (thumbpath != None):
+	    if (thumbpath != None):
 		item = gui.ListItem(name, iconImage=thumbpath, thumbnailImage=thumbpath)
 	    else:
 		item = gui.ListItem(name)
