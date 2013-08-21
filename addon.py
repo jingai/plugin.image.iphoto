@@ -393,7 +393,7 @@ class IPhotoGUI:
 	n = 0
 	ntotal = len(media)
 	for (caption, mediapath, thumbpath, originalpath, rating, mediadate, mediasize) in media:
-	    if (not mediapath):
+	    if ((self.dbSrc == "Aperture" and originalpath) or (not mediapath)):
 		mediapath = originalpath
 	    if (not thumbpath):
 		thumbpath = mediapath
