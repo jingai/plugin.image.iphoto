@@ -1,0 +1,212 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Plugin.image.iphoto by jingai</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/jingai/plugin.image.iphoto">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/jingai/plugin.image.iphoto/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/jingai/plugin.image.iphoto/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Plugin.image.iphoto</h1>
+          <p>Imports Apple iPhoto and Aperture libraries into XBMC.  Creates Events, Albums, Faces, Places, Keywords, and Ratings listings.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/jingai">jingai</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>
+<a name="iphoto-plugin-for-xbmc" class="anchor" href="#iphoto-plugin-for-xbmc"><span class="octicon octicon-link"></span></a>iPhoto plugin for XBMC</h1>
+
+<p>This plugin imports an iPhoto or Aperture library into XBMC.  After importing,
+you will see categories that correspond with their application counterparts:</p>
+
+<ul>
+<li>Events/Projects</li>
+<li>Albums</li>
+<li>Faces</li>
+<li>Places</li>
+<li>Keywords</li>
+<li>Ratings</li>
+</ul><p>Your photo library can reside locally (on the machine on which you run XBMC)
+or can be located on a network share.</p>
+
+<h1>
+<a name="configuration" class="anchor" href="#configuration"><span class="octicon octicon-link"></span></a>Configuration</h1>
+
+<p>The plugin needs to know where your AlbumData.xml file is.  If you haven't
+explicitly pointed iPhoto to a non-standard library location, the default of
+"~/Pictures/iPhoto Library" should work fine.  Otherwise, please enter in the
+correct path in the plugin's settings dialog.</p>
+
+<p>Note that there is no default path if you're using Aperture.  You will need to
+specify the path to the library that contains the ApertureData.xml.  Aperture
+can support multiple libraries, but this plugin currently only supports one.</p>
+
+<p>ALSO NOTE: Aperture will ONLY generate the required ApertureData.xml if you
+have enabled "Share previews with iLife and iWork" in Preferences-&gt;Previews.</p>
+
+<p>The iPhoto plugin can also be configured to ignore certain album types.
+It is currently hard-coded to ignore albums of type "Book" and
+"Selected Event Album," but you can choose to ignore also:</p>
+
+<ul>
+<li>Empty -- albums with no pictures.</li>
+<li>Published -- MobileMe Gallery albums.</li>
+<li>Flagged -- albums flagged in your photo application's interface.</li>
+<li>Keywords -- any photos with these keywords will be hidden.</li>
+</ul><p>All of these album types are ignored by default.</p>
+
+<p>If you select "Auto update library", the plugin will compare the modification
+time of your Library's XML file with its current database and update the
+database automatically on start.  This is disabled by default, but is probably
+what you want after testing the plugin.</p>
+
+<p>You can also choose the view style for albums if you're using select skins.
+In Confluence, you may set this to "Image Wrap" or "Pic Thumbs".
+In Metropolis, you may set this to "Galary Fanart" or "Picture Grid".
+In all skins, if you choose "Default," it will preserve whatever view mode you
+have chosen in XBMC for each album; otherwise, it will force the view style to
+the one selected here.</p>
+
+<h1>
+<a name="referenced-and-managed-libraries" class="anchor" href="#referenced-and-managed-libraries"><span class="octicon octicon-link"></span></a>Referenced and Managed Libraries</h1>
+
+<p>iPhoto and Aperture give you the option of managing your photos for you, by
+placing a copy of them within the library itself, or referencing your
+originals, leaving them in their original location on the filesystem.</p>
+
+<p>If your library is managed, you will select "Managed Library" in the plugin
+settings (this is the default).</p>
+
+<p>If your library is referenced and you are running XBMC on the same machine
+that you use iPhoto or Aperture, you may also select "Managed Library".</p>
+
+<p>If your library is referenced and resides on a share over the network,
+you need to tell the plugin how to access the originals.  If on the
+machine you use iPhoto or Aperture your originals are accessed via, for
+instance, "/Volumes/Media/Pictures", they may not be mounted at the same point
+on the machine on which you run XBMC.  If this is the case, you will need to
+configure the "Local root path to masters" and "Rewrite root path as"
+options.</p>
+
+<h1>
+<a name="about-places-support" class="anchor" href="#about-places-support"><span class="octicon octicon-link"></span></a>About Places support</h1>
+
+<p>If the plugin is configured to support the Places feature of iPhoto or
+Aperture, it will parse the latitude/longitude pairs in the library and look
+up the corresponding addresses using Google.</p>
+
+<p>If Google reports one or more businesses near the coordinates, the plugin
+will use the name of the nearest business for the address to show in the
+Places category.  Otherwise, the street address will be used.  In both cases,
+the post code and country identifier are appended to the result.</p>
+
+<p>The Places feature can also download map images to display while you're
+browsing the Places category.  Normally, you won't need to do anything to get
+this feature, besides enabling it in the plugin configuration.  But, if you
+import your library many times within one day, Google may block you from
+retrieving map images.  If you receive a map image with a red X over it, the
+plugin won't re-download the map until you clear the map image caches.  You
+can do so by selecting "Remove cached maps" from the context menu of the
+Places category.</p>
+
+<h1>
+<a name="translations" class="anchor" href="#translations"><span class="octicon octicon-link"></span></a>Translations</h1>
+
+<p>If you'd like to help translate this plugin to another language, please send
+a patch to jingai at floatingpenguins dot com.</p>
+
+<p>If possible, patch against the most recent version at:</p>
+
+<p><a href="http://github.com/jingai/plugin.image.iphoto">http://github.com/jingai/plugin.image.iphoto</a></p>
+
+<h1>
+<a name="known-issues" class="anchor" href="#known-issues"><span class="octicon octicon-link"></span></a>Known Issues</h1>
+
+<ul>
+<li>Keywords are not supported in iPhoto 9.4 and all versions of Aperture.
+See <a href="http://github.com/jingai/plugin.image.iphoto/issues/4">http://github.com/jingai/plugin.image.iphoto/issues/4</a>
+</li>
+<li>Ratings are not supported in Aperture.
+See <a href="http://github.com/jingai/plugin.image.iphoto/issues/6">http://github.com/jingai/plugin.image.iphoto/issues/6</a>
+</li>
+<li>Selecting previous picture sometimes erroneously selects next instead
+See <a href="http://trac.xbmc.org/ticket/11826">http://trac.xbmc.org/ticket/11826</a>
+</li>
+<li>Can only set default view mode in select skins
+See <a href="http://trac.xbmc.org/ticket/9952">http://trac.xbmc.org/ticket/9952</a>
+</li>
+</ul><h1>
+<a name="assistance" class="anchor" href="#assistance"><span class="octicon octicon-link"></span></a>Assistance</h1>
+
+<p>If you need help getting the plugin to work, please visit my thread on the
+XBMC forums:</p>
+
+<p><a href="http://forum.xbmc.org/showthread.php?t=77612">http://forum.xbmc.org/showthread.php?t=77612</a></p>
+
+<p>When asking for help or reporting a potential bug, please be prepared to post
+your debug log from XBMC and, if you don't mind, your AlbumData.xml from your
+iPhoto library or ApertureData.xml from an Aperture library.  Remember to
+remove any private information from all files before posting them.</p>
+
+<p>For iOS platforms (AppleTV2, iPhone, iPad, etc) please read:</p>
+
+<p><a href="http://forum.xbmc.org/showthread.php?t=92480">http://forum.xbmc.org/showthread.php?t=92480</a></p>
+
+<p>For Mac:</p>
+
+<p><a href="http://forum.xbmc.org/showthread.php?t=47124">http://forum.xbmc.org/showthread.php?t=47124</a></p>
+
+<p>For Linux:</p>
+
+<p><a href="http://forum.xbmc.org/showthread.php?t=34655">http://forum.xbmc.org/showthread.php?t=34655</a></p>
+
+<p>For Windows:</p>
+
+<p><a href="http://forum.xbmc.org/showthread.php?t=42708">http://forum.xbmc.org/showthread.php?t=42708</a></p>
+
+<h1>
+<a name="credits" class="anchor" href="#credits"><span class="octicon octicon-link"></span></a>Credits</h1>
+
+<p>jingai (jingai at floatingpenguins dot com)
+Original code:</p>
+
+<ul>
+<li>Anoop Menon</li>
+<li>Nuka1195</li>
+<li>JMarshal
+Icons:</li>
+<li>Firnsy</li>
+<li>brsev (<a href="http://brsev.com#licensing">http://brsev.com#licensing</a>)</li>
+</ul>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
