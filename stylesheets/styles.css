@@ -827,6 +827,10 @@ section #title .credits.right {
   margin-left: -250px;
 }
 
+.screenshot {
+  margin-bottom: 12px;
+}
+
 @media print, screen and (max-width: 720px) {
   #title .credits {
     display: block;
