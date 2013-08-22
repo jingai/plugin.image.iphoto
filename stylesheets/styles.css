@@ -820,6 +820,13 @@ section #title .credits.right {
   float: right;
 }
 
+.icon {
+  width: 100px;
+  height: 100px;
+  float: left;
+  margin-left: -120px;
+}
+
 @media print, screen and (max-width: 720px) {
   #title .credits {
     display: block;
