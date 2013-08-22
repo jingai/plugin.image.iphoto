@@ -821,10 +821,10 @@ section #title .credits.right {
 }
 
 .icon {
-  width: 100px;
-  height: 100px;
+  width: 210px;
+  height: 210px;
   float: left;
-  margin-left: -120px;
+  margin-left: -180px;
 }
 
 @media print, screen and (max-width: 720px) {
