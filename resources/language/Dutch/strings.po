@@ -16,6 +16,14 @@ msgstr ""
 "Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgctxt "#30000"
+msgid "Path to iPhoto or Aperture Library"
+msgstr "Pad naar iPhoto of Aperture Bibliotheek"
+
+msgctxt "#30001"
+msgid "Ignore published (MobileMe) albums"
+msgstr "Negeer gepubliseerde (MobileMe) albums"
+
 msgctxt "#30002"
 msgid "Ignore 'Flagged' album"
 msgstr "Negeert 'Gemarkeerd' album"
@@ -80,6 +88,10 @@ msgctxt "#30027"
 msgid "Managed Library (change requires rescan)"
 msgstr "Beheerde bibliotheek (bij wijziging bijwerken nodig)"
 
+msgctxt "#30030"
+msgid "Hide View Documentation item in main menu"
+msgstr "Verberg bekijk documentatie in het hofdmenu"
+
 msgctxt "#30060"
 msgid "View mode in Confluence"
 msgstr "Weergavemodus in Confluence"
@@ -107,6 +119,10 @@ msgstr "Standaard"
 msgctxt "#30068"
 msgid "Picture Grid"
 msgstr "Foto Raster"
+
+msgctxt "#30069"
+msgid "Galary Fanart"
+msgstr "Galerij fanart"
 
 msgctxt "#30080"
 msgid "Default photo sort direction"
