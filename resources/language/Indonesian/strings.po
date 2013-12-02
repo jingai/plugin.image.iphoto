@@ -60,6 +60,10 @@ msgctxt "#30092"
 msgid "Skin"
 msgstr "Kulit"
 
+msgctxt "#30099"
+msgid "Advanced"
+msgstr "Tingkat Lanjut"
+
 msgctxt "#30101"
 msgid "Albums"
 msgstr "Album"
